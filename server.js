@@ -7,45 +7,109 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATA_DIR = path.join(__dirname, 'data');
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
-// ====== JSON FILE DATABASE ======
-function loadJSON(file, defaultVal) {
+// ====== VERCEL KV + DUAL-MODE DATA LAYER ======
+const isVercel = process.env.VERCEL;
+let kv = null;
+if (isVercel) {
+  try { const vkv = require('@vercel/kv'); kv = vkv.kv; } catch(e) { console.log('KV not available'); }
+}
+
+const DATA_DIR = path.join(__dirname, 'data');
+if (!isVercel && !fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
+// Sync versions for local dev
+function loadJSONSync(file, defaultVal) {
   const fp = path.join(DATA_DIR, file);
   try {
     if (fs.existsSync(fp)) return JSON.parse(fs.readFileSync(fp, 'utf-8'));
   } catch(e) {}
   return defaultVal ? JSON.parse(JSON.stringify(defaultVal)) : [];
 }
-
-function saveJSON(file, data) {
+function saveJSONSync(file, data) {
   fs.writeFileSync(path.join(DATA_DIR, file), JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// Initialize data files
-if (!fs.existsSync(path.join(DATA_DIR, 'admins.json'))) {
-  const hash = bcrypt.hashSync('61583398', 10);
-  saveJSON('admins.json', [{ id: 1, username: 'ST140', password_hash: hash, display_name: 'Super Admin', is_super: 1, created_at: new Date().toISOString() }]);
+// Async dual-mode: Vercel KV on cloud, JSON files locally
+async function loadJSON(file, defaultVal) {
+  if (isVercel && kv) {
+    const data = await kv.get(file);
+    if (data !== null && data !== undefined) return data;
+    // Seed from bundled data file
+    const seedFile = path.join(__dirname, 'data', file);
+    if (fs.existsSync(seedFile)) {
+      const seedData = JSON.parse(fs.readFileSync(seedFile, 'utf-8'));
+      await kv.set(file, seedData);
+      return seedData;
+    }
+    if (defaultVal) {
+      const seed = JSON.parse(JSON.stringify(defaultVal));
+      await kv.set(file, seed);
+      return seed;
+    }
+    return [];
+  }
+  return loadJSONSync(file, defaultVal);
 }
 
-if (!fs.existsSync(path.join(DATA_DIR, 'topics.json'))) {
-  saveJSON('topics.json', [
-    { id: 1, name: 'IPM 綜合害蟲管理', name_en: 'IPM Integrated Pest Management', order_num: 1 },
-    { id: 2, name: 'BIOKILL', name_en: 'BioKill Products & Methods', order_num: 2 },
-    { id: 3, name: '白蟻治理', name_en: 'Termite Treatment', order_num: 3 },
-    { id: 4, name: '職業安全', name_en: 'Occupational Safety', order_num: 4 },
-    { id: 5, name: '技術員手冊', name_en: 'Technician Manual', order_num: 5 },
-    { id: 6, name: '害蟲、蒼蠅及鼠患', name_en: 'Insect Pests, Flies & Rodent Control', order_num: 6 }
-  ]);
+async function saveJSON(file, data) {
+  if (isVercel && kv) {
+    await kv.set(file, data);
+    return;
+  }
+  saveJSONSync(file, data);
 }
 
-// Ensure other data files exist
-for (const f of ['employees.json', 'sessions.json', 'exam_results.json', 'essay_answers.json', 'exam_config.json']) {
-  if (!fs.existsSync(path.join(DATA_DIR, f))) saveJSON(f, []);
+// Async question loading (dual-mode)
+async function loadQuestions(type, topicId) {
+  const key = `questions_topic_${topicId}_${type}`;
+  if (isVercel && kv) {
+    const data = await kv.get(key);
+    if (data !== null && data !== undefined) return data;
+    const seedFile = path.join(__dirname, 'questions', `topic_${topicId}_${type}.json`);
+    if (fs.existsSync(seedFile)) {
+      const seedData = JSON.parse(fs.readFileSync(seedFile, 'utf-8'));
+      await kv.set(key, seedData);
+      return seedData;
+    }
+    return [];
+  }
+  const file = path.join(__dirname, 'questions', `topic_${topicId}_${type}.json`);
+  if (!fs.existsSync(file)) return [];
+  return JSON.parse(fs.readFileSync(file, 'utf-8'));
 }
 
-console.log('JSON database initialized in: ' + DATA_DIR);
+async function saveQuestions(type, topicId, data) {
+  const key = `questions_topic_${topicId}_${type}`;
+  if (isVercel && kv) {
+    await kv.set(key, data);
+    return;
+  }
+  const file = path.join(__dirname, 'questions', `topic_${topicId}_${type}.json`);
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+// Initialize data locally only (Vercel seeds on first request via loadJSON)
+if (!isVercel) {
+  if (!fs.existsSync(path.join(DATA_DIR, 'admins.json'))) {
+    const hash = bcrypt.hashSync('61583398', 10);
+    saveJSONSync('admins.json', [{ id: 1, username: 'ST140', password_hash: hash, display_name: 'Super Admin', is_super: 1, created_at: new Date().toISOString() }]);
+  }
+  if (!fs.existsSync(path.join(DATA_DIR, 'topics.json'))) {
+    saveJSONSync('topics.json', [
+      { id: 1, name: 'IPM 綜合害蟲管理', name_en: 'IPM Integrated Pest Management', order_num: 1 },
+      { id: 2, name: 'BIOKILL', name_en: 'BioKill Products & Methods', order_num: 2 },
+      { id: 3, name: '白蟻治理', name_en: 'Termite Treatment', order_num: 3 },
+      { id: 4, name: '職業安全', name_en: 'Occupational Safety', order_num: 4 },
+      { id: 5, name: '技術員手冊', name_en: 'Technician Manual', order_num: 5 },
+      { id: 6, name: '害蟲、蒼蠅及鼠患', name_en: 'Insect Pests, Flies & Rodent Control', order_num: 6 }
+    ]);
+  }
+  for (const f of ['employees.json', 'sessions.json', 'exam_results.json', 'essay_answers.json', 'exam_config.json']) {
+    if (!fs.existsSync(path.join(DATA_DIR, f))) saveJSONSync(f, []);
+  }
+  console.log('JSON database initialized in: ' + DATA_DIR);
+}
 
 // Middleware
 app.use(express.json());
@@ -60,17 +124,17 @@ function nowStr() {
 
 // Helper: get expiry time (current local + 8 hours)
 function expiresAtStr() {
-  const d = new Date(Date.now() + 16 * 3600000); // 8hr timezone + 8hr expiry
+  const d = new Date(Date.now() + 16 * 3600000);
   return d.toISOString().replace('T', ' ').substring(0, 19);
 }
 
 // Auth middleware
 function authRequired(userType) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     const sessionId = req.cookies.session_id;
     if (!sessionId) return res.status(401).json({ error: 'Not authenticated' });
 
-    const sessions = loadJSON('sessions.json', []);
+    const sessions = await loadJSON('sessions.json', []);
     const session = sessions.find(s => s.id === sessionId && s.user_type === userType && s.expires_at > nowStr());
     if (!session) return res.status(401).json({ error: 'Session expired or invalid' });
 
@@ -81,24 +145,24 @@ function authRequired(userType) {
 
 // ===== AUTH ROUTES =====
 
-app.post('/api/auth/employee-login', (req, res) => {
+app.post('/api/auth/employee-login', async (req, res) => {
   const { empNumber, password } = req.body;
   if (!empNumber || !password) return res.json({ success: false, error: '請輸入員工編號及密碼' });
 
-  const employees = loadJSON('employees.json', []);
+  const employees = await loadJSON('employees.json', []);
   const emp = employees.find(e => e.emp_number === empNumber);
   if (!emp) return res.json({ success: false, error: '員工編號不存在' });
   if (!bcrypt.compareSync(password, emp.password_hash))
     return res.json({ success: false, error: '密碼不正確' });
 
   const sessionId = uuidv4();
-  const sessions = loadJSON('sessions.json', []);
+  const sessions = await loadJSON('sessions.json', []);
   sessions.push({
     id: sessionId, user_type: 'employee', user_id: emp.id,
     username: emp.emp_number, created_at: nowStr(),
     expires_at: expiresAtStr()
   });
-  saveJSON('sessions.json', sessions);
+  await saveJSON('sessions.json', sessions);
 
   res.cookie('session_id', sessionId, { maxAge: 8 * 3600000, httpOnly: true });
   res.json({
@@ -107,32 +171,32 @@ app.post('/api/auth/employee-login', (req, res) => {
   });
 });
 
-app.post('/api/auth/admin-login', (req, res) => {
+app.post('/api/auth/admin-login', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.json({ success: false, error: '請輸入用戶名及密碼' });
 
-  const admins = loadJSON('admins.json', []);
+  const admins = await loadJSON('admins.json', []);
   const admin = admins.find(a => a.username === username);
   if (!admin) return res.json({ success: false, error: '用戶名不存在' });
   if (!bcrypt.compareSync(password, admin.password_hash))
     return res.json({ success: false, error: '密碼不正確' });
 
   const sessionId = uuidv4();
-  const sessions = loadJSON('sessions.json', []);
+  const sessions = await loadJSON('sessions.json', []);
   sessions.push({
     id: sessionId, user_type: 'admin', user_id: admin.id,
     username: admin.username, created_at: nowStr(),
     expires_at: expiresAtStr()
   });
-  saveJSON('sessions.json', sessions);
+  await saveJSON('sessions.json', sessions);
 
   res.cookie('session_id', sessionId, { maxAge: 8 * 3600000, httpOnly: true });
   res.json({ success: true, admin: { id: admin.id, username: admin.username, displayName: admin.display_name, isSuper: admin.is_super } });
 });
 
-app.post('/api/auth/change-password', authRequired('employee'), (req, res) => {
+app.post('/api/auth/change-password', authRequired('employee'), async (req, res) => {
   const { currentPassword, newPassword } = req.body;
-  const employees = loadJSON('employees.json', []);
+  const employees = await loadJSON('employees.json', []);
   const idx = employees.findIndex(e => e.id === req.session.user_id);
   const emp = employees[idx];
   if (!emp || !bcrypt.compareSync(currentPassword, emp.password_hash))
@@ -141,49 +205,49 @@ app.post('/api/auth/change-password', authRequired('employee'), (req, res) => {
     return res.json({ success: false, error: '新密碼至少4位' });
 
   emp.password_hash = bcrypt.hashSync(newPassword, 10);
-  saveJSON('employees.json', employees);
+  await saveJSON('employees.json', employees);
   res.json({ success: true });
 });
 
-app.post('/api/auth/admin-change-password', authRequired('admin'), (req, res) => {
+app.post('/api/auth/admin-change-password', authRequired('admin'), async (req, res) => {
   const { currentPassword, newPassword } = req.body;
-  const admins = loadJSON('admins.json', []);
+  const admins = await loadJSON('admins.json', []);
   const idx = admins.findIndex(a => a.id === req.session.user_id);
   const admin = admins[idx];
-  if (!bcrypt.compareSync(currentPassword, admin.password_hash))
+  if (!admin || !bcrypt.compareSync(currentPassword, admin.password_hash))
     return res.json({ success: false, error: '當前密碼不正確' });
 
   admin.password_hash = bcrypt.hashSync(newPassword, 10);
-  saveJSON('admins.json', admins);
+  await saveJSON('admins.json', admins);
   res.json({ success: true });
 });
 
-app.post('/api/auth/logout', (req, res) => {
+app.post('/api/auth/logout', async (req, res) => {
   const sessionId = req.cookies.session_id;
   if (sessionId) {
-    let sessions = loadJSON('sessions.json', []);
+    let sessions = await loadJSON('sessions.json', []);
     sessions = sessions.filter(s => s.id !== sessionId);
-    saveJSON('sessions.json', sessions);
+    await saveJSON('sessions.json', sessions);
   }
   res.clearCookie('session_id');
   res.json({ success: true });
 });
 
-app.get('/api/auth/check', (req, res) => {
+app.get('/api/auth/check', async (req, res) => {
   const sessionId = req.cookies.session_id;
   if (!sessionId) return res.json({ authenticated: false });
 
-  const sessions = loadJSON('sessions.json', []);
+  const sessions = await loadJSON('sessions.json', []);
   const session = sessions.find(s => s.id === sessionId && s.expires_at > nowStr());
   if (!session) return res.json({ authenticated: false });
 
   let userInfo = {};
   if (session.user_type === 'employee') {
-    const employees = loadJSON('employees.json', []);
+    const employees = await loadJSON('employees.json', []);
     const emp = employees.find(e => e.id === session.user_id);
     if (emp) userInfo = { empNumber: emp.emp_number, name: emp.name, level: emp.level, group: emp.group_name };
   } else {
-    const admins = loadJSON('admins.json', []);
+    const admins = await loadJSON('admins.json', []);
     const adm = admins.find(a => a.id === session.user_id);
     if (adm) userInfo = { username: adm.username, displayName: adm.display_name, isSuper: adm.is_super };
   }
@@ -193,8 +257,8 @@ app.get('/api/auth/check', (req, res) => {
 
 // ===== EMPLOYEE EXAM ROUTES =====
 
-app.get('/api/exam/current', authRequired('employee'), (req, res) => {
-  const employees = loadJSON('employees.json', []);
+app.get('/api/exam/current', authRequired('employee'), async (req, res) => {
+  const employees = await loadJSON('employees.json', []);
   const emp = employees.find(e => e.id === req.session.user_id);
   if (!emp) return res.json({ available: false, error: 'Employee not found' });
 
@@ -202,7 +266,7 @@ app.get('/api/exam/current', authRequired('employee'), (req, res) => {
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
-  const configs = loadJSON('exam_config.json', []);
+  const configs = await loadJSON('exam_config.json', []);
   const config = configs.find(c =>
     c.month === currentMonth && c.year === currentYear &&
     c.is_active === 1 &&
@@ -211,7 +275,7 @@ app.get('/api/exam/current', authRequired('employee'), (req, res) => {
 
   if (!config) return res.json({ available: false, reason: '當月沒有開放的考試' });
 
-  const results = loadJSON('exam_results.json', []);
+  const results = await loadJSON('exam_results.json', []);
   const existingResult = results.find(r =>
     r.employee_id === emp.id && r.topic_id === config.topic_id && r.month === currentMonth && r.year === currentYear
   );
@@ -222,7 +286,7 @@ app.get('/api/exam/current', authRequired('employee'), (req, res) => {
     case 'supervisor': mcCount = 20; maxWrong = 2; hasEssay = true; essayCount = 3; break;
   }
 
-  const topics = loadJSON('topics.json', []);
+  const topics = await loadJSON('topics.json', []);
   const topic = topics.find(t => t.id === config.topic_id);
 
   res.json({
@@ -244,18 +308,15 @@ app.get('/api/exam/current', authRequired('employee'), (req, res) => {
   });
 });
 
-app.get('/api/exam/questions/:topicId', authRequired('employee'), (req, res) => {
+app.get('/api/exam/questions/:topicId', authRequired('employee'), async (req, res) => {
   const { topicId } = req.params;
   const tid = parseInt(topicId);
-  const employees = loadJSON('employees.json', []);
+  const employees = await loadJSON('employees.json', []);
   const emp = employees.find(e => e.id === req.session.user_id);
   if (!emp) return res.json({ error: 'Employee not found' });
 
-  const questionsDir = path.join(__dirname, 'questions');
-  const mcFile = path.join(questionsDir, `topic_${tid}_mc.json`);
-  if (!fs.existsSync(mcFile)) return res.json({ error: '題庫尚未準備好' });
-
-  const mcQuestions = JSON.parse(fs.readFileSync(mcFile, 'utf-8'));
+  const mcQuestions = await loadQuestions('mc', tid);
+  if (!mcQuestions || mcQuestions.length === 0) return res.json({ error: '題庫尚未準備好' });
 
   let mcCount = 20, essayCount = 0;
   switch (emp.level) {
@@ -266,7 +327,6 @@ app.get('/api/exam/questions/:topicId', authRequired('employee'), (req, res) => 
   const group = emp.group_name || 'A';
   const groupIndex = ['A', 'B', 'C', 'D'].indexOf(group);
 
-  // Deterministic shuffle based on topic + month + employee ID (每个人的题目都不同)
   const shuffledMC = [...mcQuestions];
   while (shuffledMC.length < mcCount * 4) shuffledMC.push(...mcQuestions);
 
@@ -280,9 +340,8 @@ app.get('/api/exam/questions/:topicId', authRequired('employee'), (req, res) => 
 
   let selectedEssay = [];
   if (essayCount > 0) {
-    const essayFile = path.join(questionsDir, `topic_${tid}_essay.json`);
-    if (fs.existsSync(essayFile)) {
-      const essayQs = JSON.parse(fs.readFileSync(essayFile, 'utf-8'));
+    const essayQs = await loadQuestions('essay', tid);
+    if (essayQs && essayQs.length > 0) {
       const shuffledEssay = [...essayQs];
       for (let i = shuffledEssay.length - 1; i > 0; i--) {
         const j = (seedNum + i * 3 + 7) % (i + 1);
@@ -301,10 +360,10 @@ app.get('/api/exam/questions/:topicId', authRequired('employee'), (req, res) => 
   });
 });
 
-app.post('/api/exam/submit', authRequired('employee'), (req, res) => {
+app.post('/api/exam/submit', authRequired('employee'), async (req, res) => {
   const { topicId, mcAnswers, essayAnswers, timeUsed } = req.body;
   const tid = parseInt(topicId);
-  const employees = loadJSON('employees.json', []);
+  const employees = await loadJSON('employees.json', []);
   const emp = employees.find(e => e.id === req.session.user_id);
   if (!emp) return res.json({ success: false, error: 'Employee not found' });
 
@@ -312,17 +371,14 @@ app.post('/api/exam/submit', authRequired('employee'), (req, res) => {
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
-  // Check if already taken
-  const results = loadJSON('exam_results.json', []);
+  const results = await loadJSON('exam_results.json', []);
   const existing = results.find(r =>
     r.employee_id === emp.id && r.topic_id === tid && r.month === currentMonth && r.year === currentYear
   );
   if (existing) return res.json({ success: false, error: '已提交過此考試' });
 
-  // Load and score MC
-  const mcFile = path.join(__dirname, 'questions', `topic_${tid}_mc.json`);
-  if (!fs.existsSync(mcFile)) return res.json({ success: false, error: '題庫不存在' });
-  const mcQuestions = JSON.parse(fs.readFileSync(mcFile, 'utf-8'));
+  const mcQuestions = await loadQuestions('mc', tid);
+  if (!mcQuestions || mcQuestions.length === 0) return res.json({ success: false, error: '題庫不存在' });
 
   let mcCount = 20, maxWrong = 4, hasEssay = false;
   switch (emp.level) {
@@ -361,7 +417,6 @@ app.post('/api/exam/submit', authRequired('employee'), (req, res) => {
   const mcPassed = mcWrong <= maxWrong;
   const mcScorePercent = Math.round((mcCorrect / mcCount) * 100);
 
-  // Create result record
   const resultId = results.length > 0 ? Math.max(...results.map(r => r.id)) + 1 : 1;
   const newResult = {
     id: resultId,
@@ -384,15 +439,13 @@ app.post('/api/exam/submit', authRequired('employee'), (req, res) => {
     year: currentYear
   };
   results.push(newResult);
-  saveJSON('exam_results.json', results);
+  await saveJSON('exam_results.json', results);
 
-  // Save essay answers if supervisor
   if (hasEssay && essayAnswers) {
-    const essayFile = path.join(__dirname, 'questions', `topic_${tid}_essay.json`);
-    const allEssays = loadJSON('essay_answers.json', []);
+    const essayQs = await loadQuestions('essay', tid);
+    const allEssays = await loadJSON('essay_answers.json', []);
 
-    if (fs.existsSync(essayFile)) {
-      const essayQs = JSON.parse(fs.readFileSync(essayFile, 'utf-8'));
+    if (essayQs && essayQs.length > 0) {
       const shuffledEssay = [...essayQs];
       for (let i = shuffledEssay.length - 1; i > 0; i--) {
         const j = (seedNum + i * 3 + 7) % (i + 1);
@@ -413,7 +466,7 @@ app.post('/api/exam/submit', authRequired('employee'), (req, res) => {
           graded_at: null
         });
       }
-      saveJSON('essay_answers.json', allEssays);
+      await saveJSON('essay_answers.json', allEssays);
     }
   }
 
@@ -423,10 +476,10 @@ app.post('/api/exam/submit', authRequired('employee'), (req, res) => {
   });
 });
 
-app.get('/api/exam/my-results', authRequired('employee'), (req, res) => {
-  const results = loadJSON('exam_results.json', []);
-  const employees = loadJSON('employees.json', []);
-  const topics = loadJSON('topics.json', []);
+app.get('/api/exam/my-results', authRequired('employee'), async (req, res) => {
+  const results = await loadJSON('exam_results.json', []);
+  const employees = await loadJSON('employees.json', []);
+  const topics = await loadJSON('topics.json', []);
 
   const myResults = results.filter(r => r.employee_id === req.session.user_id)
     .sort((a, b) => b.submitted_at.localeCompare(a.submitted_at))
@@ -441,15 +494,15 @@ app.get('/api/exam/my-results', authRequired('employee'), (req, res) => {
 
 // ===== ADMIN ROUTES =====
 
-app.get('/api/admin/dashboard', authRequired('admin'), (req, res) => {
+app.get('/api/admin/dashboard', authRequired('admin'), async (req, res) => {
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
-  const employees = loadJSON('employees.json', []);
-  const configs = loadJSON('exam_config.json', []);
-  const results = loadJSON('exam_results.json', []);
-  const topics = loadJSON('topics.json', []);
+  const employees = await loadJSON('employees.json', []);
+  const configs = await loadJSON('exam_config.json', []);
+  const results = await loadJSON('exam_results.json', []);
+  const topics = await loadJSON('topics.json', []);
 
   const currentConfig = configs.find(c => c.month === currentMonth && c.year === currentYear);
   if (currentConfig) {
@@ -481,7 +534,6 @@ app.get('/api/admin/dashboard', authRequired('admin'), (req, res) => {
     };
   }
 
-  // Enrich results with employee/topic info
   const recentResults = monthResults.slice(0, 20).map(r => {
     const e = employees.find(em => em.id === r.employee_id);
     const t = topics.find(tp => tp.id === r.topic_id);
@@ -496,17 +548,17 @@ app.get('/api/admin/dashboard', authRequired('admin'), (req, res) => {
   });
 });
 
-app.get('/api/admin/employees', authRequired('admin'), (req, res) => {
-  const employees = loadJSON('employees.json', []);
+app.get('/api/admin/employees', authRequired('admin'), async (req, res) => {
+  const employees = await loadJSON('employees.json', []);
   employees.sort((a, b) => a.emp_number.localeCompare(b.emp_number));
   res.json({ success: true, employees });
 });
 
-app.post('/api/admin/employees', authRequired('admin'), (req, res) => {
+app.post('/api/admin/employees', authRequired('admin'), async (req, res) => {
   const { empNumber, name, level, group, password } = req.body;
   if (!empNumber || !name) return res.json({ success: false, error: '員工編號及姓名必填' });
 
-  const employees = loadJSON('employees.json', []);
+  const employees = await loadJSON('employees.json', []);
   if (employees.find(e => e.emp_number === empNumber)) return res.json({ success: false, error: '員工編號已存在' });
 
   const nextId = employees.length > 0 ? Math.max(...employees.map(e => e.id)) + 1 : 1;
@@ -519,14 +571,14 @@ app.post('/api/admin/employees', authRequired('admin'), (req, res) => {
     group_name: group || null,
     created_at: nowStr()
   });
-  saveJSON('employees.json', employees);
+  await saveJSON('employees.json', employees);
   res.json({ success: true });
 });
 
-app.put('/api/admin/employees/:id', authRequired('admin'), (req, res) => {
+app.put('/api/admin/employees/:id', authRequired('admin'), async (req, res) => {
   const { empNumber, name, level, group, password } = req.body;
   const eid = parseInt(req.params.id);
-  const employees = loadJSON('employees.json', []);
+  const employees = await loadJSON('employees.json', []);
   const idx = employees.findIndex(e => e.id === eid);
   if (idx < 0) return res.json({ success: false, error: '員工不存在' });
 
@@ -537,40 +589,40 @@ app.put('/api/admin/employees/:id', authRequired('admin'), (req, res) => {
   if (level !== undefined) emp.level = level;
   if (group !== undefined) emp.group_name = group;
 
-  saveJSON('employees.json', employees);
+  await saveJSON('employees.json', employees);
   res.json({ success: true });
 });
 
-app.delete('/api/admin/employees/:id', authRequired('admin'), (req, res) => {
+app.delete('/api/admin/employees/:id', authRequired('admin'), async (req, res) => {
   const eid = parseInt(req.params.id);
-  let employees = loadJSON('employees.json', []);
+  let employees = await loadJSON('employees.json', []);
   employees = employees.filter(e => e.id !== eid);
-  saveJSON('employees.json', employees);
+  await saveJSON('employees.json', employees);
   res.json({ success: true });
 });
 
-app.post('/api/admin/reset-password/:id', authRequired('admin'), (req, res) => {
+app.post('/api/admin/reset-password/:id', authRequired('admin'), async (req, res) => {
   const { newPassword } = req.body;
   const eid = parseInt(req.params.id);
-  const employees = loadJSON('employees.json', []);
+  const employees = await loadJSON('employees.json', []);
   const idx = employees.findIndex(e => e.id === eid);
   if (idx >= 0) {
     employees[idx].password_hash = bcrypt.hashSync(newPassword || '0000', 10);
-    saveJSON('employees.json', employees);
+    await saveJSON('employees.json', employees);
   }
   res.json({ success: true });
 });
 
-app.get('/api/admin/admins', authRequired('admin'), (req, res) => {
-  const admins = loadJSON('admins.json', []);
+app.get('/api/admin/admins', authRequired('admin'), async (req, res) => {
+  const admins = await loadJSON('admins.json', []);
   res.json({ success: true, admins: admins.map(({ password_hash: _, ...rest }) => rest) });
 });
 
-app.post('/api/admin/admins', authRequired('admin'), (req, res) => {
+app.post('/api/admin/admins', authRequired('admin'), async (req, res) => {
   const { username, password, displayName } = req.body;
   if (!username || !password) return res.json({ success: false, error: '用戶名及密碼必填' });
 
-  const admins = loadJSON('admins.json', []);
+  const admins = await loadJSON('admins.json', []);
   if (admins.find(a => a.username === username)) return res.json({ success: false, error: '用戶名已存在' });
 
   const nextId = admins.length > 0 ? Math.max(...admins.map(a => a.id)) + 1 : 1;
@@ -578,23 +630,23 @@ app.post('/api/admin/admins', authRequired('admin'), (req, res) => {
     id: nextId, username, password_hash: bcrypt.hashSync(password, 10),
     display_name: displayName || username, is_super: 0, created_at: nowStr()
   });
-  saveJSON('admins.json', admins);
+  await saveJSON('admins.json', admins);
   res.json({ success: true });
 });
 
-app.delete('/api/admin/admins/:id', authRequired('admin'), (req, res) => {
+app.delete('/api/admin/admins/:id', authRequired('admin'), async (req, res) => {
   const aid = parseInt(req.params.id);
-  const admins = loadJSON('admins.json', []);
+  const admins = await loadJSON('admins.json', []);
   const admin = admins.find(a => a.id === aid);
   if (admin && admin.is_super) return res.json({ success: false, error: '不能刪除超級管理員' });
 
-  saveJSON('admins.json', admins.filter(a => a.id !== aid));
+  await saveJSON('admins.json', admins.filter(a => a.id !== aid));
   res.json({ success: true });
 });
 
-app.get('/api/admin/exam-config', authRequired('admin'), (req, res) => {
-  const configs = loadJSON('exam_config.json', []);
-  const topics = loadJSON('topics.json', []);
+app.get('/api/admin/exam-config', authRequired('admin'), async (req, res) => {
+  const configs = await loadJSON('exam_config.json', []);
+  const topics = await loadJSON('topics.json', []);
 
   const enriched = configs.map(c => {
     const t = topics.find(tp => tp.id === c.topic_id);
@@ -604,14 +656,13 @@ app.get('/api/admin/exam-config', authRequired('admin'), (req, res) => {
   res.json({ success: true, configs: enriched });
 });
 
-app.post('/api/admin/exam-config', authRequired('admin'), (req, res) => {
+app.post('/api/admin/exam-config', authRequired('admin'), async (req, res) => {
   const topicId = parseInt(req.body.topicId);
   const month = parseInt(req.body.month);
   const year = parseInt(req.body.year);
   const { startDate, endDate } = req.body;
 
-  let configs = loadJSON('exam_config.json', []);
-  // Deactivate same month/year
+  let configs = await loadJSON('exam_config.json', []);
   configs = configs.map(c => (c.month === month && c.year === year ? { ...c, is_active: 0 } : c));
 
   const nextId = configs.length > 0 ? Math.max(...configs.map(c => c.id)) + 1 : 1;
@@ -619,36 +670,35 @@ app.post('/api/admin/exam-config', authRequired('admin'), (req, res) => {
     id: nextId, topic_id: topicId, month, year,
     start_date: startDate, end_date: endDate, is_active: 1, created_at: nowStr()
   });
-  saveJSON('exam_config.json', configs);
+  await saveJSON('exam_config.json', configs);
   res.json({ success: true });
 });
 
-app.put('/api/admin/exam-config/:id', authRequired('admin'), (req, res) => {
+app.put('/api/admin/exam-config/:id', authRequired('admin'), async (req, res) => {
   const { isActive, startDate, endDate } = req.body;
   const cid = parseInt(req.params.id);
-  const configs = loadJSON('exam_config.json', []);
+  const configs = await loadJSON('exam_config.json', []);
   const idx = configs.findIndex(c => c.id === cid);
   if (idx >= 0) {
     if (isActive !== undefined) configs[idx].is_active = isActive ? 1 : 0;
     if (startDate) configs[idx].start_date = startDate;
     if (endDate) configs[idx].end_date = endDate;
-    saveJSON('exam_config.json', configs);
+    await saveJSON('exam_config.json', configs);
   }
   res.json({ success: true });
 });
 
-app.get('/api/admin/results', authRequired('admin'), (req, res) => {
+app.get('/api/admin/results', authRequired('admin'), async (req, res) => {
   const { month, year, level, topicId } = req.query;
 
-  let results = loadJSON('exam_results.json', []);
-  const employees = loadJSON('employees.json', []);
-  const topics = loadJSON('topics.json', []);
+  let results = await loadJSON('exam_results.json', []);
+  const employees = await loadJSON('employees.json', []);
+  const topics = await loadJSON('topics.json', []);
 
   if (month) results = results.filter(r => r.month === parseInt(month));
   if (year) results = results.filter(r => r.year === parseInt(year));
   if (topicId) results = results.filter(r => r.topic_id === parseInt(topicId));
 
-  // Enrich data
   results = results
     .map(r => {
       const e = employees.find(em => em.id === r.employee_id);
@@ -661,12 +711,12 @@ app.get('/api/admin/results', authRequired('admin'), (req, res) => {
   res.json({ success: true, results });
 });
 
-app.get('/api/admin/essay-answers/:resultId', authRequired('admin'), (req, res) => {
+app.get('/api/admin/essay-answers/:resultId', authRequired('admin'), async (req, res) => {
   const rid = parseInt(req.params.resultId);
-  const answers = loadJSON('essay_answers.json', []).filter(a => a.result_id === rid);
-  const results = loadJSON('exam_results.json', []);
+  const answers = (await loadJSON('essay_answers.json', [])).filter(a => a.result_id === rid);
+  const results = await loadJSON('exam_results.json', []);
   const result = results.find(r => r.id === rid);
-  const employees = loadJSON('employees.json', []);
+  const employees = await loadJSON('employees.json', []);
 
   if (result) {
     const emp = employees.find(e => e.id === result.employee_id);
@@ -676,21 +726,21 @@ app.get('/api/admin/essay-answers/:resultId', authRequired('admin'), (req, res) 
   res.json({ success: true, result, answers });
 });
 
-app.post('/api/admin/grade-essay/:resultId', authRequired('admin'), (req, res) => {
+app.post('/api/admin/grade-essay/:resultId', authRequired('admin'), async (req, res) => {
   const { scores } = req.body;
   const rid = parseInt(req.params.resultId);
 
-  const admins = loadJSON('admins.json', []);
+  const admins = await loadJSON('admins.json', []);
   const admin = admins.find(a => a.id === req.session.user_id);
 
-  const results = loadJSON('exam_results.json', []);
+  const results = await loadJSON('exam_results.json', []);
   const ridx = results.findIndex(r => r.id === rid);
   if (ridx < 0) return res.json({ success: false, error: 'Result not found' });
 
   const result = results[ridx];
 
   let essayTotal = 0, essayMaxTotal = 0;
-  let allEssays = loadJSON('essay_answers.json', []);
+  let allEssays = await loadJSON('essay_answers.json', []);
 
   for (const [questionId, score] of Object.entries(scores)) {
     const aidx = allEssays.findIndex(a => a.result_id === rid && a.question_id === questionId);
@@ -702,9 +752,9 @@ app.post('/api/admin/grade-essay/:resultId', authRequired('admin'), (req, res) =
       essayMaxTotal += allEssays[aidx].max_score;
     }
   }
-  saveJSON('essay_answers.json', allEssays);
+  await saveJSON('essay_answers.json', allEssays);
 
-  const employees = loadJSON('employees.json', []);
+  const employees = await loadJSON('employees.json', []);
   const emp = employees.find(e => e.id === result.employee_id);
   const maxWrong = emp?.level === 'supervisor' ? 2 : 4;
   const mcPassed = result.mc_correct >= (result.mc_total - maxWrong);
@@ -723,19 +773,19 @@ app.post('/api/admin/grade-essay/:resultId', authRequired('admin'), (req, res) =
     graded_by: admin?.username || '',
     graded_at: nowStr()
   };
-  saveJSON('exam_results.json', results);
+  await saveJSON('exam_results.json', results);
 
   res.json({ success: true, totalPassed, totalScore, essayScore: Math.round(essayPassPercent), mcPassed });
 });
 
-app.get('/api/admin/export-csv', authRequired('admin'), (req, res) => {
+app.get('/api/admin/export-csv', authRequired('admin'), async (req, res) => {
   const { month, year } = req.query;
   const m = month ? parseInt(month) : new Date().getMonth() + 1;
   const y = year ? parseInt(year) : new Date().getFullYear();
 
-  let results = loadJSON('exam_results.json', []).filter(r => r.month === m && r.year === y);
-  const employees = loadJSON('employees.json', []);
-  const topics = loadJSON('topics.json', []);
+  let results = (await loadJSON('exam_results.json', [])).filter(r => r.month === m && r.year === y);
+  const employees = await loadJSON('employees.json', []);
+  const topics = await loadJSON('topics.json', []);
 
   const levelNames = { junior: '初級技術員', senior: '高級技術員', supervisor: '技術員主管' };
 
@@ -745,7 +795,7 @@ app.get('/api/admin/export-csv', authRequired('admin'), (req, res) => {
     return { ...r, emp_name: e?.name || '', emp_number: e?.emp_number || '', level: e?.level || '', group_name: e?.group_name || '', topic_name: t?.name || '' };
   }).sort((a, b) => a.emp_number.localeCompare(b.emp_number));
 
-  let csv = '\uFEFF'; // BOM for Excel UTF-8
+  let csv = '\uFEFF';
   csv += '員工編號,姓名,職級,組別,主題,MC分數,MC正確,MC總題,問答分數,總分,合格,提交時間\n';
   for (const r of results) {
     csv += `${r.emp_number},${r.emp_name},${levelNames[r.level]||r.level},${r.group_name||''},${r.topic_name},${r.mc_score}%,${r.mc_correct},${r.mc_total},${r.essay_score}%,${r.total_score}%,${r.passed?'合格':'不合格'},${r.submitted_at}\n`;
@@ -756,30 +806,24 @@ app.get('/api/admin/export-csv', authRequired('admin'), (req, res) => {
   res.send(csv);
 });
 
-// ====== QUESTION BANK MANAGEMENT =====
-const QUESTIONS_DIR = path.join(__dirname, 'questions');
+// ====== QUESTION BANK MANAGEMENT ======
 
-// Get all questions for a topic
-app.get('/api/admin/questions/:topicId', authRequired('admin'), (req, res) => {
+app.get('/api/admin/questions/:topicId', authRequired('admin'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   if (tid < 1 || tid > 6) return res.status(400).json({ success: false, error: '無效主題 ID' });
   
   try {
-    const mcFile = path.join(QUESTIONS_DIR, `topic_${tid}_mc.json`);
-    const essayFile = path.join(QUESTIONS_DIR, `topic_${tid}_essay.json`);
+    const mc = await loadQuestions('mc', tid);
+    const essay = await loadQuestions('essay', tid);
     
-    const mc = fs.existsSync(mcFile) ? JSON.parse(fs.readFileSync(mcFile, 'utf8')) : [];
-    const essay = fs.existsSync(essayFile) ? JSON.parse(fs.readFileSync(essayFile, 'utf8')) : [];
-    
-    res.json({ success: true, mc, essay, mcCount: mc.length, essayCount: essay.length });
+    res.json({ success: true, mc: mc || [], essay: essay || [], mcCount: (mc || []).length, essayCount: (essay || []).length });
   } catch(e) {
     console.error(e);
     res.status(500).json({ success: false, error: '讀取題庫失敗' });
   }
 });
 
-// Add MC question
-app.post('/api/admin/questions/mc/:topicId', authRequired('admin'), (req, res) => {
+app.post('/api/admin/questions/mc/:topicId', authRequired('admin'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const { question, options, answer } = req.body;
   
@@ -791,12 +835,9 @@ app.post('/api/admin/questions/mc/:topicId', authRequired('admin'), (req, res) =
   }
   
   try {
-    const mcFile = path.join(QUESTIONS_DIR, `topic_${tid}_mc.json`);
-    const mc = fs.existsSync(mcFile) ? JSON.parse(fs.readFileSync(mcFile, 'utf8')) : [];
-    
+    const mc = await loadQuestions('mc', tid) || [];
     mc.push({ question, options, correct: answer });
-    fs.writeFileSync(mcFile, JSON.stringify(mc, null, 2), 'utf8');
-    
+    await saveQuestions('mc', tid, mc);
     res.json({ success: true, message: '選擇題添加成功', total: mc.length });
   } catch(e) {
     console.error(e);
@@ -804,23 +845,18 @@ app.post('/api/admin/questions/mc/:topicId', authRequired('admin'), (req, res) =
   }
 });
 
-// Update MC question
-app.put('/api/admin/questions/mc/:topicId/:qIndex', authRequired('admin'), (req, res) => {
+app.put('/api/admin/questions/mc/:topicId/:qIndex', authRequired('admin'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const qIdx = parseInt(req.params.qIndex);
   const { question, options, answer } = req.body;
   
   try {
-    const mcFile = path.join(QUESTIONS_DIR, `topic_${tid}_mc.json`);
-    const mc = fs.existsSync(mcFile) ? JSON.parse(fs.readFileSync(mcFile, 'utf8')) : [];
-    
+    const mc = await loadQuestions('mc', tid) || [];
     if (qIdx < 0 || qIdx >= mc.length) {
       return res.status(404).json({ success: false, error: '題目不存在' });
     }
-    
     mc[qIdx] = { question, options, correct: answer };
-    fs.writeFileSync(mcFile, JSON.stringify(mc, null, 2), 'utf8');
-    
+    await saveQuestions('mc', tid, mc);
     res.json({ success: true, message: '題目更新成功' });
   } catch(e) {
     console.error(e);
@@ -828,22 +864,17 @@ app.put('/api/admin/questions/mc/:topicId/:qIndex', authRequired('admin'), (req,
   }
 });
 
-// Delete MC question
-app.delete('/api/admin/questions/mc/:topicId/:qIndex', authRequired('admin'), (req, res) => {
+app.delete('/api/admin/questions/mc/:topicId/:qIndex', authRequired('admin'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const qIdx = parseInt(req.params.qIndex);
   
   try {
-    const mcFile = path.join(QUESTIONS_DIR, `topic_${tid}_mc.json`);
-    const mc = fs.existsSync(mcFile) ? JSON.parse(fs.readFileSync(mcFile, 'utf8')) : [];
-    
+    const mc = await loadQuestions('mc', tid) || [];
     if (qIdx < 0 || qIdx >= mc.length) {
       return res.status(404).json({ success: false, error: '題目不存在' });
     }
-    
     mc.splice(qIdx, 1);
-    fs.writeFileSync(mcFile, JSON.stringify(mc, null, 2), 'utf8');
-    
+    await saveQuestions('mc', tid, mc);
     res.json({ success: true, message: '題目刪除成功', total: mc.length });
   } catch(e) {
     console.error(e);
@@ -851,8 +882,7 @@ app.delete('/api/admin/questions/mc/:topicId/:qIndex', authRequired('admin'), (r
   }
 });
 
-// Add essay question
-app.post('/api/admin/questions/essay/:topicId', authRequired('admin'), (req, res) => {
+app.post('/api/admin/questions/essay/:topicId', authRequired('admin'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const { question, maxScore } = req.body;
   
@@ -861,12 +891,9 @@ app.post('/api/admin/questions/essay/:topicId', authRequired('admin'), (req, res
   }
   
   try {
-    const essayFile = path.join(QUESTIONS_DIR, `topic_${tid}_essay.json`);
-    const essay = fs.existsSync(essayFile) ? JSON.parse(fs.readFileSync(essayFile, 'utf8')) : [];
-    
+    const essay = await loadQuestions('essay', tid) || [];
     essay.push({ question, maxScore: maxScore || 10 });
-    fs.writeFileSync(essayFile, JSON.stringify(essay, null, 2), 'utf8');
-    
+    await saveQuestions('essay', tid, essay);
     res.json({ success: true, message: '問答題添加成功', total: essay.length });
   } catch(e) {
     console.error(e);
@@ -874,23 +901,18 @@ app.post('/api/admin/questions/essay/:topicId', authRequired('admin'), (req, res
   }
 });
 
-// Update essay question
-app.put('/api/admin/questions/essay/:topicId/:qIndex', authRequired('admin'), (req, res) => {
+app.put('/api/admin/questions/essay/:topicId/:qIndex', authRequired('admin'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const qIdx = parseInt(req.params.qIndex);
   const { question, maxScore } = req.body;
   
   try {
-    const essayFile = path.join(QUESTIONS_DIR, `topic_${tid}_essay.json`);
-    const essay = fs.existsSync(essayFile) ? JSON.parse(fs.readFileSync(essayFile, 'utf8')) : [];
-    
+    const essay = await loadQuestions('essay', tid) || [];
     if (qIdx < 0 || qIdx >= essay.length) {
       return res.status(404).json({ success: false, error: '題目不存在' });
     }
-    
     essay[qIdx] = { question, maxScore: maxScore || 10 };
-    fs.writeFileSync(essayFile, JSON.stringify(essay, null, 2), 'utf8');
-    
+    await saveQuestions('essay', tid, essay);
     res.json({ success: true, message: '題目更新成功' });
   } catch(e) {
     console.error(e);
@@ -898,22 +920,17 @@ app.put('/api/admin/questions/essay/:topicId/:qIndex', authRequired('admin'), (r
   }
 });
 
-// Delete essay question
-app.delete('/api/admin/questions/essay/:topicId/:qIndex', authRequired('admin'), (req, res) => {
+app.delete('/api/admin/questions/essay/:topicId/:qIndex', authRequired('admin'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const qIdx = parseInt(req.params.qIndex);
   
   try {
-    const essayFile = path.join(QUESTIONS_DIR, `topic_${tid}_essay.json`);
-    const essay = fs.existsSync(essayFile) ? JSON.parse(fs.readFileSync(essayFile, 'utf8')) : [];
-    
+    const essay = await loadQuestions('essay', tid) || [];
     if (qIdx < 0 || qIdx >= essay.length) {
       return res.status(404).json({ success: false, error: '題目不存在' });
     }
-    
     essay.splice(qIdx, 1);
-    fs.writeFileSync(essayFile, JSON.stringify(essay, null, 2), 'utf8');
-    
+    await saveQuestions('essay', tid, essay);
     res.json({ success: true, message: '題目刪除成功', total: essay.length });
   } catch(e) {
     console.error(e);
@@ -921,8 +938,8 @@ app.delete('/api/admin/questions/essay/:topicId/:qIndex', authRequired('admin'),
   }
 });
 
-app.get('/api/topics', (req, res) => {
-  const topics = loadJSON('topics.json', []);
+app.get('/api/topics', async (req, res) => {
+  const topics = await loadJSON('topics.json', []);
   topics.sort((a, b) => a.order_num - b.order_num);
   res.json({ success: true, topics });
 });
@@ -932,9 +949,14 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.ht
 app.get('/exam', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`EPC Exam System running on http://localhost:${PORT}`);
-  console.log(`Admin panel: http://localhost:${PORT}/admin`);
-  console.log(`Employee exam: http://localhost:${PORT}`);
-});
+// Export for Vercel serverless
+module.exports = app;
+
+// Start server locally only (not on Vercel)
+if (!isVercel) {
+  app.listen(PORT, () => {
+    console.log(`BIOYCLE Exam System running on http://localhost:${PORT}`);
+    console.log(`Admin panel: http://localhost:${PORT}/admin`);
+    console.log(`Employee exam: http://localhost:${PORT}`);
+  });
+}
