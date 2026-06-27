@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIOYCLE 考試管理系統</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ADMIN LOGIN -->
+<div id="adminLogin" class="screen">
+  <div class="center-card">
+    <div class="logo">🌳 BIOYCLE Admin</div>
+    <h1>管理員登入</h1>
+    <h2>Admin Login</h2>
+    <div class="form-group">
+      <label>用戶名 Username</label>
+      <input type="text" id="adminUser" placeholder="ST140">
+    </div>
+    <div class="form-group">
+      <label>密碼 Password</label>
+      <input type="password" id="adminPw">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="adminLogin()">登入 Login</button>
+    <div id="adminLoginErr" class="error-msg" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="screen" style="display:none">
+  <header class="admin-header">
+    <div class="header-left">
+      <span class="logo-sm">🌳 BIOYCLE</span>
+      <span>考試管理系統</span>
+    </div>
+    <div class="header-right">
+      <span id="adminNameDisplay"></span>
+      <button class="btn btn-sm btn-outline" onclick="adminLogout()">登出</button>
+    </div>
+  </header>
+  
+  <nav class="admin-nav">
+    <button class="nav-btn active" onclick="showTab('dashboard')" id="tabDashboard">&#128202; Dashboard</button>
+    <button class="nav-btn" onclick="showTab('employees')" id="tabEmployees">&#128101; 員工管理</button>
+    <button class="nav-btn" onclick="showTab('admins')" id="tabAdmins">&#128272; 管理員</button>
+    <button class="nav-btn" onclick="showTab('examConfig')" id="tabExamConfig">&#128197; 考試配置</button>
+    <button class="nav-btn" onclick="showTab('results')" id="tabResults">&#128203; 成績查看</button>
+    <button class="nav-btn" onclick="showTab('grading')" id="tabGrading">&#128221; 問答評分</button>
+    <button class="nav-btn" onclick="showTab('questionBank')" id="tabQuestionBank">&#128218; 題庫管理</button>
+  </nav>
+  
+  <main class="admin-body" id="adminBody"></main>
+</div>
+
+<script>
+const API = '';
+let adminData = null;
+const levelNames = { junior: '初級技術員', senior: '高級技術員', supervisor: '技術員主管' };
+
+// Global error handler - if session expires, redirect to login
+async function handleApiError(res, fallbackMsg = '操作失敗') {
+  if (res.status === 401) {
+    alert('會話已過期，請重新登入');
+    adminLogout();
+    return null;
+  }
+  if (!res.ok) {
+    const text = await res.text();
+    console.error('API Error:', res.status, text);
+    alert(fallbackMsg);
+    return null;
+  }
+  return res;
+}
+
+async function adminLogin() {
+  const u = document.getElementById('adminUser').value.trim();
+  const p = document.getElementById('adminPw').value;
+  const err = document.getElementById('adminLoginErr');
+  
+  try {
+    const res = await fetch(API + '/api/auth/admin-login', {
+      method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+      body: JSON.stringify({username:u, password:p})
+    });
+    const data = await res.json();
+    if (data.success) {
+      adminData = data.admin;
+      document.getElementById('adminNameDisplay').textContent = adminData.displayName;
+      showScreen('adminPanel');
+      showTab('dashboard');
+    } else {
+      err.textContent = data.error; err.style.display = 'block';
+    }
+  } catch(e) { err.textContent = '連接錯誤'; err.style.display = 'block'; }
+}
+
+async function adminLogout() {
+  await fetch(API + '/api/auth/logout', {method:'POST', credentials:'include'});
+  adminData = null;
+  showScreen('adminLogin');
+}
+
+function showTab(tab) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank' };
+  const tabEl = document.getElementById(tabIdMap[tab]);
+  if (tabEl) tabEl.classList.add('active');
+  
+  switch(tab) {
+    case 'dashboard': loadDashboard(); break;
+    case 'employees': loadEmployees(); break;
+    case 'admins': loadAdmins(); break;
+    case 'examConfig': loadExamConfig(); break;
+    case 'results': loadResults(); break;
+    case 'grading': loadGrading(); break;
+    case 'questionBank': loadQuestionBank(); break;
+  }
+}
+
+// ===== DASHBOARD =====
+async function loadDashboard() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = '<div class="loading">載入中...</div>';
+  try {
+    const res = await fetch(API + '/api/admin/dashboard', {credentials:'include'});
+    const handled = await handleApiError(res, '載入 Dashboard 失敗');
+    if (!handled) return;
+    const data = await handled.json();
+    
+    let html = `<div class="dashboard-grid">`;
+    html += statCard('總員工數', data.totalEmployees, '#2980b9');
+    html += statCard('本月已考', data.totalTaken, '#27ae60');
+    html += statCard('本月合格', data.passedCount, '#2ecc71');
+    html += statCard('通過率', data.passRate + '%', data.passRate >= 70 ? '#27ae60' : '#e74c3c');
+    html += statCard('待評問答', data.pendingEssays, '#f39c12');
+    html += `</div>`;
+    
+    // Level stats
+    html += `<div class="section-card"><h3>&#128202; 各職級統計</h3>`;
+    html += `<table class="data-table"><thead><tr><th>職級</th><th>已考</th><th>合格</th><th>通過率</th><th>平均分</th></tr></thead><tbody>`;
+    for (const [level, stats] of Object.entries(data.levelStats)) {
+      html += `<tr><td>${levelNames[level]}</td><td>${stats.total}</td><td>${stats.passed}</td><td>${stats.rate}%</td><td>${stats.avgScore}%</td></tr>`;
+    }
+    html += `</tbody></table></div>`;
+    
+    // Recent results
+    if (data.recentResults.length > 0) {
+      html += `<div class="section-card"><h3>&#128203; 最近成績</h3>`;
+      html += `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>職級</th><th>組別</th><th>主題</th><th>MC分數</th><th>合格</th><th>時間</th></tr></thead><tbody>`;
+      for (const r of data.recentResults) {
+        html += `<tr><td>${r.emp_number}</td><td>${r.emp_name}</td><td>${levelNames[r.level]}</td><td>${r.group_name}</td><td>${r.topic_name}</td><td>${r.mc_score}%</td>`;
+        html += `<td style="color:${r.passed?'#27ae60':'#e74c3c'}">${r.passed?'合格':'不合格'}</td><td>${r.submitted_at}</td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+    }
+    
+    body.innerHTML = html;
+  } catch(e) { 
+    console.error(e); 
+    body.innerHTML = '<div class="error-msg">載入失敗，請重試</div>';
+  }
+}
+
+function statCard(label, value, color) {
+  return `<div class="stat-card" style="border-top:4px solid ${color}"><div class="stat-val">${value}</div><div class="stat-label">${label}</div></div>`;
+}
+
+// ===== EMPLOYEES =====
+async function loadEmployees() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = '<div class="loading">載入中...</div>';
+  try {
+    const res = await fetch(API + '/api/admin/employees', {credentials:'include'});
+    const handled = await handleApiError(res, '載入員工列表失敗');
+    if (!handled) return;
+    const data = await handled.json();
+    
+    let html = `<div class="section-card">`;
+    html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">`;
+    html += `<h3>&#128101; 員工管理 Employee Management</h3>`;
+    html += `<button class="btn btn-sm btn-primary" onclick="showAddEmployee()">+ 新增員工</button>`;
+    html += `</div>`;
+    
+    html += `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>職級</th><th>組別</th><th>操作</th></tr></thead><tbody>`;
+    for (const e of data.employees) {
+      html += `<tr><td>${e.emp_number}</td><td>${e.name}</td><td>${levelNames[e.level]}</td><td>${e.group_name || '-'}</td>`;
+      html += `<td><button class="btn btn-xs btn-outline" onclick="editEmployee(${e.id})">編輯</button>`;
+      html += `<button class="btn btn-xs btn-outline" onclick="resetPassword(${e.id},'${e.emp_number}')">重置密碼</button>`;
+      html += `<button class="btn btn-xs btn-danger" onclick="deleteEmployee(${e.id},'${e.name}')">刪除</button></td></tr>`;
+    }
+    html += `</tbody></table></div>`;
+    html += `<div id="employeeForm" style="display:none"></div>`;
+    
+    body.innerHTML = html;
+  } catch(e) { 
+    console.error(e); 
+    body.innerHTML = '<div class="error-msg">載入失敗，請重試</div>';
+  }
+}
+
+function showAddEmployee() {
+  const form = document.getElementById('employeeForm');
+  form.style.display = 'block';
+  form.innerHTML = `
+    <div class="section-card">
+      <h3>新增員工 Add Employee</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>員工編號</label><input id="newEmpNum" placeholder="EMP001"></div>
+        <div class="form-group"><label>姓名</label><input id="newEmpName" placeholder="陳大明"></div>
+        <div class="form-group"><label>職級</label><select id="newEmpLevel"><option value="junior">初級技術員</option><option value="senior">高級技術員</option><option value="supervisor">技術員主管</option></select></div>
+        <div class="form-group"><label>組別</label><select id="newEmpGroup"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+        <div class="form-group"><label>初始密碼</label><input id="newEmpPw" value="0000"></div>
+      </div>
+      <button class="btn btn-primary" onclick="addEmployee()">確認新增</button>
+      <button class="btn btn-outline" onclick="document.getElementById('employeeForm').style.display='none'">取消</button>
+    </div>`;
+}
+
+async function addEmployee() {
+  const body = {
+    empNumber: document.getElementById('newEmpNum').value.trim(),
+    name: document.getElementById('newEmpName').value.trim(),
+    level: document.getElementById('newEmpLevel').value,
+    group: document.getElementById('newEmpGroup').value,
+    password: document.getElementById('newEmpPw').value || '0000'
+  };
+  
+  const res = await fetch(API + '/api/admin/employees', {
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data.success) { loadEmployees(); } else { alert(data.error); }
+}
+
+async function editEmployee(id) {
+  const res = await fetch(API + '/api/admin/employees', {credentials:'include'});
+  const emps = await res.json();
+  const emp = emps.employees.find(e => e.id === id);
+  
+  const form = document.getElementById('employeeForm');
+  form.style.display = 'block';
+  form.innerHTML = `
+    <div class="section-card">
+      <h3>編輯員工 Edit Employee: ${emp.emp_number}</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>員工編號</label><input id="editEmpNum" value="${emp.emp_number}"></div>
+        <div class="form-group"><label>姓名</label><input id="editEmpName" value="${emp.name}"></div>
+        <div class="form-group"><label>職級</label><select id="editEmpLevel"><option value="junior" ${emp.level==='junior'?'selected':''}>初級技術員</option><option value="senior" ${emp.level==='senior'?'selected':''}>高級技術員</option><option value="supervisor" ${emp.level==='supervisor'?'selected':''}>技術員主管</option></select></div>
+        <div class="form-group"><label>組別</label><select id="editEmpGroup"><option value="A" ${emp.group_name==='A'?'selected':''}>A</option><option value="B" ${emp.group_name==='B'?'selected':''}>B</option><option value="C" ${emp.group_name==='C'?'selected':''}>C</option><option value="D" ${emp.group_name==='D'?'selected':''}>D</option><option value="" ${!emp.group_name?'selected':''}>未分配</option></select></div>
+        <div class="form-group"><label>新密碼(留空不改)</label><input id="editEmpPw" placeholder="留空不改密碼"></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveEmployee(${id})">保存</button>
+      <button class="btn btn-outline" onclick="document.getElementById('employeeForm').style.display='none'">取消</button>
+    </div>`;
+}
+
+async function saveEmployee(id) {
+  const body = {
+    empNumber: document.getElementById('editEmpNum').value.trim(),
+    name: document.getElementById('editEmpName').value.trim(),
+    level: document.getElementById('editEmpLevel').value,
+    group: document.getElementById('editEmpGroup').value,
+    password: document.getElementById('editEmpPw').value || null
+  };
+  
+  const res = await fetch(API + `/api/admin/employees/${id}`, {
+    method:'PUT', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data.success) { loadEmployees(); } else { alert(data.error); }
+}
+
+async function resetPassword(id, empNum) {
+  const newPw = prompt(`重置員工 ${empNum} 的密碼 Reset password for ${empNum}:`, '0000');
+  if (!newPw) return;
+  
+  const res = await fetch(API + `/api/admin/reset-password/${id}`, {
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({newPassword: newPw})
+  });
+  const data = await res.json();
+  if (data.success) { alert('密碼已重置為: ' + newPw); } else { alert(data.error); }
+}
+
+async function deleteEmployee(id, name) {
+  if (!confirm(`確定刪除員工 ${name}?`)) return;
+  const res = await fetch(API + `/api/admin/employees/${id}`, {method:'DELETE', credentials:'include'});
+  loadEmployees();
+}
+
+// ===== ADMINS =====
+async function loadAdmins() {
+  const res = await fetch(API + '/api/admin/admins', {credentials:'include'});
+  const data = await res.json();
+  
+  let html = `<div class="section-card">`;
+  html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">`;
+  html += `<h3>&#128272; 管理員管理</h3>`;
+  html += `<button class="btn btn-sm btn-primary" onclick="showAddAdmin()">+ 新增管理員</button>`;
+  html += `</div>`;
+  html += `<table class="data-table"><thead><tr><th>用戶名</th><th>顯示名</th><th>類型</th><th>創建時間</th><th>操作</th></tr></thead><tbody>`;
+  for (const a of data.admins) {
+    html += `<tr><td>${a.username}</td><td>${a.display_name}</td><td>${a.is_super?'超級管理員':'管理員'}</td><td>${a.created_at}</td>`;
+    html += `<td>${a.is_super ? '-' : `<button class="btn btn-xs btn-danger" onclick="deleteAdmin(${a.id},'${a.username}')">刪除</button>`}</td></tr>`;
+  }
+  html += `</tbody></table></div>`;
+  
+  html += `<div id="adminForm" style="display:none"></div>`;
+  document.getElementById('adminBody').innerHTML = html;
+}
+
+function showAddAdmin() {
+  const form = document.getElementById('adminForm');
+  form.style.display = 'block';
+  form.innerHTML = `
+    <div class="section-card"><h3>新增管理員</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>用戶名</label><input id="newAdminUser"></div>
+      <div class="form-group"><label>密碼</label><input type="password" id="newAdminPw"></div>
+      <div class="form-group"><label>顯示名</label><input id="newAdminDisp"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addAdmin()">確認</button>
+    <button class="btn btn-outline" onclick="document.getElementById('adminForm').style.display='none'">取消</button>
+    </div>`;
+}
+
+async function addAdmin() {
+  const res = await fetch(API + '/api/admin/admins', {
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({
+      username: document.getElementById('newAdminUser').value.trim(),
+      password: document.getElementById('newAdminPw').value,
+      displayName: document.getElementById('newAdminDisp').value.trim()
+    })
+  });
+  const data = await res.json();
+  if (data.success) { loadAdmins(); } else { alert(data.error); }
+}
+
+async function deleteAdmin(id, username) {
+  if (!confirm(`確定刪除管理員 ${username}?`)) return;
+  await fetch(API + `/api/admin/admins/${id}`, {method:'DELETE', credentials:'include'});
+  loadAdmins();
+}
+
+// ===== EXAM CONFIG =====
+let topicsList = [];
+async function loadExamConfig() {
+  const tRes = await fetch(API + '/api/topics', {credentials:'include'});
+  const tData = await tRes.json();
+  topicsList = tData.topics || [];
+  const cRes = await fetch(API + '/api/admin/exam-config', {credentials:'include'});
+  const configs = await cRes.json();
+  
+  let html = `<div class="section-card">`;
+  html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">`;
+  html += `<h3>&#128197; 考試配置 Exam Configuration</h3>`;
+  html += `<button class="btn btn-sm btn-primary" onclick="showAddConfig()">+ 新增配置</button>`;
+  html += `</div>`;
+  
+  html += `<table class="data-table"><thead><tr><th>月份</th><th>主題</th><th>開始日期</th><th>結束日期</th><th>狀態</th><th>操作</th></tr></thead><tbody>`;
+  for (const c of configs.configs) {
+    html += `<tr><td>${c.year}/${c.month}</td><td>${c.topic_name}</td><td>${c.start_date}</td><td>${c.end_date}</td>`;
+    html += `<td><span class="badge ${c.is_active?'badge-green':'badge-gray'}">${c.is_active?'開放':'關閉'}</span></td>`;
+    html += `<td><button class="btn btn-xs btn-outline" onclick="toggleConfig(${c.id},${c.is_active})">${c.is_active?'關閉':'開放'}</button>`;
+    html += `<button class="btn btn-xs btn-outline" onclick="editConfig(${c.id})">編輯日期</button></td></tr>`;
+  }
+  html += `</tbody></table></div>`;
+  
+  html += `<div id="configForm" style="display:none"></div>`;
+  document.getElementById('adminBody').innerHTML = html;
+}
+
+function showAddConfig() {
+  const form = document.getElementById('configForm');
+  form.style.display = 'block';
+  const now = new Date();
+  const topicOptions = topicsList.length > 0 
+    ? topicsList.map(t=>`<option value="${t.id}">${t.name} (${t.name_en})</option>`).join('')
+    : '<option value="">加載中...</option>';
+  form.innerHTML = `
+    <div class="section-card"><h3>新增考試配置</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>主題</label><select id="cfgTopic">${topicOptions}</select></div>
+      <div class="form-group"><label>月份</label><input id="cfgMonth" type="number" value="${now.getMonth()+1}" min="1" max="12"></div>
+      <div class="form-group"><label>年份</label><input id="cfgYear" type="number" value="${now.getFullYear()}"></div>
+      <div class="form-group"><label>開始日期(YYYY-MM-DD HH:MM)</label><input id="cfgStart" value="${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01 09:00"></div>
+      <div class="form-group"><label>結束日期(YYYY-MM-DD HH:MM)</label><input id="cfgEnd" value="${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-28 18:00"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addConfig()">確認</button>
+    <button class="btn btn-outline" onclick="document.getElementById('configForm').style.display='none'">取消</button>
+    </div>`;
+}
+
+async function addConfig() {
+  const res = await fetch(API + '/api/admin/exam-config', {
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({
+      topicId: document.getElementById('cfgTopic').value,
+      month: document.getElementById('cfgMonth').value,
+      year: document.getElementById('cfgYear').value,
+      startDate: document.getElementById('cfgStart').value,
+      endDate: document.getElementById('cfgEnd').value
+    })
+  });
+  const data = await res.json();
+  if (data.success) { loadExamConfig(); } else { alert(data.error); }
+}
+
+async function toggleConfig(id, current) {
+  await fetch(API + `/api/admin/exam-config/${id}`, {
+    method:'PUT', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({isActive: !current})
+  });
+  loadExamConfig();
+}
+
+async function editConfig(id) {
+  const cRes = await fetch(API + '/api/admin/exam-config', {credentials:'include'});
+  const configs = await cRes.json();
+  const config = configs.configs.find(c => c.id === id);
+  
+  const form = document.getElementById('configForm');
+  form.style.display = 'block';
+  form.innerHTML = `
+    <div class="section-card"><h3>編輯考試日期</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>開始日期</label><input id="editCfgStart" value="${config.start_date}"></div>
+      <div class="form-group"><label>結束日期</label><input id="editCfgEnd" value="${config.end_date}"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveConfig(${id})">保存</button>
+    <button class="btn btn-outline" onclick="document.getElementById('configForm').style.display='none'">取消</button>
+    </div>`;
+}
+
+async function saveConfig(id) {
+  await fetch(API + `/api/admin/exam-config/${id}`, {
+    method:'PUT', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({
+      isActive: true,
+      startDate: document.getElementById('editCfgStart').value,
+      endDate: document.getElementById('editCfgEnd').value
+    })
+  });
+  loadExamConfig();
+}
+
+// ===== RESULTS =====
+async function loadResults() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = '<div class="loading">載入中...</div>';
+  try {
+    const now = new Date();
+    let html = `<div class="section-card">`;
+    html += `<h3>&#128203; 成績查看 Results</h3>`;
+    html += `<div class="filter-bar">`;
+    html += `<select id="filterLevel"><option value="">所有職級</option><option value="junior">初級技術員</option><option value="senior">高級技術員</option><option value="supervisor">技術員主管</option></select>`;
+    html += `<input id="filterMonth" type="number" value="${now.getMonth()+1}" min="1" max="12" placeholder="月份">`;
+    html += `<input id="filterYear" type="number" value="${now.getFullYear()}" placeholder="年份">`;
+    html += `<button class="btn btn-sm btn-primary" onclick="filterResults()">篩選</button>`;
+    html += `<button class="btn btn-sm btn-outline" onclick="exportCSV()">匯出CSV</button>`;
+    html += `</div>`;
+    html += `<div id="resultsTable"><div class="loading">載入成績中...</div></div></div>`;
+    
+    body.innerHTML = html;
+    await filterResults();
+  } catch(e) { 
+    console.error(e); 
+    body.innerHTML = '<div class="error-msg">載入失敗，請重試</div>';
+  }
+}
+
+async function filterResults() {
+  const level = document.getElementById('filterLevel').value;
+  const month = document.getElementById('filterMonth').value;
+  const year = document.getElementById('filterYear').value;
+  
+  const params = new URLSearchParams();
+  if (level) params.set('level', level);
+  if (month) params.set('month', month);
+  if (year) params.set('year', year);
+  
+  const tableDiv = document.getElementById('resultsTable');
+  tableDiv.innerHTML = '<div class="loading">載入中...</div>';
+  
+  try {
+    const res = await fetch(API + `/api/admin/results?${params}`, {credentials:'include'});
+    const handled = await handleApiError(res, '載入成績失敗');
+    if (!handled) return;
+    const data = await handled.json();
+    
+    let html = `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>職級</th><th>組別</th><th>主題</th><th>MC分數</th><th>MC正確</th><th>問答分數</th><th>總分</th><th>合格</th><th>問答評分</th><th>時間</th></tr></thead><tbody>`;
+    for (const r of data.results) {
+      html += `<tr><td>${r.emp_number}</td><td>${r.emp_name}</td><td>${levelNames[r.level]}</td><td>${r.group_name}</td><td>${r.topic_name}</td>`;
+      html += `<td>${r.mc_score}%</td><td>${r.mc_correct}/${r.mc_total}</td>`;
+      html += `<td>${r.essay_score}%</td><td>${r.total_score}%</td>`;
+      html += `<td style="color:${r.passed?'#27ae60':'#e74c3c'}">${r.passed?'合格':'不合格'}</td>`;
+      html += `<td>${r.essay_graded?'已評':'<span style="color:#f39c12">待評</span>'}</td>`;
+      html += `<td>${r.submitted_at}</td></tr>`;
+    }
+    html += `</tbody></table>`;
+    if (data.results.length === 0) {
+      html = '<p style="color:#7f8c8d; margin:16px 0">沒有符合條件的成績記錄</p>';
+    }
+    tableDiv.innerHTML = html;
+  } catch(e) { 
+    console.error(e); 
+    tableDiv.innerHTML = '<div class="error-msg">載入失敗，請重試</div>';
+  }
+}
+
+function exportCSV() {
+  const level = document.getElementById('filterLevel').value;
+  const month = document.getElementById('filterMonth').value;
+  const year = document.getElementById('filterYear').value;
+  const params = new URLSearchParams();
+  if (month) params.set('month', month);
+  if (year) params.set('year', year);
+  window.open(API + `/api/admin/export-csv?${params}`, '_blank');
+}
+
+// ===== GRADING =====
+async function loadGrading() {
+  const now = new Date();
+  const res = await fetch(API + `/api/admin/results?month=${now.getMonth()+1}&year=${now.getFullYear()}&level=supervisor`, {credentials:'include'});
+  const data = await res.json();
+  
+  const ungraded = data.results.filter(r => !r.essay_graded);
+  const graded = data.results.filter(r => r.essay_graded);
+  
+  let html = `<div class="section-card">`;
+  html += `<h3>&#128221; 問答題評分 Essay Grading</h3>`;
+  
+  if (ungraded.length === 0) {
+    html += `<p style="color:#27ae60; margin:16px 0">&#10004; 沒有待評分的問答題</p>`;
+  } else {
+    html += `<h4>待評分 Pending (${ungraded.length})</h4>`;
+    html += `<div class="grading-list">`;
+    for (const r of ungraded) {
+      html += `<div class="grading-item">`;
+      html += `<div class="grading-info">${r.emp_number} ${r.emp_name} | ${r.topic_name} | MC: ${r.mc_score}% (${r.mc_correct}/${r.mc_total})</div>`;
+      html += `<button class="btn btn-sm btn-primary" onclick="gradeEssay(${r.id})">評分 Grade</button>`;
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+  
+  if (graded.length > 0) {
+    html += `<h4 style="margin-top:24px">已評分 Graded</h4>`;
+    html += `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>主題</th><th>MC</th><th>問答</th><th>總分</th><th>合格</th><th>評分者</th></tr></thead><tbody>`;
+    for (const r of graded) {
+      html += `<tr><td>${r.emp_number}</td><td>${r.emp_name}</td><td>${r.topic_name}</td><td>${r.mc_score}%</td><td>${r.essay_score}%</td><td>${r.total_score}%</td>`;
+      html += `<td style="color:${r.passed?'#27ae60':'#e74c3c'}">${r.passed?'合格':'不合格'}</td><td>${r.graded_by}</td></tr>`;
+    }
+    html += `</tbody></table>`;
+  }
+  
+  html += `</div>`;
+  html += `<div id="gradingForm" style="display:none"></div>`;
+  
+  document.getElementById('adminBody').innerHTML = html;
+}
+
+async function gradeEssay(resultId) {
+  const res = await fetch(API + `/api/admin/essay-answers/${resultId}`, {credentials:'include'});
+  const data = await res.json();
+  
+  const form = document.getElementById('gradingForm');
+  form.style.display = 'block';
+  
+  let html = `<div class="section-card"><h3>評分 Grade: ${data.result.emp_number} ${data.result.emp_name}</h3>`;
+  html += `<p>MC 分數: ${data.result.mc_score}% (${data.result.mc_correct}/${data.result.mc_total}) | 最多可錯2題</p>`;
+  html += `<hr style="margin:16px 0">`;
+  
+  for (const a of data.answers) {
+    html += `<div class="essay-grade-item">`;
+    html += `<h4>問題 ${a.question_id}</h4>`;
+    html += `<div class="essay-question">${a.question_text}</div>`;
+    html += `<div class="essay-response"><strong>員工答案:</strong> ${a.answer_text || '(未作答)'}</div>`;
+    html += `<div class="essay-grade-form">`;
+    html += `<label>評分 (0-${a.max_score}):</label>`;
+    html += `<input type="number" id="grade_${a.question_id}" min="0" max="${a.max_score}" value="0">`;
+    html += `</div></div>`;
+  }
+  
+  html += `<button class="btn btn-primary" onclick="submitGrading(${resultId})">提交評分 Submit Grades</button>`;
+  html += `<button class="btn btn-outline" onclick="document.getElementById('gradingForm').style.display='none'">取消</button>`;
+  html += `</div>`;
+  
+  form.innerHTML = html;
+}
+
+async function submitGrading(resultId) {
+  const res = await fetch(API + `/api/admin/essay-answers/${resultId}`, {credentials:'include'});
+  const data = await res.json();
+  
+  const scores = {};
+  for (const a of data.answers) {
+    scores[a.question_id] = parseInt(document.getElementById(`grade_${a.question_id}`).value) || 0;
+  }
+  
+  const gradeRes = await fetch(API + `/api/admin/grade-essay/${resultId}`, {
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({ scores })
+  });
+  const gradeData = await gradeRes.json();
+  
+  if (gradeData.success) {
+    alert(`評分完成! MC: ${gradeData.mcPassed?'合格':'不合格'} | 問答: ${gradeData.essayScore}% | 最終: ${gradeData.totalPassed?'合格':'不合格'} (${gradeData.totalScore}%)`);
+    document.getElementById('gradingForm').style.display = 'none';
+    loadGrading();
+  } else {
+    alert(gradeData.error);
+  }
+}
+
+// ===== QUESTION BANK =====
+let currentQuestionTopic = null;
+
+async function loadQuestionBank() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = '<div class="loading">載入中...</div>';
+  
+  try {
+    // Get topics first
+    const res = await fetch(API + '/api/topics', {credentials:'include'});
+    const handled = await handleApiError(res, '載入主題失敗');
+    if (!handled) return;
+    const data = await handled.json();
+    const topics = data.topics;
+    
+    let html = `<div class="section-card">`;
+    html += `<h3>&#128218; 題庫管理 Question Bank Management</h3>`;
+    html += `<div class="filter-bar">`;
+    html += `<label>選擇主題：</label>`;
+    html += `<select id="qbTopic" onchange="loadQuestions(this.value)">`;
+    html += `<option value="">-- 請選擇 --</option>`;
+    topics.forEach(t => {
+      html += `<option value="${t.id}">${t.name} (${t.name_en})</option>`;
+    });
+    html += `</select>`;
+    html += `</div>`;
+    html += `<div id="questionList" style="margin-top:20px"></div>`;
+    html += `</div>`;
+    
+    body.innerHTML = html;
+  } catch(e) {
+    console.error(e);
+    body.innerHTML = '<div class="error-msg">載入失敗</div>';
+  }
+}
+
+async function loadQuestions(topicId) {
+  if (!topicId) {
+    document.getElementById('questionList').innerHTML = '';
+    return;
+  }
+  
+  currentQuestionTopic = parseInt(topicId);
+  const listEl = document.getElementById('questionList');
+  listEl.innerHTML = '<div class="loading">載入題目中...</div>';
+  
+  try {
+    const res = await fetch(API + `/api/admin/questions/${topicId}`, {credentials:'include'});
+    const handled = await handleApiError(res, '載入題目失敗');
+    if (!handled) return;
+    const data = await handled.json();
+    
+    let html = '';
+    
+    // MC Questions
+    html += `<div style="margin-bottom:24px">`;
+    html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">`;
+    html += `<h4 style="color:#2c3e50">&#128204; 選擇題 (${data.mcCount} 題)</h4>`;
+    html += `<button class="btn btn-sm btn-primary" onclick="showQuestionForm('mc', ${topicId})">+ 新增選擇題</button>`;
+    html += `</div>`;
+    
+    if (data.mcCount > 0) {
+      html += `<div class="question-list">`;
+      data.mc.forEach((q, idx) => {
+        const questionPreview = q.question.length > 80 ? q.question.substring(0, 80) + '...' : q.question;
+        html += `<div class="question-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border:1px solid #e0e6ed; border-radius:8px; margin-bottom:8px; background:#f8f9fa">`;
+        html += `<div style="flex:1">`;
+        html += `<strong>Q${idx + 1}.</strong> ${questionPreview}`;
+        html += `</div>`;
+        html += `<div style="display:flex; gap:8px">`;
+        html += `<button class="btn btn-xs btn-outline" onclick="showQuestionForm('mc', ${topicId}, ${idx})">編輯</button>`;
+        html += `<button class="btn btn-xs btn-danger" onclick="deleteQuestion('mc', ${topicId}, ${idx})">刪除</button>`;
+        html += `</div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    } else {
+      html += `<p style="color:#7f8c8d; font-style:italic">尚未有選擇題</p>`;
+    }
+    html += `</div>`;
+    
+    // Essay Questions
+    html += `<div>`;
+    html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">`;
+    html += `<h4 style="color:#2c3e50">&#128221; 問答題 (${data.essayCount} 題)</h4>`;
+    html += `<button class="btn btn-sm btn-primary" onclick="showQuestionForm('essay', ${topicId})">+ 新增問答題</button>`;
+    html += `</div>`;
+    
+    if (data.essayCount > 0) {
+      html += `<div class="question-list">`;
+      data.essay.forEach((q, idx) => {
+        const questionPreview = q.question.length > 80 ? q.question.substring(0, 80) + '...' : q.question;
+        html += `<div class="question-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border:1px solid #e0e6ed; border-radius:8px; margin-bottom:8px; background:#f8f9fa">`;
+        html += `<div style="flex:1">`;
+        html += `<strong>Q${idx + 1}.</strong> ${questionPreview} <span style="color:#95a5a6">(${q.maxScore || 10}分)</span>`;
+        html += `</div>`;
+        html += `<div style="display:flex; gap:8px">`;
+        html += `<button class="btn btn-xs btn-outline" onclick="showQuestionForm('essay', ${topicId}, ${idx})">編輯</button>`;
+        html += `<button class="btn btn-xs btn-danger" onclick="deleteQuestion('essay', ${topicId}, ${idx})">刪除</button>`;
+        html += `</div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    } else {
+      html += `<p style="color:#7f8c8d; font-style:italic">尚未有問答題</p>`;
+    }
+    html += `</div>`;
+    
+    listEl.innerHTML = html;
+  } catch(e) {
+    console.error(e);
+    listEl.innerHTML = '<div class="error-msg">載入題目失敗</div>';
+  }
+}
+
+function showQuestionForm(type, topicId, qIndex = -1) {
+  const isEdit = qIndex >= 0;
+  const title = isEdit ? '編輯題目' : '新增題目';
+  
+  let html = `<div class="modal-overlay" id="questionFormModal">`;
+  html += `<div class="modal-content" style="max-width:600px">`;
+  html += `<div class="modal-header">`;
+  html += `<h3>${type === 'mc' ? '&#128204;' : '&#128221;'} ${title}</h3>`;
+  html += `<button class="modal-close" onclick="closeQuestionForm()">&times;</button>`;
+  html += `</div>`;
+  html += `<div class="modal-body">`;
+  
+  if (type === 'mc') {
+    // MC question form
+    html += `<div class="form-group">`;
+    html += `<label>題目內容</label>`;
+    html += `<textarea id="qfQuestion" class="form-input" rows="3" placeholder="請輸入題目..."></textarea>`;
+    html += `</div>`;
+    
+    html += `<div class="form-group">`;
+    html += `<label>選項 (正確答案請選擇對應的選項)</label>`;
+    for (let i = 0; i < 4; i++) {
+      html += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px">`;
+      html += `<span style="min-width:24px">${String.fromCharCode(65+i)}.</span>`;
+      html += `<input type="text" id="qfOpt${i}" class="form-input" placeholder="選項 ${String.fromCharCode(65+i)}" style="flex:1">`;
+      html += `</div>`;
+    }
+    html += `</div>`;
+    
+    html += `<div class="form-group">`;
+    html += `<label>正確答案</label>`;
+    html += `<select id="qfCorrect" class="form-input">`;
+    html += `<option value="0">A</option>`;
+    html += `<option value="1">B</option>`;
+    html += `<option value="2">C</option>`;
+    html += `<option value="3">D</option>`;
+    html += `</select>`;
+    html += `</div>`;
+  } else {
+    // Essay question form
+    html += `<div class="form-group">`;
+    html += `<label>題目內容</label>`;
+    html += `<textarea id="qfQuestion" class="form-input" rows="4" placeholder="請輸入問答題目..."></textarea>`;
+    html += `</div>`;
+    
+    html += `<div class="form-group">`;
+    html += `<label>最高得分</label>`;
+    html += `<input type="number" id="qfMaxScore" class="form-input" value="10" min="1" max="20">`;
+    html += `</div>`;
+  }
+  
+  html += `</div>`;
+  html += `<div class="modal-footer">`;
+  html += `<button class="btn btn-outline" onclick="closeQuestionForm()">取消</button>`;
+  html += `<button class="btn btn-primary" onclick="saveQuestion('${type}', ${topicId}, ${qIndex})">${isEdit ? '更新' : '新增'}</button>`;
+  html += `</div>`;
+  html += `</div>`;
+  html += `</div>`;
+  
+  // Remove existing modal if any
+  const existingModal = document.getElementById('questionFormModal');
+  if (existingModal) existingModal.remove();
+  
+  document.body.insertAdjacentHTML('beforeend', html);
+  
+  // If editing, load the question data
+  if (isEdit) {
+    loadQuestionData(type, topicId, qIndex);
+  }
+}
+
+async function loadQuestionData(type, topicId, qIndex) {
+  try {
+    const res = await fetch(API + `/api/admin/questions/${topicId}`, {credentials:'include'});
+    const data = await res.json();
+    
+    if (type === 'mc') {
+      const q = data.mc[qIndex];
+      document.getElementById('qfQuestion').value = q.question;
+      q.options.forEach((opt, i) => {
+        document.getElementById(`qfOpt${i}`).value = opt;
+      });
+      document.getElementById('qfCorrect').value = q.correct;
+    } else {
+      const q = data.essay[qIndex];
+      document.getElementById('qfQuestion').value = q.question;
+      document.getElementById('qfMaxScore').value = q.maxScore || 10;
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function closeQuestionForm() {
+  const modal = document.getElementById('questionFormModal');
+  if (modal) modal.remove();
+}
+
+async function saveQuestion(type, topicId, qIndex) {
+  const question = document.getElementById('qfQuestion').value.trim();
+  if (!question) {
+    alert('請輸入題目內容');
+    return;
+  }
+  
+  const isEdit = qIndex >= 0;
+  let url, method, body;
+  
+  if (type === 'mc') {
+    const options = [];
+    for (let i = 0; i < 4; i++) {
+      const opt = document.getElementById(`qfOpt${i}`).value.trim();
+      if (!opt) {
+        alert(`請輸入選項 ${String.fromCharCode(65+i)}`);
+        return;
+      }
+      options.push(opt);
+    }
+    const answer = parseInt(document.getElementById('qfCorrect').value);
+    
+    if (isEdit) {
+      url = `/api/admin/questions/mc/${topicId}/${qIndex}`;
+      method = 'PUT';
+      body = { question, options, answer };
+    } else {
+      url = `/api/admin/questions/mc/${topicId}`;
+      method = 'POST';
+      body = { question, options, answer };
+    }
+  } else {
+    const maxScore = parseInt(document.getElementById('qfMaxScore').value) || 10;
+    
+    if (isEdit) {
+      url = `/api/admin/questions/essay/${topicId}/${qIndex}`;
+      method = 'PUT';
+      body = { question, maxScore };
+    } else {
+      url = `/api/admin/questions/essay/${topicId}`;
+      method = 'POST';
+      body = { question, maxScore };
+    }
+  }
+  
+  try {
+    const res = await fetch(API + url, {
+      method, headers:{'Content-Type':'application/json'}, credentials:'include',
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      closeQuestionForm();
+      alert(isEdit ? '題目更新成功！' : '題目新增成功！');
+      loadQuestions(topicId);
+    } else {
+      alert(data.error || '操作失敗');
+    }
+  } catch(e) {
+    console.error(e);
+    alert('操作失敗');
+  }
+}
+
+async function deleteQuestion(type, topicId, qIndex) {
+  const confirmMsg = type === 'mc' ? '確定要刪除這條選擇題嗎？' : '確定要刪除這條問答題嗎？';
+  if (!confirm(confirmMsg)) return;
+  
+  try {
+    const url = type === 'mc' 
+      ? `/api/admin/questions/mc/${topicId}/${qIndex}`
+      : `/api/admin/questions/essay/${topicId}/${qIndex}`;
+    
+    const res = await fetch(API + url, {method:'DELETE', credentials:'include'});
+    const data = await res.json();
+    
+    if (data.success) {
+      alert('題目刪除成功！');
+      loadQuestions(topicId);
+    } else {
+      alert(data.error || '刪除失敗');
+    }
+  } catch(e) {
+    console.error(e);
+    alert('刪除失敗');
+  }
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+  document.getElementById(id).style.display = '';
+}
+
+// Check existing session on load
+(async function() {
+  try {
+    const res = await fetch(API + '/api/auth/check', {credentials:'include'});
+    const data = await res.json();
+    if (data.authenticated && data.userType === 'admin') {
+      adminData = data.user;
+      document.getElementById('adminNameDisplay').textContent = adminData.displayName;
+      showScreen('adminPanel');
+      showTab('dashboard');
+    }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>

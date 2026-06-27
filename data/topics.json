@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "IPM 綜合害蟲管理",
+    "name_en": "IPM Integrated Pest Management",
+    "order_num": 1
+  },
+  {
+    "id": 2,
+    "name": "BIOKILL",
+    "name_en": "BioKill Products & Methods",
+    "order_num": 2
+  },
+  {
+    "id": 3,
+    "name": "白蟻治理",
+    "name_en": "Termite Treatment",
+    "order_num": 3
+  },
+  {
+    "id": 4,
+    "name": "職業安全",
+    "name_en": "Occupational Safety",
+    "order_num": 4
+  },
+  {
+    "id": 5,
+    "name": "技術員手冊",
+    "name_en": "Technician Manual",
+    "order_num": 5
+  },
+  {
+    "id": 6,
+    "name": "害蟲、蒼蠅及鼠患",
+    "name_en": "Insect Pests, Flies & Rodent Control",
+    "order_num": 6
+  }
+]

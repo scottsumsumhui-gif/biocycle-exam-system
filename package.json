@@ -1,0 +1,18 @@
+{
+  "name": "biocycle-exam-system",
+  "version": "1.0.0",
+  "description": "BIOYCLE Technician Exam System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "uuid": "^10.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

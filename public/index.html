@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIOYCLE 技術員考試系統</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!-- LOGIN -->
+<div id="loginScreen" class="screen">
+  <div class="center-card">
+    <div class="logo">🌳 BIOYCLE</div>
+    <h1>BIOYCLE 技術員考試系統</h1>
+    <h2>Pest Control Online Exam</h2>
+    <div class="form-group">
+      <label>員工編號 Employee Number</label>
+      <input type="text" id="empNumber" placeholder="例如: EMP001">
+    </div>
+    <div class="form-group">
+      <label>密碼 Password</label>
+      <input type="password" id="empPassword" placeholder="輸入密碼">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="login()">登入 Login</button>
+    <div id="loginError" class="error-msg" style="display:none"></div>
+  </div>
+</div>
+
+<!-- EXAM INFO -->
+<div id="examInfoScreen" class="screen" style="display:none">
+  <div class="center-card">
+    <div id="examInfoContent"></div>
+  </div>
+</div>
+
+<!-- EXAM -->
+<div id="examScreen" class="screen" style="display:none">
+  <header class="exam-header">
+    <div class="header-left">
+      <span class="header-title">BIOYCLE 考試 🌳</span>
+      <span id="empInfoHeader" class="header-subtitle"></span>
+    </div>
+    <div class="header-right">
+      <div class="timer" id="timerDisplay">&#9202; 30:00</div>
+      <button class="btn btn-sm btn-outline" onclick="logout()">登出</button>
+    </div>
+  </header>
+  <div class="progress-bar-container">
+    <div class="progress-bar" id="progressBar" style="width:0%"></div>
+  </div>
+  <main class="exam-body" id="examBody"></main>
+  <footer class="exam-footer">
+    <div class="question-counter" id="questionCounter"></div>
+    <div class="footer-nav">
+      <button class="btn btn-sm btn-outline" id="prevBtn" onclick="prevQuestion()" disabled>&#8592; 上一題</button>
+      <button class="btn btn-sm btn-primary" id="nextBtn" onclick="nextQuestion()">下一題 &#8594;</button>
+    </div>
+  </footer>
+</div>
+
+<!-- RESULT -->
+<div id="resultScreen" class="screen" style="display:none">
+  <div class="center-card result-card">
+    <div id="resultContent"></div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD -->
+<div id="changePwScreen" class="screen" style="display:none">
+  <div class="center-card">
+    <h1>修改密碼 Change Password</h1>
+    <div class="form-group">
+      <label>當前密碼 Current Password</label>
+      <input type="password" id="currentPw">
+    </div>
+    <div class="form-group">
+      <label>新密碼 New Password (至少4位)</label>
+      <input type="password" id="newPw">
+    </div>
+    <div class="form-group">
+      <label>確認新密碼 Confirm New Password</label>
+      <input type="password" id="confirmPw">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="changePassword()">確認修改 Confirm</button>
+    <button class="btn btn-outline btn-block" onclick="showExamInfo()">返回 Back</button>
+    <div id="changePwError" class="error-msg" style="display:none"></div>
+  </div>
+</div>
+
+<!-- MY RESULTS -->
+<div id="myResultsScreen" class="screen" style="display:none">
+  <div class="wide-card">
+    <h2>&#128203; 我的考試記錄 My Results</h2>
+    <div id="myResultsContent"></div>
+    <button class="btn btn-outline btn-block" onclick="showExamInfo()" style="margin-top:16px">返回 Back</button>
+  </div>
+</div>
+
+<script>
+const API = '';
+let empData = null;
+let examQuestions = null;
+let currentQ = 0;
+let answers = {};
+let startTime = null;
+let timerInterval = null;
+let timeRemaining = 0;
+
+const levelNames = { junior: '初級技術員', senior: '高級技術員', supervisor: '技術員主管' };
+
+// LOGIN
+async function login() {
+  const empNum = document.getElementById('empNumber').value.trim();
+  const pw = document.getElementById('empPassword').value;
+  const errEl = document.getElementById('loginError');
+  
+  if (!empNum || !pw) { errEl.textContent = '請輸入員工編號及密碼'; errEl.style.display='block'; return; }
+  
+  try {
+    const res = await fetch(API + '/api/auth/employee-login', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ empNumber: empNum, password: pw })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      empData = data.employee;
+      showExamInfo();
+    } else {
+      errEl.textContent = data.error;
+      errEl.style.display = 'block';
+    }
+  } catch (e) {
+    errEl.textContent = '連接錯誤，請稍後再試';
+    errEl.style.display = 'block';
+  }
+}
+
+async function showExamInfo() {
+  try {
+    const res = await fetch(API + '/api/exam/current', { credentials: 'include' });
+    const data = await res.json();
+    
+    let html = `<h1>你好，${empData.name}！</h1>`;
+    html += `<p>職級: ${levelNames[empData.level]} | 組別: ${empData.group || '未分配'}</p>`;
+    html += `<div style="margin:24px 0; padding:20px; border-radius:12px; background:#f0f4f8">`;
+    
+    if (data.available) {
+      html += `<h2 style="color:#27ae60">&#10004; 考試已開放</h2>`;
+      html += `<p>當月主題: ${data.config.topicName} (${data.config.topicNameEn})</p>`;
+      html += `<p>考試日期: ${data.config.startDate} 至 ${data.config.endDate}</p>`;
+      html += `<p>題目數量: ${data.mcCount}題MC ${data.hasEssay ? '+ ' + data.essayCount + '題問答' : ''}</p>`;
+      html += `<p>合格標準: ${data.passingScore}% (最多錯${data.maxWrong}題)</p>`;
+      html += `<button class="btn btn-primary btn-block" onclick="startExam()" style="margin-top:16px">&#9654; 開始考試 Start Exam</button>`;
+    } else if (data.alreadyTaken) {
+      html += `<h2 style="color:#2980b9">&#10004; 已完成考試</h2>`;
+      const r = data.existingResult;
+      html += `<p>主題: ${data.config.topicName}</p>`;
+      html += `<p>MC 分數: ${r.mc_score}% (${r.mc_correct}/${r.mc_total} 正確)</p>`;
+      html += `<p>結果: ${r.passed ? '<span style="color:#27ae60">合格 PASSED</span>' : '<span style="color:#e74c3c">不合格 FAILED</span>'}</p>`;
+      if (data.hasEssay && !r.essay_graded) {
+        html += `<p style="color:#f39c12">&#9203; 問答題待管理員評分</p>`;
+      }
+    } else {
+      html += `<h2 style="color:#e74c3c">&#10060; 考試未開放</h2>`;
+      html += `<p>${data.reason || '當月沒有開放的考試'}</p>`;
+    }
+    
+    html += `</div>`;
+    html += `<div style="display:flex; gap:12px; justify-content:center">`;
+    html += `<button class="btn btn-outline btn-sm" onclick="showChangePw()">修改密碼</button>`;
+    html += `<button class="btn btn-outline btn-sm" onclick="showMyResults()">查看記錄</button>`;
+    html += `<button class="btn btn-outline btn-sm" onclick="logout()">登出</button>`;
+    html += `</div>`;
+    
+    document.getElementById('examInfoContent').innerHTML = html;
+    showScreen('examInfoScreen');
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function startExam() {
+  try {
+    const infoRes = await fetch(API + '/api/exam/current', { credentials: 'include' });
+    const info = await infoRes.json();
+    
+    if (!info.available) {
+      alert('考試未開放或已考過');
+      return;
+    }
+    
+    const qRes = await fetch(API + `/api/exam/questions/${info.config.topicId}`, { credentials: 'include' });
+    examQuestions = await qRes.json();
+    
+    if (examQuestions.error) {
+      alert(examQuestions.error);
+      return;
+    }
+    
+    currentQ = 0;
+    answers = {};
+    startTime = Date.now();
+    timeRemaining = examQuestions.timeLimit * 60;
+    
+    document.getElementById('empInfoHeader').textContent = `${empData.name} | ${levelNames[empData.level]} | Group ${empData.group}`;
+    
+    showScreen('examScreen');
+    renderQuestion();
+    startTimer();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeRemaining--;
+    updateTimer();
+    if (timeRemaining <= 0) {
+      clearInterval(timerInterval);
+      submitExam();
+    }
+  }, 1000);
+}
+
+function updateTimer() {
+  const m = Math.floor(timeRemaining / 60);
+  const s = timeRemaining % 60;
+  const el = document.getElementById('timerDisplay');
+  el.textContent = `\u23F0 ${m}:${s.toString().padStart(2,'0')}`;
+  el.className = 'timer';
+  if (timeRemaining < 300) el.classList.add('danger');
+  else if (timeRemaining < 600) el.classList.add('warning');
+}
+
+function renderQuestion() {
+  const allQ = [...examQuestions.mc, ...examQuestions.essay];
+  const q = allQ[currentQ];
+  const total = allQ.length;
+  
+  document.getElementById('progressBar').style.width = ((currentQ + 1) / total * 100) + '%';
+  document.getElementById('questionCounter').textContent = `題目 ${currentQ + 1} / ${total}`;
+  
+  document.getElementById('prevBtn').disabled = currentQ === 0;
+  document.getElementById('nextBtn').textContent = currentQ === total - 1 ? '\u2713 提交考試 Submit' : '下一題 \u2192';
+  
+  let html = `<div class="question-card">`;
+  html += `<div class="q-header">`;
+  html += `<span class="q-num">${currentQ + 1}</span>`;
+  html += `<span class="q-type ${q.type}">${q.type === 'mc' ? '選擇題' : '問答題'}</span>`;
+  html += `</div>`;
+  
+  // Question text
+  const lines = q.question.split('\n');
+  html += `<div class="q-text">`;
+  html += lines[0];
+  if (lines[1]) html += `<br><span class="q-zh">${lines[1]}</span>`;
+  html += `</div>`;
+  
+  if (q.type === 'mc') {
+    html += `<div class="options-list">`;
+    q.options.forEach((opt, i) => {
+      const sel = answers[q.id] === i;
+      html += `<div class="option-item ${sel ? 'selected' : ''}" onclick="selectOption('${q.id}', ${i})">`;
+      html += `<span class="option-letter">${String.fromCharCode(65+i)}</span>`;
+      html += `<span class="option-text">${opt}</span>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  } else {
+    html += `<div class="essay-area">`;
+    html += `<textarea class="essay-input" id="essay_${q.id}" placeholder="請輸入你的答案... Type your answer..." oninput="saveEssay('${q.id}', this.value)">${answers[q.id] || ''}</textarea>`;
+    html += `<div class="essay-info">最高得分: ${q.maxScore} 分 | Max Score: ${q.maxScore}</div>`;
+    html += `</div>`;
+  }
+  
+  html += `</div>`;
+  document.getElementById('examBody').innerHTML = html;
+}
+
+function selectOption(qId, index) {
+  answers[qId] = index;
+  renderQuestion();
+}
+
+function saveEssay(qId, value) {
+  answers[qId] = value;
+}
+
+function prevQuestion() {
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
+}
+
+function nextQuestion() {
+  const allQ = [...examQuestions.mc, ...examQuestions.essay];
+  const q = allQ[currentQ];
+  
+  if (q.type === 'mc' && answers[q.id] === undefined) {
+    alert('請選擇一個答案 Please select an answer');
+    return;
+  }
+  
+  if (currentQ < allQ.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    submitExam();
+  }
+}
+
+async function submitExam() {
+  clearInterval(timerInterval);
+  const timeUsed = Math.round((Date.now() - startTime) / 1000);
+  
+  // Separate mc and essay answers
+  const mcAnswers = {};
+  const essayAnswers = {};
+  for (const [key, val] of Object.entries(answers)) {
+    if (key.startsWith('mc_')) mcAnswers[key] = val;
+    if (key.startsWith('essay_')) essayAnswers[key] = val;
+  }
+  
+  try {
+    const infoRes = await fetch(API + '/api/exam/current', { credentials: 'include' });
+    const info = await infoRes.json();
+    
+    const res = await fetch(API + '/api/exam/submit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      credentials: 'include',
+      body: JSON.stringify({
+        topicId: info.config.topicId,
+        mcAnswers,
+        essayAnswers,
+        timeUsed
+      })
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      showResult(data.result);
+    } else {
+      alert(data.error);
+    }
+  } catch (e) {
+    console.error(e);
+    alert('提交失敗，請重試');
+  }
+}
+
+function showResult(result) {
+  let html = `<div class="score-circle ${result.totalPassed ? 'pass' : 'fail'}">`;
+  html += `<div class="score-number">${result.mcScore}%</div>`;
+  html += `<div class="score-label">MC 分數</div>`;
+  html += `</div>`;
+  
+  html += `<h2 class="result-title">${result.totalPassed ? '\u2714 合格 PASSED' : '\u2718 不合格 FAILED'}</h2>`;
+  
+  if (result.hasEssay && !result.totalPassed) {
+    html += `<p style="color:#f39c12">&#9203; 問答題待管理員評分後才能確定最終結果</p>`;
+  }
+  
+  html += `<div class="score-details">`;
+  html += `<div class="score-detail"><div class="dl">MC 正確</div><div class="dv green">${result.mcCorrect}/${result.mcTotal}</div></div>`;
+  html += `<div class="score-detail"><div class="dl">MC 錯誤</div><div class="dv red">${result.mcWrong}</div></div>`;
+  html += `<div class="score-detail"><div class="dl">最多可錯</div><div class="dv">${result.maxWrong}</div></div>`;
+  html += `<div class="score-detail"><div class="dl">問答題</div><div class="dv">${result.hasEssay ? '待評分' : '無'}</div></div>`;
+  html += `</div>`;
+  
+  // 答题详情回顾
+  if (result.questionDetails && result.questionDetails.length > 0) {
+    html += `<div class="review-section" style="margin-top:32px; text-align:left">`;
+    html += `<h3 style="color:#2c3e50; margin-bottom:16px">&#128209; 答題回顧 Review</h3>`;
+    
+    result.questionDetails.forEach((q, idx) => {
+      const statusClass = q.isCorrect ? 'correct' : 'wrong';
+      const statusIcon = q.isCorrect ? '\u2714' : '\u2718';
+      const statusColor = q.isCorrect ? '#27ae60' : '#e74c3c';
+      
+      html += `<div class="review-question" style="background:${q.isCorrect ? '#f0f9f4' : '#fef5f5'}; border-left:4px solid ${statusColor}; padding:16px; margin-bottom:12px; border-radius:8px">`;
+      html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">`;
+      html += `<strong>第 ${q.questionNumber} 題 ${statusIcon}</strong>`;
+      html += `<span style="color:${statusColor}; font-weight:bold">${q.isCorrect ? '正確' : '錯誤'}</span>`;
+      html += `</div>`;
+      
+      // 题目
+      html += `<div style="margin-bottom:8px; color:#2c3e50">${q.questionText}</div>`;
+      
+      // 选项
+      html += `<div style="padding-left:16px">`;
+      q.options.forEach((opt, i) => {
+        const isUserAns = q.userAnswer === i;
+        const isCorrectAns = q.correctAnswer === i;
+        let optStyle = '';
+        if (isCorrectAns) optStyle = 'color:#27ae60; font-weight:bold';
+        if (isUserAns && !isCorrectAns) optStyle = 'color:#e74c3c; font-weight:bold';
+        
+        html += `<div style="${optStyle}; padding:4px 0">`;
+        html += `${String.fromCharCode(65+i)}. ${opt}`;
+        if (isUserAns && isCorrectAns) html += ` <span style="color:#27ae60">（你的答案 / 正確答案）</span>`;
+        else if (isUserAns) html += ` <span style="color:#3498db">（你的答案）</span>`;
+        else if (isCorrectAns) html += ` <span style="color:#27ae60">（正確答案）</span>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+      
+      // 如果用户没回答这道题
+      if (q.userAnswer === null || q.userAnswer === undefined) {
+        html += `<div style="color:#f39c12; margin-top:8px; font-size:13px">&#9888; 你沒有回答此題 | You did not answer this question</div>`;
+      }
+      
+      // 显示正确答案的说明
+      html += `<div style="margin-top:8px; font-size:13px; color:#7f8c8d">正確答案：${String.fromCharCode(65 + q.correctAnswer)}</div>`;
+      
+      html += `</div>`;
+    });
+    
+    html += `</div>`;
+  }
+  
+  html += `<div style="display:flex; gap:12px; justify-content:center; margin-top:24px">`;
+  html += `<button class="btn btn-outline" onclick="showExamInfo()">返回 Back</button>`;
+  html += `</div>`;
+  
+  document.getElementById('resultContent').innerHTML = html;
+  showScreen('resultScreen');
+}
+
+function showChangePw() { showScreen('changePwScreen'); }
+
+async function changePassword() {
+  const cur = document.getElementById('currentPw').value;
+  const new1 = document.getElementById('newPw').value;
+  const new2 = document.getElementById('confirmPw').value;
+  const errEl = document.getElementById('changePwError');
+  
+  if (new1 !== new2) { errEl.textContent = '新密碼不一致'; errEl.style.display='block'; return; }
+  if (new1.length < 4) { errEl.textContent = '密碼至少4位'; errEl.style.display='block'; return; }
+  
+  try {
+    const res = await fetch(API + '/api/auth/change-password', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include',
+      body: JSON.stringify({ currentPassword: cur, newPassword: new1 })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('密碼已修改！Password changed!');
+      showExamInfo();
+    } else {
+      errEl.textContent = data.error; errEl.style.display = 'block';
+    }
+  } catch (e) {
+    errEl.textContent = '連接錯誤'; errEl.style.display = 'block';
+  }
+}
+
+async function showMyResults() {
+  try {
+    const res = await fetch(API + '/api/exam/my-results', { credentials: 'include' });
+    const data = await res.json();
+    
+    let html = '';
+    if (data.results.length === 0) {
+      html = '<p>暫無考試記錄 No results yet</p>';
+    } else {
+      html += '<table class="results-table"><thead><tr><th>主題</th><th>MC分數</th><th>正確/總題</th><th>問答分數</th><th>合格</th><th>日期</th></tr></thead><tbody>';
+      for (const r of data.results) {
+        html += `<tr><td>${r.topic_name}</td><td>${r.mc_score}%</td><td>${r.mc_correct}/${r.mc_total}</td>`;
+        html += `<td>${r.essay_graded ? r.essay_score + '%' : '待評分'}</td>`;
+        html += `<td style="color:${r.passed?'#27ae60':'#e74c3c'}">${r.passed?'合格':'不合格'}</td>`;
+        html += `<td>${r.submitted_at}</td></tr>`;
+      }
+      html += '</tbody></table>';
+    }
+    
+    document.getElementById('myResultsContent').innerHTML = html;
+    showScreen('myResultsScreen');
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function logout() {
+  await fetch(API + '/api/auth/logout', { method: 'POST', credentials: 'include' });
+  clearInterval(timerInterval);
+  empData = null;
+  showScreen('loginScreen');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+  document.getElementById(id).style.display = '';
+}
+
+// Check existing session on load
+(async function() {
+  try {
+    const res = await fetch(API + '/api/auth/check', { credentials: 'include' });
+    const data = await res.json();
+    if (data.authenticated && data.userType === 'employee') {
+      empData = data.user;
+      showExamInfo();
+    }
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

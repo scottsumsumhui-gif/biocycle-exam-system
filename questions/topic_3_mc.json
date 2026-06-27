@@ -1,0 +1,812 @@
+[
+  {
+    "question": "白蟻主要分為幾大類別？\nHow many main categories are termites divided into?",
+    "options": [
+      "兩大類別 2 categories",
+      "三大類別 3 categories",
+      "四大類別 4 categories",
+      "五大類別 5 categories"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪類白蟻對建築物結構破壞最低？\nWhich type of termite causes the least damage to building structures?",
+    "options": [
+      "土棲性白蟻 Subterranean",
+      "濕木白蟻 Dampwood",
+      "乾木白蟻 Drywood",
+      "家白蟻 Formosan"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "濕木白蟻和乾木白蟻主要在哪裡築巢？\nWhere do dampwood and drywood termites mainly nest?",
+    "options": [
+      "在泥土中 In soil",
+      "在木材內 Within wood itself",
+      "在地基裂縫 In foundation cracks",
+      "在管道空隙 In plumbing voids"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "濕木白蟻和乾木白蟻的糞粒呈什麼形狀？\nWhat shape are the fecal pellets of dampwood/drywood termites?",
+    "options": [
+      "圓形 Round",
+      "四面形 Four-sided",
+      "六面形 Six-sided",
+      "三角形 Triangular"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "土棲性白蟻主要在哪裡築巢？\nWhere do subterranean termites mainly nest?",
+    "options": [
+      "在木材內 Within wood",
+      "在地上或泥土內 On/In ground",
+      "在水中 In water",
+      "在樹頂 On tree tops"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪種白蟻是香港最常見到的？\nWhich type of termite is most commonly encountered in Hong Kong?",
+    "options": [
+      "乾木白蟻 Drywood",
+      "濕木白蟻 Dampwood",
+      "土棲性白蟻 Subterranean",
+      "地下白蟻 Underground"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "「黃翅大白蟻」的學名是什麼？\nWhat is the scientific name of \"Macrotermes barneyi\"?",
+    "options": [
+      "Macrotermes barneyi",
+      "Coptotermes formosanus",
+      "Reticulitermes spp.",
+      "Cryptotermes spp."
+    ],
+    "correct": 0
+  },
+  {
+    "question": "最適合白蟻生存的溫度為攝氏多少度？\nWhat is the optimum temperature range for termite existence?",
+    "options": [
+      "攝氏10至20度 10-20°C",
+      "攝氏15至25度 15-25°C",
+      "攝氏24至35度 24-35°C",
+      "攝氏35至45度 35-45°C"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "白蟻可以存活的溫度範圍是？\nWhat temperature range can termites survive in?",
+    "options": [
+      "攝氏0至30度 0-30°C",
+      "攝氏零下3度至37度 -3 to 37°C",
+      "攝氏10至40度 10-40°C",
+      "攝氏5至25度 5-25°C"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "現存白蟻種類多於多少種？\nHow many termite species exist?",
+    "options": [
+      "多於500種 Over 500",
+      "多於1,000種 Over 1,000",
+      "多於2,000種 Over 2,000",
+      "多於5,000種 Over 5,000"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "約有多少種白蟻會破壞人類木材結構而被定為害蟲？\nApproximately how many termite species are pests of wooden structures?",
+    "options": [
+      "約20種 About 20",
+      "約70種 About 70",
+      "約200種 About 200",
+      "約500種 About 500"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "家白蟻（台灣乳白蟻）在全球白蟻品種中排名第幾？\nHow aggressive is Formosan termite globally?",
+    "options": [
+      "第一 Most aggressive",
+      "第二 Second most aggressive",
+      "第三 Third",
+      "第五 Fifth"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "家白蟻（台灣乳白蟻）屬於哪類白蟻？\nWhat category does Formosan termite belong to?",
+    "options": [
+      "乾木白蟻 Drywood",
+      "濕木白蟻 Dampwood",
+      "土棲性白蟻 Subterranean",
+      "寄生白蟻 Parasitic"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "家白蟻（台灣乳白蟻）有什麼特別之處？\nWhat is special about Formosan termite?",
+    "options": [
+      "牠們不需要與泥土接觸也能生存 Can exist without soil contact",
+      "牠們只吃乾燥木材 Only eat dry wood",
+      "牠們不善於築巢 Poor at nest building",
+      "牠們壽命最短 Shortest lifespan"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "白蟻屬於什麼類型的動物？\nWhat type of animal is a termite?",
+    "options": [
+      "軟體動物 Mollusk",
+      "節肢動物 Arthropod",
+      "哺乳動物 Mammal",
+      "爬蟲 Reptile"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻必須做什麼才能生長？\nWhat must termites do to grow?",
+    "options": [
+      "蛻皮 Molting",
+      "變態 Metamorphosis",
+      "分裂 Division",
+      "休眠 Hibernation"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "白蟻被列為什麼類型的昆蟲？\nTermites are classified as:",
+    "options": [
+      "獨居昆蟲 Solitary insects",
+      "社會昆蟲 Social insects",
+      "寄生昆蟲 Parasitic insects",
+      "水性昆蟲 Aquatic insects"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "一個白蟻群體內有以下哪些不同崗位？\nWhich positions exist in a termite colony?",
+    "options": [
+      "只有工蟻和兵蟻 Only workers and soldiers",
+      "蟻后、蟻王、工蟻、兵蟻、飛蟻 Queen, King, Workers, Soldiers, Alates",
+      "只有蟻后和工蟻 Only queen and workers",
+      "只有飛蟻 Alates only"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "蟻王在白蟻群體內扮演什麼角色？\nWhat role does the termite king play?",
+    "options": [
+      "只負責防禦 Only defense",
+      "協助築造交配房間及餵養若蟲 Assist in nest building and brood rearing",
+      "只負責覓食 Only foraging",
+      "不參與群體活動 No colony involvement"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻蟻后的壽命可達多少年？\nHow long can a termite queen live?",
+    "options": [
+      "1-3年",
+      "3-7年",
+      "10-15年",
+      "20-30年"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "白蟻蟻后每日能生產約多少蟻卵？\nApproximately how many eggs does a termite queen produce per day?",
+    "options": [
+      "約100個 About 100",
+      "約500個 About 500",
+      "約1,000個 About 1,000",
+      "約5,000個 About 5,000"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "白蟻工蟻長約多少毫米？\nApproximately how long is a termite worker (mm)?",
+    "options": [
+      "約3毫米 About 3mm",
+      "約5毫米 About 5mm",
+      "約10毫米 About 10mm",
+      "約15毫米 About 15mm"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻工蟻能離開巢穴多遠覓食？\nHow far can termite workers forage from the colony?",
+    "options": [
+      "最多50尺 Most 50 feet",
+      "最多200尺 Most 200 feet",
+      "最多500尺 Most 500 feet",
+      "最多1,000尺 Most 1,000 feet"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "白蟻兵蟻長約多少毫米？\nApproximately how long is a termite soldier (mm)?",
+    "options": [
+      "約3毫米 About 3mm",
+      "約6毫米 About 6mm",
+      "約12毫米 About 12mm",
+      "約20毫米 About 20mm"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻兵蟻的主要職責是什麼？\nWhat is the main duty of termite soldiers?",
+    "options": [
+      "覓食 Foraging",
+      "攻擊入侵者和保護巢穴 Fight predators and secure colony",
+      "餵養幼蟲 Feed young",
+      "築設巢穴 Build nest"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻兵蟻受到騷擾時會發出什麼聲音作為警號？\nWhat sound do termite soldiers emit when disturbed?",
+    "options": [
+      "嗡嗡聲 Buzzing",
+      "「嘀、嘀、嘀…」的聲音 \"Tick, tick, tick…\" sound",
+      "嘶嘶聲 Hissing",
+      "敲擊聲 Tapping"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻群體發展到多少年後才會出現飛蟻（生殖蟻）？\nAfter how many years does a termite colony produce alates?",
+    "options": [
+      "1-2年",
+      "2-3年",
+      "4-5年",
+      "7-8年"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "飛蟻（白蟻）的飛行能力如何？\nHow good are termite alates at flying?",
+    "options": [
+      "非常善於飛行 Excellent fliers",
+      "不善飛行 Not strong fliers",
+      "完全不能飛行 Cannot fly at all",
+      "只在夜間飛行 Only fly at night"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻由以下哪些隱蔽位置進入居所？\nWhich hidden locations do termites use to enter properties?",
+    "options": [
+      "只有地基裂縫 Only foundation cracks",
+      "地基裂縫、管道空隙、伸縮縫、水泥磚 Only (1)(2)(3)",
+      "地基裂縫、管道空隙、伸縮縫、水泥磚、分飛現象 All of above",
+      "只有分飛 Only swarming"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "白蟻泥路（蟻路）的主要作用是什麼？\nWhat is the main function of termite mud tubes?",
+    "options": [
+      "儲存食物 Store food",
+      "保持活動範圍內的溫度和濕度 Regulate temperature and moisture",
+      "作為繁殖場所 Breeding ground",
+      "驅逐其他昆蟲 Repel other insects"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "在窗邊及露台位置發現很多白蟻翅膀表示什麼？\nFinding many termite wings near windows/balconies indicates:",
+    "options": [
+      "白蟻即將死亡 Termites about to die",
+      "附近有白蟻巢穴 There is a termite colony in/near premises",
+      "白蟻不活動 Termites not active",
+      "需要噴灑殺蟲劑 Need to spray insecticide"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "如客人發現白蟻入侵，下列做法哪一項是正確的？\nWhat should a client do if they find termite infestation?",
+    "options": [
+      "立即噴灑家用殺蟲劑 Immediately spray home-use insecticide",
+      "騷擾入侵痕跡及噴灑殺蟲劑 Disturb signs and spray",
+      "不要騷擾痕跡、不要噴任何殺蟲劑、儘快致電專業滅蟲公司 Don't disturb, don't spray, call professional ASAP"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "為什麼不應該騷擾白蟻入侵痕跡？\nWhy should termite infestation signs NOT be disturbed?",
+    "options": [
+      "因為白蟻非常聰明，有機會離開被騷擾的地方 Termites are smart and may spread",
+      "因為會殺死所有白蟻 Will kill all termites",
+      "因為沒有影響 No effect",
+      "因為白蟻會變得更強 Termites become stronger"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "Sentricon（心居康）是什麼？\nWhat is Sentricon?",
+    "options": [
+      "一種液體殺蟲劑 A liquid insecticide",
+      "一個白蟻族群撲治系統 A termite colony elimination system",
+      "一種生物控制方法 A biological control method",
+      "一種物理屏障 A physical barrier"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Sentricon 系統的主要有效成分是多少？\nWhat is the active ingredient percentage in Sentricon?",
+    "options": [
+      "0.1%",
+      "0.5%",
+      "2.0%",
+      "5.0%"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Sentricon 的有效成分名稱是什麼？\nWhat is the name of the active ingredient in Sentricon?",
+    "options": [
+      "Imidacloprid",
+      "Fipronil",
+      "Noviflumuron",
+      "Diazinon"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "Noviflumuron 屬於哪一類物質？\nWhat class of substance is Noviflumuron?",
+    "options": [
+      "殺蟲劑 Insecticide",
+      "昆蟲生長調節劑 (IGR) Insect growth regulator",
+      "生物製劑 Biological agent",
+      "天然驅蟲劑 Natural repellent"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Sentricon 系統如何導致白蟻巢被撲治？\nHow does Sentricon eliminate the termite colony?",
+    "options": [
+      "直接毒死所有白蟻 Directly poison all termites",
+      "透過控制幾丁質導致蛻皮失敗，使整巢白蟻被撲治 Control chitin causes stop molting, whole colony eliminated"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "在地面（IG）藥餌站放置在什麼位置？\nWhere are In-Ground (IG) bait stations placed?",
+    "options": [
+      "在木材內 Inside wood",
+      "在泥土中，圍繞被保護結構的周邊 In soil around perimeter of structure",
+      "在屋頂 On roof",
+      "在水中 In water"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Above Ground（AG）藥餌站安裝在什麼位置？\nWhere are Above-Ground (AG) bait stations installed?",
+    "options": [
+      "只在泥土中 Only in soil",
+      "在被保護結構內及在發現有白蟻活動的地方 On/in structure where termite activity found",
+      "只在屋頂 Only on roof",
+      "只在地下 Only underground"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "出現以下哪種情況時可確定白蟻巢已被撲治？\nWhen can colony elimination be determined?",
+    "options": [
+      "進食糧比之前減少 Decreased feeding",
+      "已沒有工蟻 No workers exist",
+      "經一段時間後已沒有進食 No feeding over measured period",
+      "以上全部 All of above"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "液體化學治理方法需要在哪些地方鑽孔入藥？\nWhere should drilling and injection be done for liquid chemical treatment?",
+    "options": [
+      "只有地板 Only floor",
+      "所有地腳線、門框、地板周邊、固定櫥及洗滌盆、所有白蟻曾活動地方 All baseboards, doorframes, floor edges, cupboards & sinks, all active areas"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻主要以什麼為食糧？\nWhat is the main food source for termites?",
+    "options": [
+      "肉類 Meat",
+      "纖維素物料（木材、紙張） Cellulose materials (wood, paper)",
+      "花蜜 Nectar",
+      "土壤 Soil"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻群體中數量最多的是哪一類？\nWhich caste has the largest number in a termite colony?",
+    "options": [
+      "蟻后 Queen",
+      "兵蟻 Soldiers",
+      "工蟻 Workers",
+      "飛蟻 Alates"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "以下哪種木材最容易受到白蟻攻擊？\nWhich type of wood is most susceptible to termite attack?",
+    "options": [
+      "經過處理的防腐木材 Treated timber",
+      "與泥土接觸的濕木材 Damp wood in contact with soil",
+      "金屬 Metal",
+      "塑膠 Plastic"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻分飛（Swarming）通常發生在什麼時候？\nWhen does termite swarming usually occur?",
+    "options": [
+      "冬季 Winter",
+      "春季或夏季雨後 After rain in spring/summer",
+      "全年任何時間 Any time of year",
+      "只在夜間 Only at night"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻的哪一個階級負責築造和修補蟻路？\nWhich termite caste builds and repairs mud tubes?",
+    "options": [
+      "兵蟻 Soldiers",
+      "工蟻 Workers",
+      "蟻王 King",
+      "飛蟻 Alates"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "如果發現家中木地板有被白蟻破壞的跡象，第一步應該做什麼？\nIf termite damage is found on wooden floor at home, what should be done first?",
+    "options": [
+      "立即噴灑殺蟲劑 Immediately spray insecticide",
+      "不要騷擾，儘快聯絡專業滅蟲公司 Don't disturb, call professional ASAP",
+      "嘗試自行挖開地板 Try to dig open floor",
+      "忽略它 Ignore it"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Sentricon 藥餌系統是由哪間公司生產的？\nWhich company manufactures the Sentricon system?",
+    "options": [
+      "Bayer",
+      "Dow AgroSciences",
+      "Syngenta",
+      "BASF"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "在進行白蟻治理時，為什麼不建議使用家用殺蟲劑噴灑？\nWhy is home-use insecticide spray NOT recommended for termite treatment?",
+    "options": [
+      "因為太昂貴 Too expensive",
+      "因為會驅散白蟻，導致擴散 Because it repels termites, causing spread",
+      "因為完全無效 Completely ineffective",
+      "因為會傷害人體 Harmful to humans"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪項不是白蟻入侵的常見跡象？\nWhich is NOT a common sign of termite infestation?",
+    "options": [
+      "木製品被破壞 Damaged wood",
+      "白蟻泥路 Mud tubes",
+      "很多蒼蠅飛繞 Many flies buzzing",
+      "發現白蟻翅膀 Discarded wings"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "液體化學屏障治理白蟻的有效期一般為多長？\nHow long does a liquid chemical barrier for termite treatment typically last?",
+    "options": [
+      "1-3個月",
+      "3-5年 3-5 years",
+      "10-15年",
+      "永久 Effective permanently"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻的哪一個階級具有飛行能力？\nWhich termite caste has flight capability?",
+    "options": [
+      "工蟻 Workers",
+      "兵蟻 Soldiers",
+      "飛蟻（繁殖蟻） Alates (reproductives)",
+      "蟻后 Queen"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "白蟻在分飛後會做什麼？\nWhat do termites do after swarming?",
+    "options": [
+      "立即返回舊巢 Return to old colony immediately",
+      "落地脫翅，尋找合適地方築新巢 Drop wings, find suitable place to build new nest",
+      "繼續飛行數天 Continue flying for days",
+      "死亡於空中 Die in mid-air"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪種建築設計最有助於防止白蟻入侵？\nWhich building design best helps prevent termite invasion?",
+    "options": [
+      "木材直接接觸泥土 Wood directly touching soil",
+      "沒有木材與泥土接觸、良好的通風和排水 No wood-soil contact, good ventilation & drainage"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "工蟻在白蟻群體中的主要功能是什麼？\nWhat is the main function of workers in a termite colony?",
+    "options": [
+      "防禦 Defense",
+      "覓食、照顧其他成員、築設巢穴 Foraging, feeding members, nest building",
+      "繁殖 Reproduction",
+      "指揮其他成員 Command others"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Dampwood 白蟻的糞粒有什麼特徵？\nWhat is characteristic of Dampwood termite fecal pellets?",
+    "options": [
+      "圓形 Round",
+      "六面形 Six-sided",
+      "液體狀 Liquid",
+      "沒有特定形狀 No specific shape"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪種說法關於白蟻是正確的？\nWhich statement about termites is correct?",
+    "options": [
+      "白蟻是螞蟻的一種 Termites are a type of ant",
+      "白蟻與蟑螂較為接近 Termites are more closely related to cockroaches",
+      "白蟻只在熱帶地區生存 Termites only survive in tropics",
+      "白蟻不吃木材 Termites don't eat wood"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "在香港，最常見造成木材破壞的白蟻是哪一種？\nWhich termite most commonly causes wood damage in Hong Kong?",
+    "options": [
+      "乾木白蟻 Drywood termite",
+      "家白蟻（台灣乳白蟻） Formosan termite",
+      "濕木白蟻 Dampwood termite",
+      "地下白蟻 Underground termite"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "藥餌系統治理相比液體化學治理的主要優點是什麼？\nWhat is the main advantage of baiting vs liquid chemical treatment?",
+    "options": [
+      "更便宜 Cheaper",
+      "降低風險，沒有重複噴藥，針對整巢 Low risk, no repeated spraying, targets whole colony",
+      "更快見效 Faster results",
+      "更容易操作 Easier to operate"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻治理後需要多少時間才能確認整巢撲治？\nHow long after treatment can colony elimination be confirmed?",
+    "options": [
+      "即時 Immediate",
+      "1-2週 1-2 weeks",
+      "經一段時間（通常數月）沒有進食活動 No feeding activity over measured period (usually months)"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "白蟻最喜歡的活動溫度是攝氏多少度？\nWhat is the preferred temperature for termite activity?",
+    "options": [
+      "攝氏10-15度 10-15°C",
+      "攝氏20-25度 20-25°C",
+      "攝氏24-35度 24-35°C",
+      "攝氏35-40度 35-40°C"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "白蟻泥路的厚度通常是多少？\nHow thick are termite mud tubes usually?",
+    "options": [
+      "像紙張一樣薄 As thin as paper",
+      "約鉛筆粗細 About pencil thickness",
+      "約手指粗細 About finger thickness",
+      "約手臂粗細 About arm thickness"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "進行白蟻治理前，最重要的是什麼？\nWhat is most important before termite treatment?",
+    "options": [
+      "直接噴灑殺蟲劑 Immediately spray pesticide",
+      "詳細巡查，找出所有活動範圍 Detailed inspection to find all activity areas"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Noviflumuron 如何影響白蟻？\nHow does Noviflumuron affect termites?",
+    "options": [
+      "攻擊神經系統 Attacks nervous system",
+      "控制幾丁質合成，導致蛻皮失敗 Controls chitin synthesis, causes failed molting"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻群體內的飛蟻在什麼情況下會出現？\nUnder what conditions do alates appear in a termite colony?",
+    "options": [
+      "群體發展到4-5年，足夠大時 After 4-5 years when colony is large enough",
+      "群體只有數十天時 When colony is only tens of days old",
+      "只有冬季才會出現 Only appear in winter",
+      "從不出現 Never appear"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "在治理白蟻時，Above Ground 藥餌站應該安裝在什麼位置？\nWhere should Above Ground bait stations be installed for termite treatment?",
+    "options": [
+      "隨便位置 Any location",
+      "在發現有白蟻活動的地方 In areas where termite activity is found"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻可以在沒有食物來源的情況下存活多久？\nHow long can termites survive without a food source?",
+    "options": [
+      "數天 Several days",
+      "數週 Several weeks",
+      "數月 Several months",
+      "超過一年 Over a year"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "以下哪種建築材料對白蟻最有抵抗力？\nWhich building material is most resistant to termites?",
+    "options": [
+      "未經處理的木材 Untreated wood",
+      "經過防腐處理的木材或金屬/混凝土 Treated timber or metal/concrete"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻的分飛活動通常在什麼時間發生？\nWhen does termite swarming activity usually occur?",
+    "options": [
+      "清晨 Early morning",
+      "白天 Daytime",
+      "黃昏或夜間 Dusk or nighttime",
+      "午夜 Midnight"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "藥餌系統中的纖維素有什麼作用？\nWhat is the function of cellulose in the bait system?",
+    "options": [
+      "毒死白蟻 Poison termites",
+      "引誘白蟻進食，同時讓同伴找到藥餌位置 Attract termites to feed and let nestmates find bait"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻會攻擊以下哪種材料？\nWhich material will termites attack?",
+    "options": [
+      "混凝土 Concrete",
+      "金屬 Metal",
+      "含有纖維素的木材和紙張 Cellulose-containing wood and paper",
+      "玻璃 Glass"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "在進行液體化學白蟻治理時，需要鑽孔的直徑通常是多少？\nWhat is the typical drilling diameter for liquid termite treatment?",
+    "options": [
+      "1-2毫米 1-2mm",
+      "6-12毫米 6-12mm",
+      "50毫米 50mm",
+      "100毫米 100mm"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪種情況表示白蟻治理成功？\nWhich situation indicates successful termite treatment?",
+    "options": [
+      "仍然見到少量工蟻 Still see some workers",
+      "經一段時間後已沒有進食活動，沒有工蟻 No feeding activity over time, no workers"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻最活躍的季節是什麼時候？\nWhen are termites most active?",
+    "options": [
+      "冬季 Winter",
+      "春季和夏季 Spring and summer",
+      "秋季 Autumn",
+      "全年一樣 Equally active year-round"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪項是預防白蟻入侵的最佳方法？\nWhich is the best method to prevent termite invasion?",
+    "options": [
+      "定期噴灑殺蟲劑 Regular pesticide spraying",
+      "消除木材與泥土接觸，保持通風乾燥 Remove wood-soil contact, keep ventilated and dry"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻治理後，傢俱可以即時搬回嗎？\nCan furniture be moved back immediately after termite treatment?",
+    "options": [
+      "可以 Yes",
+      "需要等待藥劑完全乾燥 Need to wait for chemical to fully dry"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "為什麼在巡查時聽到「嘀嘀」聲音很重要？\nWhy is hearing \"tick tick\" sound during inspection important?",
+    "options": [
+      "那只是噪音 It is just noise",
+      "那表示有白蟻兵蟻在附近活動 It indicates termite soldiers are active nearby"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪種情況最容易引來白蟻入侵？\nWhich condition most attracts termite invasion?",
+    "options": [
+      "完全乾燥的地方 Completely dry area",
+      "木材與泥土接觸 Wood in contact with soil",
+      "金屬結構 Metal structure",
+      "經常有人走動的地方 High human traffic"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "藥餌系統治理白蟻一般需要多長時間才能見效？\nHow long does baiting system termite treatment usually take to show results?",
+    "options": [
+      "1-2天",
+      "1-3個月 1-3 months",
+      "6-12個月 6-12 months",
+      "2年以上 Over 2 years"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻可以在沒有水源的情況下存活嗎？\nCan termites survive without water?",
+    "options": [
+      "可以，存活數月 Yes, for several months",
+      "不可以，需要濕度 No, need moisture"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻的哪一個生命階段最容易受到治理影響？\nWhich life stage of termites is most susceptible to treatment?",
+    "options": [
+      "卵 Eggs",
+      "幼蟲 Nymphs",
+      "工蟻（覓食者） Workers (foragers)",
+      "兵蟻 Soldiers"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "液體白蟻治理需要處理以下哪些位置？\nWhich locations need treatment in liquid termite control?",
+    "options": [
+      "只有地基 Only foundation",
+      "所有地腳線、門框、地板周邊、固定櫥及所有可見白蟻活動區 All baseboards, doorframes, floor edges, cupboards & visible active areas"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪種說法關於 Sentricon 是正確的？\nWhich statement about Sentricon is correct?",
+    "options": [
+      "Sentricon 含有大量化學殺蟲劑 Sentricon contains large amount of chemical insecticide",
+      "Sentricon 透過昆蟲生長調節劑來控制白蟻 Sentricon uses insect growth regulator to control termites",
+      "Sentricon 只對工蟻有效 Sentricon only affects workers",
+      "Sentricon 需要每月重新噴灑 Sentricon needs monthly re-spraying"
+    ],
+    "correct": 1
+  }
+]
