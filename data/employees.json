@@ -232,5 +232,14 @@
     "level": "supervisor",
     "group_name": "A",
     "created_at": "2026-06-27 20:21:52"
+  },
+  {
+    "id": 30,
+    "emp_number": "ST140",
+    "name": "Super Admin",
+    "password_hash": "$2b$10$OoUDmtAc3EbZ9OFD2ZV..ujq9qPVdArV.RGISaolbp/TdyXOZ9gNy",
+    "level": "supervisor",
+    "group_name": "A",
+    "created_at": "2026-06-27 22:45:00"
   }
 ]
