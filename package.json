@@ -11,7 +11,7 @@
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "uuid": "^10.0.0",
-    "@vercel/kv": "^3.0.0"
+    "@upstash/redis": "^0.3.0"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -8,11 +8,22 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ====== VERCEL KV + DUAL-MODE DATA LAYER ======
-const isVercel = process.env.VERCEL;
-let kv = null;
-if (isVercel) {
-  try { const vkv = require('@vercel/kv'); kv = vkv.kv; } catch(e) { console.log('KV not available'); }
+// ====== UPSTASH REDIS (Vercel) + DUAL-MODE DATA LAYER ======
+const isVercel = !!process.env.VERCEL;
+let redis = null;
+
+// Try to connect to Upstash Redis if env vars are set
+if (isVercel && process.env.UPSTASH_REDIS_REST_URL) {
+  try {
+    const { Redis } = require('@upstash/redis');
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+    console.log('Upstash Redis connected');
+  } catch(e) {
+    console.log('Upstash Redis not available:', e.message);
+  }
 }
 
 const DATA_DIR = path.join(__dirname, 'data');
@@ -30,31 +41,38 @@ function saveJSONSync(file, data) {
   fs.writeFileSync(path.join(DATA_DIR, file), JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// Async dual-mode: Vercel KV on cloud, JSON files locally
+// Async dual-mode: Upstash Redis on cloud, JSON files locally
 async function loadJSON(file, defaultVal) {
-  if (isVercel && kv) {
-    const data = await kv.get(file);
-    if (data !== null && data !== undefined) return data;
+  if (isVercel && redis) {
+    const data = await redis.get(file);
+    if (data !== null && data !== undefined) {
+      return typeof data === 'string' ? JSON.parse(data) : data;
+    }
     // Seed from bundled data file
     const seedFile = path.join(__dirname, 'data', file);
     if (fs.existsSync(seedFile)) {
       const seedData = JSON.parse(fs.readFileSync(seedFile, 'utf-8'));
-      await kv.set(file, seedData);
+      await redis.set(file, JSON.stringify(seedData));
       return seedData;
     }
     if (defaultVal) {
       const seed = JSON.parse(JSON.stringify(defaultVal));
-      await kv.set(file, seed);
+      await redis.set(file, JSON.stringify(seed));
       return seed;
     }
     return [];
   }
-  return loadJSONSync(file, defaultVal);
+  // Local: use sync file operations
+  const fp = path.join(DATA_DIR, file);
+  try {
+    if (fs.existsSync(fp)) return JSON.parse(fs.readFileSync(fp, 'utf-8'));
+  } catch(e) {}
+  return defaultVal ? JSON.parse(JSON.stringify(defaultVal)) : [];
 }
 
 async function saveJSON(file, data) {
-  if (isVercel && kv) {
-    await kv.set(file, data);
+  if (isVercel && redis) {
+    await redis.set(file, JSON.stringify(data));
     return;
   }
   saveJSONSync(file, data);
@@ -63,13 +81,15 @@ async function saveJSON(file, data) {
 // Async question loading (dual-mode)
 async function loadQuestions(type, topicId) {
   const key = `questions_topic_${topicId}_${type}`;
-  if (isVercel && kv) {
-    const data = await kv.get(key);
-    if (data !== null && data !== undefined) return data;
+  if (isVercel && redis) {
+    const data = await redis.get(key);
+    if (data !== null && data !== undefined) {
+      return typeof data === 'string' ? JSON.parse(data) : data;
+    }
     const seedFile = path.join(__dirname, 'questions', `topic_${topicId}_${type}.json`);
     if (fs.existsSync(seedFile)) {
       const seedData = JSON.parse(fs.readFileSync(seedFile, 'utf-8'));
-      await kv.set(key, seedData);
+      await redis.set(key, JSON.stringify(seedData));
       return seedData;
     }
     return [];
@@ -81,8 +101,8 @@ async function loadQuestions(type, topicId) {
 
 async function saveQuestions(type, topicId, data) {
   const key = `questions_topic_${topicId}_${type}`;
-  if (isVercel && kv) {
-    await kv.set(key, data);
+  if (isVercel && redis) {
+    await redis.set(key, JSON.stringify(data));
     return;
   }
   const file = path.join(__dirname, 'questions', `topic_${topicId}_${type}.json`);
