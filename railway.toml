@@ -1,5 +1,5 @@
 [deploy]
-startCommand = "sh -c 'if [ -z \"$(ls -A /app/data 2>/dev/null)\" ]; then cp -r /app/data_seed/* /app/data/; fi && node server.js'"
+startCommand = "node server.js"
 healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
