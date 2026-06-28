@@ -6,5 +6,4 @@ ck4.txt
 cookies.txt
 emp-cookies.txt
 data/sessions.json
-data/exam_results.json
-data/essay_answers.json
+.env

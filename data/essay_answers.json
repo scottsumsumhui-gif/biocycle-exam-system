@@ -1,0 +1,68 @@
+[
+  {
+    "id": 1,
+    "result_id": 1,
+    "question_id": "essay_0",
+    "question_text": "解釋生物方法中的天敵和昆蟲生態調節劑如何工作，並說明各自的優缺點。\nExplain how natural enemies and Insect Growth Regulators work in the Biological method, and their respective advantages and disadvantages.",
+    "answer_text": "123123123",
+    "score": 0,
+    "max_score": 5,
+    "graded_by": null,
+    "graded_at": null
+  },
+  {
+    "id": 2,
+    "result_id": 1,
+    "question_id": "essay_1",
+    "question_text": "在偵察（Inspection）步驟中，有哪些常見的害蟲跡象和害蟲喜歡的環境條件？請舉例說明。\nWhat are common signs of pests and favorable environmental conditions in the Inspection step? Give examples.",
+    "answer_text": "12312321312",
+    "score": 0,
+    "max_score": 5,
+    "graded_by": null,
+    "graded_at": null
+  },
+  {
+    "id": 3,
+    "result_id": 1,
+    "question_id": "essay_2",
+    "question_text": "比較物理方法和化學方法在滅蟲工作中的優缺點，並說明在什麼情況下應優先選用物理方法。\nCompare the advantages and disadvantages of Physical and Chemical methods in pest control, and explain when Physical methods should be prioritized.",
+    "answer_text": "123213123123123",
+    "score": 0,
+    "max_score": 5,
+    "graded_by": null,
+    "graded_at": null
+  },
+  {
+    "id": 4,
+    "result_id": 4,
+    "question_id": "essay_0",
+    "question_text": "負責公司車輛的技術員需要遵守哪些車輛使用規定？",
+    "answer_text": "1",
+    "score": 0,
+    "max_score": 5,
+    "graded_by": null,
+    "graded_at": null
+  },
+  {
+    "id": 5,
+    "result_id": 4,
+    "question_id": "essay_1",
+    "question_text": "請簡述生機源（香港）有限公司的使命及目標。",
+    "answer_text": "1",
+    "score": 0,
+    "max_score": 5,
+    "graded_by": null,
+    "graded_at": null
+  },
+  {
+    "id": 6,
+    "result_id": 4,
+    "question_id": "essay_2",
+    "question_text": "技術員之職位晉升的基本條件是什麼？見習高級技術員的試用期為多久？",
+    "answer_text": "1",
+    "score": 0,
+    "max_score": 5,
+    "graded_by": null,
+    "graded_at": null
+  }
+]
