@@ -798,11 +798,39 @@ app.post('/api/admin/grade-essay/:resultId', authRequired('admin'), async (req, 
   res.json({ success: true, totalPassed, totalScore, essayScore: Math.round(essayPassPercent), mcPassed });
 });
 
+app.delete('/api/admin/results/:id', authRequired('admin'), async (req, res) => {
+  const rid = parseInt(req.params.id);
+  if (isNaN(rid)) return res.status(400).json({ success:false, error:'無效的記錄ID' });
+
+  const results = await loadJSON('exam_results.json', []);
+  const idx = results.findIndex(r => r.id === rid);
+  if (idx === -1) return res.status(404).json({ success:false, error:'找不到該記錄' });
+
+  const target = results[idx];
+  const employees = await loadJSON('employees.json', []);
+  const emp = employees.find(e => e.id === target.employee_id);
+  const empLabel = emp ? `${emp.emp_number} ${emp.name}` : `ID ${target.employee_id}`;
+
+  // 同步刪除相關問答答案
+  let answers = await loadJSON('essay_answers.json', []);
+  const beforeAns = answers.length;
+  answers = answers.filter(a => a.result_id !== rid);
+  if (answers.length !== beforeAns) {
+    await saveJSON('essay_answers.json', answers);
+  }
+
+  results.splice(idx, 1);
+  await saveJSON('exam_results.json', results);
+
+  console.log(`[Admin ${req.session.username}] 刪除成績記錄 ID=${rid}, 員工=${empLabel}, Topic=${target.topic_id}, 時間=${target.submitted_at}`);
+
+  res.json({ success:true, message:`已刪除 ${empLabel} 嘅成績記錄`, deletedAnswers: beforeAns - answers.length });
+});
+
 app.get('/api/admin/export-csv', authRequired('admin'), async (req, res) => {
   const { month, year } = req.query;
   const m = month ? parseInt(month) : new Date().getMonth() + 1;
   const y = year ? parseInt(year) : new Date().getFullYear();
-
   let results = (await loadJSON('exam_results.json', [])).filter(r => r.month === m && r.year === y);
   const employees = await loadJSON('employees.json', []);
   const topics = await loadJSON('topics.json', []);

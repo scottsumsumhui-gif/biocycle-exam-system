@@ -493,14 +493,16 @@ async function filterResults() {
     if (!handled) return;
     const data = await handled.json();
     
-    let html = `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>職級</th><th>組別</th><th>主題</th><th>MC分數</th><th>MC正確</th><th>問答分數</th><th>總分</th><th>合格</th><th>問答評分</th><th>時間</th></tr></thead><tbody>`;
+    let html = `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>職級</th><th>組別</th><th>主題</th><th>MC分數</th><th>MC正確</th><th>問答分數</th><th>總分</th><th>合格</th><th>問答評分</th><th>時間</th><th>操作</th></tr></thead><tbody>`;
     for (const r of data.results) {
       html += `<tr><td>${r.emp_number}</td><td>${r.emp_name}</td><td>${levelNames[r.level]}</td><td>${r.group_name}</td><td>${r.topic_name}</td>`;
       html += `<td>${r.mc_score}%</td><td>${r.mc_correct}/${r.mc_total}</td>`;
       html += `<td>${r.essay_score}%</td><td>${r.total_score}%</td>`;
       html += `<td style="color:${r.passed?'#27ae60':'#e74c3c'}">${r.passed?'合格':'不合格'}</td>`;
       html += `<td>${r.essay_graded?'已評':'<span style="color:#f39c12">待評</span>'}</td>`;
-      html += `<td>${r.submitted_at}</td></tr>`;
+      html += `<td>${r.submitted_at}</td>`;
+      const safeName = (r.emp_name || '').replace(/'/g, "\\'");
+      html += `<td><button class="btn btn-xs btn-danger" onclick="deleteResult(${r.id}, '${r.emp_number}', '${safeName}', '${r.submitted_at}')">刪除</button></td></tr>`;
     }
     html += `</tbody></table>`;
     if (data.results.length === 0) {
@@ -521,6 +523,24 @@ function exportCSV() {
   if (month) params.set('month', month);
   if (year) params.set('year', year);
   window.open(API + `/api/admin/export-csv?${params}`, '_blank');
+}
+
+async function deleteResult(rid, empNumber, empName, submittedAt) {
+  const msg = `確定要刪除呢條成績記錄？\n\n員工：${empNumber} ${empName}\n時間：${submittedAt}\n\n⚠️ 記錄同相關問答答案會一齊刪除，無法復原。`;
+  if (!confirm(msg)) return;
+  try {
+    const res = await fetch(API + `/api/admin/results/${rid}`, {method:'DELETE', credentials:'include'});
+    const data = await res.json();
+    if (data.success) {
+      alert('✅ ' + (data.message || '記錄已刪除'));
+      loadResults();
+    } else {
+      alert('❌ 刪除失敗：' + (data.error || '未知錯誤'));
+    }
+  } catch(e) {
+    console.error(e);
+    alert('❌ 刪除失敗，請重試');
+  }
 }
 
 // ===== GRADING =====
