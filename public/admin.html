@@ -367,7 +367,8 @@ async function loadExamConfig() {
     html += `<tr><td>${c.year}/${c.month}</td><td>${c.topic_name}</td><td>${c.start_date}</td><td>${c.end_date}</td>`;
     html += `<td><span class="badge ${c.is_active?'badge-green':'badge-gray'}">${c.is_active?'開放':'關閉'}</span></td>`;
     html += `<td><button class="btn btn-xs btn-outline" onclick="toggleConfig(${c.id},${c.is_active})">${c.is_active?'關閉':'開放'}</button>`;
-    html += `<button class="btn btn-xs btn-outline" onclick="editConfig(${c.id})">編輯日期</button></td></tr>`;
+    html += `<button class="btn btn-xs btn-outline" onclick="editConfig(${c.id})">編輯日期</button>`;
+    html += `<button class="btn btn-xs btn-danger" onclick="deleteConfig(${c.id}, '${c.year}/${c.month} ${c.topic_name}')">刪除</button></td></tr>`;
   }
   html += `</tbody></table></div>`;
   
@@ -447,6 +448,23 @@ async function saveConfig(id) {
     })
   });
   loadExamConfig();
+}
+
+async function deleteConfig(id, label) {
+  const msg = `確定要刪除呢個考試配置？\n\n配置：${label}\n\n⚠️ 配置刪除後無法復原。\n（相關的成績記錄不會一齊刪，如需要請手動到「成績查看」處理。）`;
+  if (!confirm(msg)) return;
+  try {
+    const res = await fetch(API + `/api/admin/exam-config/${id}`, {method:'DELETE', credentials:'include'});
+    const data = await res.json();
+    if (data.success) {
+      alert('✅ ' + (data.message || '配置已刪除'));
+      loadExamConfig();
+    } else {
+      alert('❌ 刪除失敗：' + (data.error || '未知錯誤'));
+    }
+  } catch(e) {
+    alert('❌ 系統錯誤：' + e.message);
+  }
 }
 
 // ===== RESULTS =====

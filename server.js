@@ -708,6 +708,32 @@ app.put('/api/admin/exam-config/:id', authRequired('admin'), async (req, res) =>
   res.json({ success: true });
 });
 
+app.delete('/api/admin/exam-config/:id', authRequired('admin'), async (req, res) => {
+  const cid = parseInt(req.params.id);
+  if (isNaN(cid)) return res.status(400).json({ success: false, error: '無效的配置ID' });
+
+  const configs = await loadJSON('exam_config.json', []);
+  const idx = configs.findIndex(c => c.id === cid);
+  if (idx === -1) return res.status(404).json({ success: false, error: '找不到該配置' });
+
+  const target = configs[idx];
+
+  // Check if any exam results reference this (topic_id, month, year) combination
+  const results = await loadJSON('exam_results.json', []);
+  const relatedResults = results.filter(r =>
+    r.topic_id === target.topic_id && r.month === target.month && r.year === target.year
+  );
+
+  configs.splice(idx, 1);
+  await saveJSON('exam_config.json', configs);
+
+  res.json({
+    success: true,
+    message: `配置已刪除${relatedResults.length > 0 ? `（提示：尚有 ${relatedResults.length} 條相關成績記錄）` : ''}`,
+    relatedResultCount: relatedResults.length
+  });
+});
+
 app.get('/api/admin/results', authRequired('admin'), async (req, res) => {
   const { month, year, level, topicId } = req.query;
 
