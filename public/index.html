@@ -252,11 +252,22 @@ function renderQuestion() {
   html += `<span class="q-type ${q.type}">${q.type === 'mc' ? '選擇題' : '問答題'}</span>`;
   html += `</div>`;
   
-  // Question text
+  // Question text - render all lines, preserving sub-items (I/II/III/IV) for two-level MC
   const lines = q.question.split('\n');
   html += `<div class="q-text">`;
-  html += lines[0];
-  if (lines[1]) html += `<br><span class="q-zh">${lines[1]}</span>`;
+  // First line is the main question
+  html += `<div class="q-main">${lines[0]}</div>`;
+  // All subsequent lines (sub-items like I.II.III.IV, or Chinese version) are rendered
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    // Detect sub-items: starts with I. II. III. IV. or numbers like 1. 2. 3. 4.
+    const isSubItem = /^[IVX]+\.|^\d+\.|^\([IVX0-9]+\)/.test(lines[i].trim());
+    if (isSubItem) {
+      html += `<div class="q-subitem">${lines[i]}</div>`;
+    } else {
+      html += `<div class="q-zh">${lines[i]}</div>`;
+    }
+  }
   html += `</div>`;
   
   if (q.type === 'mc') {
@@ -387,7 +398,7 @@ function showResult(result) {
       html += `</div>`;
       
       // 题目
-      html += `<div style="margin-bottom:8px; color:#2c3e50">${q.questionText}</div>`;
+      html += `<div style="margin-bottom:8px; color:#2c3e50; white-space:pre-wrap; font-family:inherit">${q.questionText}</div>`;
       
       // 选项
       html += `<div style="padding-left:16px">`;
