@@ -8,12 +8,12 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ====== UPSTASH REDIS (Vercel) + DUAL-MODE DATA LAYER ======
+// ====== UPSTASH REDIS (any platform) + DUAL-MODE DATA LAYER ======
 const isVercel = !!process.env.VERCEL;
 let redis = null;
 
-// Try to connect to Upstash Redis if env vars are set
-if (isVercel && process.env.UPSTASH_REDIS_REST_URL) {
+// Try to connect to Upstash Redis if env vars are set (works on Vercel, Railway, etc.)
+if (process.env.UPSTASH_REDIS_REST_URL) {
   try {
     const { Redis } = require('@upstash/redis');
     redis = new Redis({
@@ -43,7 +43,7 @@ function saveJSONSync(file, data) {
 
 // Async dual-mode: Upstash Redis on cloud, JSON files locally
 async function loadJSON(file, defaultVal) {
-  if (isVercel && redis) {
+  if (redis) {
     const data = await redis.get(file);
     if (data !== null && data !== undefined) {
       return typeof data === 'string' ? JSON.parse(data) : data;
@@ -71,7 +71,7 @@ async function loadJSON(file, defaultVal) {
 }
 
 async function saveJSON(file, data) {
-  if (isVercel && redis) {
+  if (redis) {
     await redis.set(file, JSON.stringify(data));
     return;
   }
@@ -81,7 +81,7 @@ async function saveJSON(file, data) {
 // Async question loading (dual-mode)
 async function loadQuestions(type, topicId) {
   const key = `questions_topic_${topicId}_${type}`;
-  if (isVercel && redis) {
+  if (redis) {
     const data = await redis.get(key);
     if (data !== null && data !== undefined) {
       return typeof data === 'string' ? JSON.parse(data) : data;
@@ -101,7 +101,7 @@ async function loadQuestions(type, topicId) {
 
 async function saveQuestions(type, topicId, data) {
   const key = `questions_topic_${topicId}_${type}`;
-  if (isVercel && redis) {
+  if (redis) {
     await redis.set(key, JSON.stringify(data));
     return;
   }
