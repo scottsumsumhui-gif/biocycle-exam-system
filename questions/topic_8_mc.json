@@ -1,381 +1,5 @@
 [
   {
-    "question": "保而剋滅蟲劑不可殺死以下那種害蟲？",
-    "options": [
-      "德國蟑螂",
-      "澳洲蟑螂",
-      "書蝨(卜泥)",
-      "蠼螋",
-      "I",
-      "II+III+IV",
-      "III+IV",
-      "以上皆不是"
-    ],
-    "correct": 7
-  },
-  {
-    "question": "蟑螂的卵囊，內有多少行卵？",
-    "options": [
-      "一行",
-      "兩行",
-      "四行",
-      "六行"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "美洲蟑螂與澳洲蟑螂外觀極為相似，可根據以下那些特徵來分辩？",
-    "options": [
-      "斑紋顏色對比度",
-      "近翅膀基部有兩條明顯的黄色條紋",
-      "頭部的 “T” 紋",
-      "走路的姿態",
-      "I+II",
-      "III+IV",
-      "I+II+III",
-      "以上皆是"
-    ],
-    "correct": 6
-  },
-  {
-    "question": "到目前為止，蟑螂已出現多少個品種？",
-    "options": [
-      "3,000",
-      "3,500",
-      "5,000",
-      "5,300"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "從課堂中，以下那種是最長歷史的昆蟲及比人類早多少年出現？",
-    "options": [
-      "蟑螂比人類早多少年出現3,000,000,000年出現",
-      "蟑螂比人類早多少年出現300,000,000年出現",
-      "書蝨比人類早多少年出現3,000,000,000年出現",
-      "衣魚比人類早多少年出現3,000,000,000年出現"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "蟑螂能在各種表面活動及在玻璃窗及天花爬行是因為以下那種構造？",
-    "options": [
-      "刺狀的腳",
-      "腳部有特別的爪墊",
-      "翼",
-      "長觸鬚",
-      "I",
-      "III + IV",
-      "I + II",
-      "I + II + III"
-    ],
-    "correct": 6
-  },
-  {
-    "question": "德國蟑螂在最後一次脫皮完成後，牠們便長出甚麼和可進行甚麼？",
-    "options": [
-      "長出翅膀和可進行產卵",
-      "長出外殼和可進行排便",
-      "長出翅膀和可進行交配",
-      "長出咀巴和可進行餵食",
-      "美洲蟑螂生命週期、行為及習性請找出正確答案 ？。",
-      "在頭部較上表面位置有啡紅色及深啡色和黃色的邊界、長度 - 3 - 4 cm、有翼 - 雄性的翼會長過腹部",
-      "在頭部較上表面位置有啡紅色及淺啡色和黃色的邊界、長度 - 4 - 5 cm、有翼 - 雄性的翼會長過腹部",
-      "在頭部較上表面位置有啡紅色及深啡色和黃色的邊界、長度 - 3 - 4 cm、有翼 - 雄性的翼會長過腹部",
-      "在頭部較上表面位置有啡紅色及淺啡色和黃色的邊界、長度 - 2.5 - 3.4 cm、有翼 - 雄性的翼會長過腹部"
-    ],
-    "correct": 8
-  },
-  {
-    "question": "噴灑滅蟲劑是美洲蟑螂治理中主要的一部份，但以那位置是盡量減少直接噴灑滅蟲劑的？",
-    "options": [
-      "( 與滅蟲劑的安全性無關)",
-      "主人房",
-      "BB房",
-      "狗屋",
-      "沙井內",
-      "以下那類的德國蟑螂會特別被費洛蒙吸引",
-      "雄性",
-      "雌性",
-      "未成熟的",
-      "所有"
-    ],
-    "correct": 8
-  },
-  {
-    "question": "那品種蟑螂的卵囊，內有最多卵?",
-    "options": [
-      "德國蟑螂",
-      "長鬚蜚蠊 (褐帶蠊)",
-      "澳洲蟑螂",
-      "美洲蟑螂",
-      "以下那類的德國蟑螂會特別被費洛蒙吸引",
-      "雄性",
-      "雌性",
-      "未成熟的",
-      "所有"
-    ],
-    "correct": 7
-  },
-  {
-    "question": "以下那類的德國蟑螂會特別被費洛蒙吸引？",
-    "options": [
-      "雄性",
-      "雌性",
-      "未成熟的",
-      "所有"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "從課堂中，那種蟑螂是喜歡較為乾爽的地方?",
-    "options": [
-      "德國蟑螂",
-      "長鬚蜚蠊 (褐帶蠊)",
-      "澳洲蟑螂",
-      "美洲蟑螂",
-      "從以下那兩種特徵去分辨出德國蟑螂及褐帶蠊(Brown banded 仔)",
-      "頭部的兩條深色及明顯的條紋與身形大細",
-      "頭部的三條深色及明顯的條紋及身形大細",
-      "頭部的兩條深色及明顯的條紋與是否散播出沒",
-      "頭部的兩條深色及明顯的條紋與多少對腳"
-    ],
-    "correct": 7
-  },
-  {
-    "question": "從以下那兩種特徵去分辨出德國蟑螂及褐帶蠊(Brown banded 仔)？",
-    "options": [
-      "頭部的兩條深色及明顯的條紋與身形大細",
-      "頭部的三條深色及明顯的條紋及身形大細",
-      "頭部的兩條深色及明顯的條紋與是否散播出沒",
-      "頭部的兩條深色及明顯的條紋與多少對腳"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "以下那種蟑螂是特别喜歡澱粉質食物？",
-    "options": [
-      "長鬚蜚蠊 (褐帶蠊)",
-      "長鬚蜚蠊 (褐帶蠊) 及德國蟑螂",
-      "長鬚蜚蠊 (褐帶蠊) 及澳洲蟑螂",
-      "長鬚蜚蠊 (褐帶蠊) 及美洲蟑螂",
-      "以下那兩種方法皆適合在所有品種蟑螂的治理中使用。",
-      "噴灑滅蟲劑及使用藥餌",
-      "使用藥餌及蟑螂陷阱(蟑螂屋)",
-      "檢查及給客戶見議和吸取",
-      "噴灑滅蟲劑及使用蟑螂陷阱(蟑螂屋)"
-    ],
-    "correct": 7
-  },
-  {
-    "question": "以下那兩種方法皆適合在所有品種蟑螂的治理中使用？",
-    "options": [
-      "噴灑滅蟲劑及使用藥餌",
-      "使用藥餌及蟑螂陷阱(蟑螂屋)",
-      "檢查及給客戶建議和吸塵",
-      "噴灑滅蟲劑及使用蟑螂陷阱(蟑螂屋)"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "以下那兩種昆蟲是以霉作為主要食糧？",
-    "options": [
-      "蠼螋",
-      "真菌甲蟲",
-      "衣魚",
-      "書蝨(卜泥)",
-      "I + II",
-      "I + III",
-      "II + IV",
-      "III + IV"
-    ],
-    "correct": 6
-  },
-  {
-    "question": "以下那種昆蟲對人類有害(傳播疾病)?",
-    "options": [
-      "蠼螋",
-      "衣魚",
-      "躍尾蟲",
-      "真菌甲蟲",
-      "I + III + IV",
-      "I + II + III",
-      "以上皆不是",
-      "以上皆是",
-      "有條身長約與尾指甲般的長度、呈灰色、身形是修身及尾有三條鬚的蟲，會是以下那種蟲。",
-      "衣魚",
-      "德國蟑螂",
-      "躍尾蟲",
-      "蠼螋"
-    ],
-    "correct": 9
-  },
-  {
-    "question": "有條身長約與尾指甲般的長度、呈灰色、身形是修身及尾有三條鬚的蟲，會是以下那種蟲？",
-    "options": [
-      "衣魚",
-      "德國蟑螂",
-      "躍尾蟲",
-      "蠼螋",
-      "蠼螋的壽命多久？",
-      "1-4個月",
-      "半年",
-      "一年",
-      "二至八年"
-    ],
-    "correct": 7
-  },
-  {
-    "question": "躍尾蟲一般不長過以下那長度?",
-    "options": [
-      "5毫米",
-      "6毫米",
-      "5厘米",
-      "6厘米",
-      "蠼螋的壽命多久?",
-      "1-4個月",
-      "半年",
-      "一年",
-      "二至八年",
-      "有小狗的客人合約做四次書蝨治理，已做兩次(每星期一次準時做) ，問題已大有改善，你進行第三次治理時 你認為以下那項可幫助客人解決書蝨問題的正確方法。",
-      "用Handpump加BKL噴牆",
-      "用BKL噴Turbo",
-      "游說她續約",
-      "教育她控制濕度，減低霉生長",
-      "(誰答A或 B, 請安排獨立教授正確資訊.)",
-      "填充/短答題"
-    ],
-    "correct": 14
-  },
-  {
-    "question": "有小狗的客人合約做四次書蝨治理，已做兩次(每星期一次準時做) ，問題已大有改善，你進行第三次治理時 你認為以下那項可幫助客人解決書蝨問題的正確方法？",
-    "options": [
-      "用Handpump加BKL噴牆",
-      "用BKL噴Turbo",
-      "游說她續約",
-      "教育她控制濕度，減低霉生長"
-    ],
-    "correct": 3
-  },
-  {
-    "question": "德國蟑螂在最後一次脫皮完成後，牠們便長出甚麼和可進行甚麼？What will German cockroach grow after last molt?",
-    "options": [
-      "長出翅膀和可進行產卵 emerges fully wings and hatching",
-      "長出外殼和可進行排便 emerges shell and defecation",
-      "長出翅膀和可進行交配 emerges fully wings and sexually mature for mating",
-      "長出咀巴和可進行餵食 emerges mouth and feeding"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "那品種蟑螂的卵囊，內有最多卵？Which of the following cockroach has the most eggs?",
-    "options": [
-      "德國蟑螂 German Cockroach",
-      "長鬚蜚蠊 (褐帶蠊) Brown-banded Cockroach",
-      "澳洲蟑螂 Australian Cockroach",
-      "美洲蟑螂 American Cockroach"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "以下那類的德國蟑螂會特別被費洛蒙吸引？Which of the following types of cockroach are particularly attracted to pheromones?",
-    "options": [
-      "雄性 Male",
-      "雌性 Female",
-      "未成熟的 Immature stages",
-      "所有 All"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "從課堂中，那種蟑螂是喜歡較為乾爽的地方？ During the training, which of the following cockroach prefers a dry environment?",
-    "options": [
-      "德國蟑螂German Cockroach",
-      "長鬚蜚蠊 (褐帶蠊) Brown-banded Cockroach",
-      "澳洲蟑螂 Australian Cockroach",
-      "美洲蟑螂 American Cockroach"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "以下那種蟑螂是特别喜歡澱粉質食物？ Which of the following types of cockroach is particularly prefers starchy materials?",
-    "options": [
-      "長鬚蜚蠊 (褐帶蠊) Brown-banded Cockroach",
-      "長鬚蜚蠊 (褐帶蠊) 及德國蟑螂 Brown-banded Cockroach and German Cockroach",
-      "長鬚蜚蠊 (褐帶蠊) 及澳洲蟑螂 Brown-banded Cockroach and Australian Cockroach",
-      "長鬚蜚蠊 (褐帶蠊) 及美洲蟑螂 Brown-banded Cockroach and American Cockroach"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "以下那兩種方法皆適合在所有品種蟑螂的治理中使用？Which of the following two methods can be use in all kinds of cockroach treatment?",
-    "options": [
-      "噴灑滅蟲劑及使用藥餌 Spray insecticide and apply bait",
-      "使用藥餌及蟑螂陷阱(蟑螂屋) Apply bait and trappers",
-      "檢查及給客戶建議和吸塵 Inspection and give advice to clients and vacuuming",
-      "噴灑滅蟲劑及使用蟑螂陷阱(蟑螂屋) Spray insecticide and set trappers"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "以下那兩種昆蟲是以霉作為主要食糧？ Which of the following two insects consume mold as the main food?",
-    "options": [
-      "蠼螋 Earwigs",
-      "真菌甲蟲 Fungus Beetle",
-      "衣魚 Silverfish",
-      "書蝨(卜泥) Booklice / Psocid",
-      "I + II",
-      "I + III",
-      "II + IV",
-      "III + IV"
-    ],
-    "correct": 6
-  },
-  {
-    "question": "以下那種昆蟲對人類有害(傳播疾病)？ Which of the following insect are harmful to human (transmit disease)?",
-    "options": [
-      "蠼螋Earwig",
-      "衣魚Silverfish",
-      "躍尾蟲Springtail",
-      "真菌甲蟲 Fungus Beetle",
-      "I + III + IV",
-      "I + II + III",
-      "以上皆不是",
-      "以上皆是"
-    ],
-    "correct": 6
-  },
-  {
-    "question": "有條身長約與尾指甲般的長度、呈灰色、身形是修身及尾有三條鬚的蟲，會是以下那種蟲？What is the insect has the length around the little finger tail long, grey color, slim shape and 3 tentacle at the back of the body?",
-    "options": [
-      "衣魚 Silverfish",
-      "德國蟑螂 German cockroach",
-      "躍尾蟲 Springtail",
-      "蠼螋 Earwig"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "躍尾蟲一般不長過以下那長度？Springtail generally not more than how long?",
-    "options": [
-      "5mm",
-      "6mm",
-      "5cm",
-      "6cm"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "蠼螋的壽命多久？What is the life cycle of earwig?",
-    "options": [
-      "1-4個月 1-4 months",
-      "半年 Half year",
-      "一年 1 year",
-      "二至八年 2-8 years"
-    ],
-    "correct": 2
-  },
-  {
     "question": "蟑螂最喜愛的食物是？",
     "options": [
       "澱粉類、甜味食物、脂肪、肉類",
@@ -385,24 +9,29 @@
       "I",
       "II+III+IV",
       "III+IV",
-      "以上皆是",
-      "j"
+      "以上皆是"
     ],
     "correct": 4
   },
   {
+    "question": "以下那種蟑螂是特别喜歡澱粉質食物？",
+    "options": [
+      "長鬚蜚蠊 (褐帶蠊)",
+      "長鬚蜚蠊 (褐帶蠊) 及德國蟑螂",
+      "長鬚蜚蠊 (褐帶蠊) 及澳洲蟑螂",
+      "長鬚蜚蠊 (褐帶蠊) 及美洲蟑螂"
+    ],
+    "correct": 0
+  },
+  {
     "question": "蟑螂生命週期、行為及習性是以下那幾項 ？",
     "options": [
-      "極度頑強",
-      "只需少量食物就能生長",
-      "在長時間缺糧水的情況下仍能生長",
-      "當在較寒冷地方的時候，會較活躍",
       "A.    I+II",
       "B.    I+III",
       "C.    II+III+IV",
       "D.    I+II+III"
     ],
-    "correct": 7
+    "correct": 3
   },
   {
     "question": "德國蟑螂主要治理方法 ？",
@@ -421,16 +50,12 @@
   {
     "question": "德國蟑螂生命週期、行為及習性是以下那幾項 ？",
     "options": [
-      "I.     在產卵當日，雌蟑螂會走到隱蔽的地方放下卵囊",
-      "II.    卵囊會微微開啟線縫，而幼蟲們便會合力擠出來",
-      "III.   剛破出的幼蟲是白色的，過數小時後便慢慢變深",
-      "IV.   會在90日內脫皮5-8次",
       "A.    I+II",
       "B.    I+II+III",
       "C.    I+II+IV",
       "D.   以上皆是"
     ],
-    "correct": 5
+    "correct": 1
   },
   {
     "question": "美國蟑螂生命週期、行為及習性請找出正確答案？",
@@ -438,20 +63,9 @@
       "A. 當氣溫高於30°c時，牠們才會飛行",
       "B. 雌蟑螂會有14-15個月的壽命",
       "C. 雄蟑螂的壽命會較短",
-      "D. 以上皆是",
-      "德國雌性蟑螂一生會自能生產4-8個卵囊，可有300個後代，孵化時間______日",
-      "A.    5-10",
-      "B.   10-15",
-      "C.   15-20",
-      "D.      20-30",
-      "德國蟑螂如卵和雌蟑螂早2-3日分離，孵化仍能繼續但必須保持濕度達_____或以上，",
-      "否則便會過量缺水(乾化)",
-      "50%",
-      "60%",
-      "70%",
-      "80%"
+      "D. 以上皆是"
     ],
-    "correct": 13
+    "correct": 3
   },
   {
     "question": "德國雌性蟑螂一生會自能生產         個卵囊，可有            個後代？",
@@ -466,16 +80,12 @@
   {
     "question": "美洲蟑螂生命週期、行為及習性請找出正確答案 ？",
     "options": [
-      "I.       幼蟲是灰啡色",
-      "II.      脫皮9 -13次",
-      "III.     完成頭數次脫皮後，幼蟲變得越紅啡色",
-      "IV.     完全成長需時6 - 12個月",
       "A.   I+II+III",
       "B.   II+III+IV",
       "C.   以上皆是",
       "D.   以上皆不是"
     ],
-    "correct": 6
+    "correct": 2
   },
   {
     "question": "長鬚蜚蠊(褐帶蠊) 或俗稱啡間是如何治理 ？",
@@ -498,6 +108,36 @@
     "correct": 0
   },
   {
+    "question": "以下那類的德國蟑螂會特別被費洛蒙吸引？",
+    "options": [
+      "雄性",
+      "雌性",
+      "未成熟的",
+      "所有"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "從以下那兩種特徵去分辨出德國蟑螂及褐帶蠊(Brown banded 仔)？",
+    "options": [
+      "頭部的兩條深色及明顯的條紋與身形大細",
+      "頭部的三條深色及明顯的條紋及身形大細",
+      "頭部的兩條深色及明顯的條紋與是否散播出沒",
+      "頭部的兩條深色及明顯的條紋與多少對腳"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "以下那兩種方法皆適合在所有品種蟑螂的治理中使用？",
+    "options": [
+      "A.  噴灑滅蟲劑及使用藥餌",
+      "B.  使用藥餌及蟑螂陷阱(蟑螂屋)",
+      "C.  檢查及給客戶建議和吸塵",
+      "D.  噴灑滅蟲劑及使用蟑螂陷阱(蟑螂屋)"
+    ],
+    "correct": 2
+  },
+  {
     "question": "如何釋辨衣魚請找出正確答案 ？",
     "options": [
       "12 – 25mm毫米、咖啡至銀灰色、象紅蘿蔔外形",
@@ -506,6 +146,20 @@
       "15 - 35mm毫米、深咖啡至鐵灰色、象紅蘿蔔外形"
     ],
     "correct": 0
+  },
+  {
+    "question": "以下那兩種昆蟲是以霉作為主要食糧？",
+    "options": [
+      "蠼螋",
+      "真菌甲蟲",
+      "衣魚",
+      "書蝨(卜泥)",
+      "I + II",
+      "I + III",
+      "II + IV",
+      "III + IV"
+    ],
+    "correct": 6
   },
   {
     "question": "書蟲 (一般情況)要如何控制？",
@@ -518,18 +172,42 @@
     "correct": 0
   },
   {
+    "question": "有條身長約與尾指甲般的長度、呈灰色、身形是修身及尾有三條鬚的蟲，會是以下那種蟲？",
+    "options": [
+      "A.  躍尾蟲",
+      "B.  蠼螋",
+      "C.  衣魚",
+      "D.  德國蟑螂"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "躍尾蟲一般不長過以下那長度？",
+    "options": [
+      "5毫米",
+      "6毫米",
+      "5厘米",
+      "6厘米",
+      "蠼螋的壽命多久？",
+      "1-4個月",
+      "半年",
+      "一年",
+      "二至八年"
+    ],
+    "correct": 7
+  },
+  {
     "question": "真菌甲蟲生命週期、行為及習性請找出正確答案 ？",
     "options": [
       "2-3 毫米、不愛光線吸引、愛吃真菌、並非人類傳染病的病媒、可能觸發部分",
       "人出現呼吸道過敏症狀。",
-      "1-3 毫米、被光線吸引、愛吃真菌、人類傳染病的病媒、可能觸發部分",
-      "人出現呼吸道過敏症狀。",
       "1-3 毫米、被光線吸引、愛吃真菌、並非人類傳染病的病媒、可能觸發部分",
       "人出現呼吸道過敏症狀。",
       "2-3毫米、被光線吸引、愛吃真菌、並非人類傳染病的病媒、可能觸發部分",
-      "人出現呼吸道過敏症狀。"
+      "人出現呼吸道過敏症狀。",
+      "D.    1-3 毫米、被光線吸引、愛吃真菌、人類傳染病的病媒、可能觸發部分人出現呼吸道過敏症狀。"
     ],
-    "correct": 5
+    "correct": 3
   },
   {
     "question": "當發現德國蟑螂時我們一般會落Gel及昆蟲監察站 ，根據我們的做法應在哪裡落Gel？",
@@ -542,6 +220,17 @@
     "correct": 2
   },
   {
+    "question": "噴灑滅蟲劑是美洲蟑螂治理中主要的一部份，但以那位置是盡量減少直接噴灑滅蟲劑的？",
+    "options": [
+      "( 與滅蟲劑的安全性無關)",
+      "A.主人房",
+      "B. BB房",
+      "C. 狗屋",
+      "D. 沙井內"
+    ],
+    "correct": 4
+  },
+  {
     "question": "蠼螋 (發音「渠搜」) Earwigs一般情况下會在那裡進入家居環境？",
     "options": [
       "A. 經植物或花帶入，由空隙或裂縫進入。",
@@ -552,115 +241,13 @@
     "correct": 0
   },
   {
-    "question": "以下是蟑螂生命週期、行為及習性請找出正確答案？",
+    "question": "有小狗的客人合約做四次書蝨治理，已做兩次(每星期一次準時做) ，問題已大有改善，你進行第三次治理時 你認為以下那項可幫助客人解決書蝨問題的正確方法？",
     "options": [
-      "在晚間，可發現牠們群體覓食、牠們不像蟻是社會昆蟲、不會為族群覓食。",
-      "日間活動，可發現牠們群體覓食、牠們像蟻是社會昆蟲、會為族群覓食。",
-      "早、晚活動，可發現牠們群體覓食、牠們像蟻是社會昆蟲、會為族群覓食",
-      "以上皆不是"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "蟑螂最喜愛的食物是？Which of followings are cockroach prefers foods?",
-    "options": [
-      "澱粉類、甜味食物、脂肪、肉類starches , sweets, grease, meat products",
-      "紙張、膠袋、朱古力、甜甜圈。Paper, plastic bag, chocolate, doughnut",
-      "蔬菜、腐爛食物、甜味食物。Vegetables, decayed food and sweets food.",
-      "甜味食物、脂肪、肉類、纖維等等 Sweets food, grease, meat, celloluse…etc",
-      "I",
-      "II+III+IV",
-      "III+IV",
-      "以上皆是"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "德國雌性蟑螂一生會能生產         個卵囊，可有            個後代？ A female german cockroach can produce how many egg capsules in her lifetime?",
-    "options": [
-      "2-6個卵囊，可有300個後 2-6 egg capsules; can be over 300 offspring.",
-      "6-10個卵囊，可有250個後6-10 egg capsules; can be over 250 offspring",
-      "4-8個卵囊，可有300個後4-8 egg capsules; can be over 300 offspring",
-      "4-8個卵囊，可有400個後4-8 egg capsules; can be over 400 offspring"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "美洲蟑螂生命週期、行為及習性請找出正確答案 ？。Which of following is life cycle, behaviour and habit of American Cockroach?",
-    "options": [
-      "在頭部較上表面位置有啡紅色及深啡色和黃色的邊界、長度 - 2.5 - 3.4 cm、有翼 -雌性的翼會長過腹部Colour - Reddish brown with pale brown or yellow border on the upper surface of the head , Length – 2.5 – 3.4 cm, Have wings - females protrude past abdomen",
-      "在頭部較上表面位置有啡紅色及淺啡色和黃色的邊界、長度 - 4 - 5 cm、有翼 - 雄性的翼會長過腹部Colour - Reddish brown with pale brown or yellow border on the upper surface of the head, Length - 4 - 5 cm, Have wings - males protrude past abdomen",
-      "在頭部較上表面位置有啡紅色及深啡色和黃色的邊界、長度 - 3 - 4 cm、有翼 - 雄性的翼會長過腹部Colour - Reddish brown with pale brown or yellow border on the upper surface of the head, Length - 3 - 4 cm, Have wings - males protrude past abdomen",
-      "在頭部較上表面位置有啡紅色及淺啡色和黃色的邊界、長度 - 2.5 - 3.4 cm、有翼 - 雄性的翼會長過腹部Colour - Reddish brown with pale brown or yellow border on the upper surface of the head, Length - 2.5 - 3.4 cm, Have wings - males protrude past abdomen"
+      "用Handpump加BKL噴牆",
+      "用BKL噴Turbo",
+      "游說她續約",
+      "教育她控制濕度，減低霉菌生長"
     ],
     "correct": 3
-  },
-  {
-    "question": "德國蟑螂生命週期、行為及習性請找出正確答案 ？Which of following is life cycle, behaviour and habit of German Cockroach?",
-    "options": [
-      "顏色 - 淺至中啡色、長度 - 1.5 - 2厘米、有翼但不會飛行、生命長至12 個月。",
-      "Colour - pale to mid brown, Length - 1.5 - 2 cm, Have wings but never fly, Live for approx 12 months, can be less due to environmental and other factors",
-      "顏色 - 淺至深啡色、長度 - 2.5 -3厘米、善於會飛行、生命長至12 個月。",
-      "Colour - pale to dark brown, Length – 2.5 - 3 cm, Good flyer, Live for approx 12 months, can be less due to environmental and other factors",
-      "顏色 - 淺至中啡色、長度 - 2.5 -3厘米、不會飛行、生命長至12 個月。",
-      "Colour - pale to mid brown, Length – 2.5 - 3 cm, cannot fly, Live for approx 12 months, can be less due to environmental and other factors",
-      "顏色 - 淺至深啡色、長度 - 1.5-2厘米、善於會飛行、生命長至12 個月。",
-      "Colour - pale to dark brown, Length – 1.5 - 3 cm, Good flyer, Live for approx 12 months, can be less due to environmental and other factors"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "衣魚是沒有害的但它們愛吃甚麽，請找出正確答案 ？",
-    "options": [
-      "麵粉，紙張。",
-      "凝膠(膠水) ， 棉質產品",
-      "人造絲，絲綢",
-      "以上皆是"
-    ],
-    "correct": 3
-  },
-  {
-    "question": "蠼螋的壽命多久？",
-    "options": [
-      "1-4個月",
-      "半年",
-      "一年",
-      "二至八年"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "到目前為止巳知的蟑螂品種約有多少 ？",
-    "options": [
-      "3500種",
-      "350 種",
-      "35種",
-      "太多，未有統一的數量"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "澳洲蜚蠊與美洲蟑螂極為相似我們如何分辨？",
-    "options": [
-      "I.   美洲蟑螂頭部有較清晰的T字紋",
-      "II. 澳洲蜚蠊胸背上的斑紋顏色對比較弱",
-      "III. 澳洲蜚蠊近翅膀基部有兩條明顯的黃色條紋",
-      "IV. 澳洲蜚蠊喜歡較為乾爽的地方，所以比較多於倉庫及貯物室等地方發現",
-      "A. I+II +III",
-      "B. I+III+IV",
-      "C. II+III+IV",
-      "D. 以上皆是"
-    ],
-    "correct": 5
-  },
-  {
-    "question": "蠼螋(粵音:渠搜) (Earwig)的壽命多久？",
-    "options": [
-      "1-4個月",
-      "半年",
-      "一年",
-      "二至八年"
-    ],
-    "correct": 2
   }
 ]

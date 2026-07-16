@@ -1,62 +1,50 @@
 [
   {
-    "question": "為什麼家白蟻會被列為”社會昆蟲”？",
+    "question": "請簡述白蟻的3大類別及其主要分佈特徵。\nDescribe the 3 main categories of termites and their main characteristics.",
     "maxScore": 5
   },
   {
-    "question": "請列出三個會被緊密監察及記錄的心居康藥餌資訊。",
+    "question": "白蟻群體中的社會階級有哪些？請說明每個階級的主要職責。\nWhat are the castes in a termite colony? Describe the main duty of each caste.",
     "maxScore": 5
   },
   {
-    "question": "假如一個白蟻巢有飛白蟻，請問巢內最少有多少隻白蟻？",
+    "question": "如客人發現白蟻入侵痕跡，應該如何處理？為什麼不應該噴灑家用殺蟲劑？\nWhat should a client do if they find termite infestation signs? Why should they NOT spray home-use insecticide?",
     "maxScore": 5
   },
   {
-    "question": "請問家白蟻會不規則及持續進食甚麼？選出最正確答案。",
+    "question": "什麼是 Sentricon（心居康）白蟻族群撲治系統？請說明其工作原理。\nWhat is the Sentricon colony elimination system? Explain how it works.",
     "maxScore": 5
   },
   {
-    "question": "為何發現舊白蟻路時需要安裝心康居系統作監察？(2分)",
-    "maxScore": 2
-  },
-  {
-    "question": "何進行鑽孔及距離約多遠？(2分)",
-    "maxScore": 2
-  },
-  {
-    "question": "白蟻蟻路的作用是什麼？(2分)",
-    "maxScore": 2
-  },
-  {
-    "question": "請列出三個會被緊密監察及記錄的心居康藥餌資訊。(2分)",
-    "maxScore": 2
-  },
-  {
-    "question": "Why we need to install Sentricon Colony Elimination system after find out old mud tube? (2 Marks)為何發現舊白蟻路時需要安裝心康居系統作監察？(2分)",
-    "maxScore": 2
-  },
-  {
-    "question": "當客人發現飛白蟻的時候我們應如何處理，試列舉兩個方法？如需用噴灑可使用那種藥，並列稀釋濃度是多少？(2分)",
-    "maxScore": 2
-  },
-  {
-    "question": "有否發現同事們在處理白蟻檢查時會不停周圍敲擊，這方法是正確或是不正確。試列舉例子並作詳細解析。(2分)",
-    "maxScore": 2
-  },
-  {
-    "question": "請列出三個會被緊密監察及記錄的心居康藥餌資訊。3分",
+    "question": "請列出至少4種白蟻入侵的常見跡象。\nList at least 4 common signs of termite infestation.",
     "maxScore": 5
   },
   {
-    "question": "請列出三個會被緊密監察及記錄的心居康藥餌資訊。2分",
+    "question": "比較「藥餌系統治理」和「液體化學屏障治理」的優缺點。\nCompare the advantages and disadvantages of baiting system vs liquid chemical barrier treatment.",
     "maxScore": 5
   },
   {
-    "question": "請嘗試列舉白蟻由經常在，那些隱閉位置進入家居範圍？",
+    "question": "白蟻后和蟻王在群體中分別扮演什麼角色？\nWhat roles do the termite queen and king play in the colony?",
     "maxScore": 5
   },
   {
-    "question": "請嘗試列舉白蟻由那些隱閉位置進入家居範圍？",
+    "question": "什麼是白蟻的「分飛」現象？通常在什麼時候發生？\nWhat is termite swarming? When does it usually occur?",
+    "maxScore": 5
+  },
+  {
+    "question": "Noviflumuron 如何影響白蟻？它屬於哪一類物質？\nHow does Noviflumuron affect termites? What class of substance is it?",
+    "maxScore": 5
+  },
+  {
+    "question": "白蟻泥路（蟻路）有什麼功能？為什麼白蟻需要築建它們？\nWhat is the function of termite mud tubes? Why do termites need to build them?",
+    "maxScore": 5
+  },
+  {
+    "question": "請說明在進行白蟻治理前，為什麼需要進行詳細巡查？巡查時應注意什麼？\nWhy is detailed inspection needed before termite treatment? What should be noted during inspection?",
+    "maxScore": 5
+  },
+  {
+    "question": "如何判斷白蟻巢穴是否已被撲治？請列出至少3個指標。\nHow to determine if a termite colony has been eliminated? List at least 3 indicators.",
     "maxScore": 5
   }
 ]
