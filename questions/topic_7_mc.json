@@ -1,365 +1,709 @@
 [
   {
-    "id": 1,
-    "question": "在香港家居環境中常見的鼠類有哪三種？",
+    "question": "在本港的家居環境中常見的鼠類有那幾類？",
     "options": [
-      "溝鼠、屋頂鼠、小家鼠",
-      "只會有一種",
-      "田鼠、溝鼠、家鼠",
-      "大老鼠、小老鼠、中老鼠"
+      "挪威鼠",
+      "黑家鼠",
+      "小家鼠",
+      "地家鼠",
+      "屋頂鼠",
+      "I+II+III",
+      "I+II+IV",
+      "I+II+III+V",
+      "以上皆是"
     ],
-    "correct": 0
+    "correct": 7
   },
   {
-    "id": 2,
-    "question": "褐家鼠（溝鼠）的體長（頭至尾）約為多少？",
+    "question": "黑家鼠: 又名屋頂鼠、船鼠、玄鼠、黃胸鼠它們最愛出沒地方？",
     "options": [
-      "18厘米",
-      "35-45厘米",
-      "50-60厘米",
-      "60厘米以上"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 3,
-    "question": "黑家鼠（屋頂鼠）的體長（頭至尾）約為多少？",
-    "options": [
-      "18厘米",
-      "37-45厘米",
-      "50厘米",
-      "60厘米"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 4,
-    "question": "小家鼠的體長（頭至尾）約為多少？",
-    "options": [
-      "10厘米",
-      "18厘米",
-      "30厘米",
-      "40厘米"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 5,
-    "question": "溝鼠的尾巴與身驅的長度比較是怎樣？",
-    "options": [
-      "長過頭加身驅",
-      "短過頭加身驅",
-      "一樣長",
-      "沒有尾巴"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 6,
-    "question": "屋頂鼠的尾巴與身驅的長度比較是怎樣？",
-    "options": [
-      "短過頭加身驅",
-      "長過頭加身驅",
-      "一樣長",
-      "沒有尾巴"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 7,
-    "question": "溝鼠的糞便約多長？",
-    "options": [
-      "1/4吋",
-      "3/4吋",
-      "1吋",
-      "2吋"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 8,
-    "question": "屋頂鼠的糞便約多長？",
-    "options": [
-      "1/4吋",
-      "1/2吋",
-      "3/4吋",
-      "1吋"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 9,
-    "question": "小家鼠的糞便約多長？",
-    "options": [
-      "1/4吋",
-      "1/2吋",
-      "3/4吋",
-      "1吋"
-    ],
-    "correct": 0
-  },
-  {
-    "id": 10,
-    "question": "老鼠的行為特性中，對新奇物件懷疑的特性稱為什麼？",
-    "options": [
-      "社交性",
-      "領域性",
-      "新奇物件恐懼性（Neophobia）",
-      "查探性"
+      "在低層、屋頂空隙、管道及 槽溝",
+      "在中低層、屋頂、空房間、管道及 槽溝",
+      "在高層、屋頂空隙、管道及槽溝",
+      "在中低高層、屋頂空隙、管道及槽溝"
     ],
     "correct": 2
   },
   {
-    "id": 11,
-    "question": "大鼠的活動範圍約為多少米？",
+    "question": "我們可由老鼠糞便的大、小辨別出本港家居不同鼠類？",
     "options": [
-      "5-10米",
-      "30-50米",
-      "100米",
-      "200米"
+      "挪威鼠糞便約1/4 吋長、小家鼠糞便約1/4吋長、屋頂鼠糞便約3/4吋長",
+      "挪威鼠糞便約3/4 吋長、屋頂鼠糞便約1/2吋長、小家鼠糞便約1/4吋長",
+      "挪威鼠糞便約3/4 吋長、屋頂鼠糞便約1/4吋長、小家鼠糞便約1/2吋長",
+      "挪威鼠糞便約1/2 吋長、屋頂鼠糞便約3/4吋長、小家鼠糞便約1/4吋長"
     ],
     "correct": 1
   },
   {
-    "id": 12,
-    "question": "小鼠的活動範圍約為多少米？",
+    "question": "那些是老鼠的行及特性？",
     "options": [
-      "1-3米",
-      "5-10米",
-      "30-50米",
-      "100米"
+      "每群均居於明確的領域內，成年的老鼠會攻擊所有侵略者",
+      "群居或與同族集居",
+      "對新奇物件充滿好奇",
+      "每群均被一雄性支配",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "以上皆是"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "以下那些是老鼠的技能和習慣？",
+    "options": [
+      "優良的平衡力，從高處跳下時能輕易地用雙腳著地",
+      "跳躍力很好，可跳至一米高",
+      "善於爬行及游泳",
+      "活動範圍:大鼠30-35米，小鼠5-10米",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "以上皆是"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "以下那幾點是老鼠的感官能力？",
+    "options": [
+      "臭覺發達，能夠清楚記憶毒餌的氣味",
+      "聽覺敏銳，可聽到超聲波",
+      "能夠辨別同族成員、活動範圍的標記及食物來源的位置",
+      "視覺良好特別對黃色和綠色的物件反應較強",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "以上皆是"
+    ],
+    "correct": 4
+  },
+  {
+    "question": "老鼠是病毒和細菌疾病的攜帶者，我們可常見的疾病？",
+    "options": [
+      "鼠疫、傷寒、濕疹熱及戊型肝炎",
+      "鼠疫、傷寒、斑疹熱及戊型肝炎",
+      "鼠疫、傷寒、暑熱及戊型肝炎",
+      "鼠疫、傷寒、斑疹熱及乙型肝炎"
     ],
     "correct": 1
   },
   {
-    "id": 13,
-    "question": "老鼠的視覺如何？",
+    "question": "通常在視察時都不會發現老鼠，所以應留意牠們留下的痕跡？",
     "options": [
-      "非常好",
-      "差劣",
-      "可以看很遠",
-      "可以看顏色"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 14,
-    "question": "老鼠對什麼顏色的物件反應較強烈？",
-    "options": [
-      "紅色和藍色",
-      "黃色和綠色",
-      "黑色和白色",
-      "紫色和橙色"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 15,
-    "question": "老鼠每日平均進食多少克食物？",
-    "options": [
-      "1-5克",
-      "15-30克",
-      "50克",
-      "100克"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 16,
-    "question": "小家鼠平均每日只需大概多少克的食物？",
-    "options": [
-      "0.5克",
-      "3克",
-      "10克",
-      "20克"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 17,
-    "question": "老鼠的平均妊娠期為多少日？",
-    "options": [
-      "15日",
-      "25日",
-      "35日",
-      "45日"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 18,
-    "question": "老鼠每年可產多少胎？",
-    "options": [
-      "1-2胎",
-      "5-8胎",
-      "10-12胎",
-      "15胎"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 19,
-    "question": "老鼠每胎產仔數約為多少隻？",
-    "options": [
-      "1-3隻",
-      "5-14隻",
-      "15-20隻",
-      "20隻以上"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 20,
-    "question": "在最佳條件下，一對老鼠一年可產多少對老鼠？",
-    "options": [
-      "10對",
-      "100對",
-      "800對",
-      "1000對"
+      "糞便、通道、鼠洞、擦積、傷痕",
+      "糞便、管道、鼠洞、擦積、咬痕",
+      "糞便、通道、鼠洞、擦積、咬痕",
+      "糞便、氣味、毛髮、擦積、咬痕"
     ],
     "correct": 2
   },
   {
-    "id": 21,
-    "question": "老鼠可通過哪四種方式傳播疾病？",
+    "question": "設置藥餌盒在外圍時藥餌盒相距約多遠較合適？",
     "options": [
-      "只通過咬傷",
-      "外寄生物、排泄物污染的食物或水、直接接觸排泄物、鼠咬",
-      "只通過空氣",
-      "只通過水"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 22,
-    "question": "以下哪一種不是老鼠傳播的疾病？",
-    "options": [
-      "鼠疫",
-      "漢坦病",
-      "鼠咬熱",
-      "感冒"
+      "5-10 米",
+      "5-10尺",
+      "10-15米",
+      "10-15尺"
     ],
     "correct": 3
   },
   {
-    "id": 23,
-    "question": "鼠患調查時，通常在視察時都不會發現老鼠，應留意什麼？",
+    "question": "挪威鼠牠們一般體長(頭至尾) 約為多小厘米？",
     "options": [
-      "只聽聲音",
-      "牠們留下的痕跡（糞便、通道、鼠洞、擦漬、咬痕）",
-      "只看地面",
-      "只問鄰居"
+      "25厘米-45厘米",
+      "30厘米-45厘米",
+      "35厘米-45厘米",
+      "40厘米-45厘米"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "以下那幾種是果蠅的特性？",
+    "options": [
+      "身長約3-4 毫米",
+      "身呈黑色",
+      "睛通常紅色",
+      "愛吃新鮮蔬果、醋、酒",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "以上皆是"
+    ],
+    "correct": 6
+  },
+  {
+    "question": "如何分別駝背蠅及果蠅呢？",
+    "options": [
+      "腳",
+      "腹部",
+      "起飛時的狀態",
+      "翅膀形狀"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "以下那幾樣是蛾蠅的特徵？",
+    "options": [
+      "有絨毛及纖細",
+      "黃色,啡灰色至深黑色",
+      "翅膀呈橢圓形",
+      "全身有細毛",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "以上皆是",
+      "假設現在有三隻死了的鼠被收集在一起，一隻尾巴末端受傷，一隻鼻子被咬掉，一隻被咬掉一隻腳，下列那些可幫助您去辨別牠們的品種。",
+      "鼻子形態",
+      "耳朵大小",
+      "身驅形態",
+      "尾巴與身驅長度比例",
+      "II",
+      "II + III",
+      "I + IV",
+      "以上皆可"
+    ],
+    "correct": 16
+  },
+  {
+    "question": "以下那幾樣是家蠅的特徵？",
+    "options": [
+      "身長3至7.5毫米、呈暗黑色、腹部有3 條垂直紋",
+      "身長4至7.5毫米、呈暗灰色、腹部有3 條垂直紋",
+      "身長3至7.5毫米、呈暗黑色、腹部有4 條垂直紋",
+      "身長4至7.5毫米、呈暗灰色、腹部有4 條垂直紋",
+      "假設現在有三隻死了的鼠被收集在一起，一隻尾巴末端受傷，一隻鼻子被咬掉，一隻被咬掉一隻腳，下列那些可幫助您去辨別牠們的品種。",
+      "鼻子形態",
+      "耳朵大小",
+      "身驅形態",
+      "尾巴與身驅長度比例",
+      "II",
+      "II + III",
+      "I + IV",
+      "以上皆可"
+    ],
+    "correct": 12
+  },
+  {
+    "question": "下列那種環境因素是果蠅、蚤蠅及蕈蚊共通的繁殖條件？",
+    "options": [
+      "酷熱",
+      "潮濕",
+      "不通風",
+      "乾燥"
     ],
     "correct": 1
   },
   {
-    "id": 24,
-    "question": "老鼠洞穴通常有多少個出口？",
+    "question": "有一市民顧用過滅蟲公司在屋內滅鼠，而家中小朋友誤吃了鼠藥報警召喚救傷車送去醫院，就此事件你估計該滅蟲公司沒有用以下那種物資？",
     "options": [
-      "1個",
-      "2-3個",
-      "5個",
-      "10個"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 25,
-    "question": "基本控制鼠患的方法是什麼？",
-    "options": [
-      "只用毒藥",
-      "改善環境及衛生情況，杜絕食物、巢穴、往來途徑",
-      "只用陷阱",
-      "只用超聲波"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 26,
-    "question": "直接控制鼠患的方法中，哪一種是有效率的方法？",
-    "options": [
-      "老鼠籠",
-      "毒餌",
+      "鼠夾",
       "老鼠膠",
-      "超聲波"
+      "老鼠藥餌盒",
+      "老鼠籠"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "一個已裝了蚊網長開冷氣的物業，做了多次在課堂提及的品種的飛蟲治理仍有飛蟲問題但也有很多死的飛蟲，會是以下那個原因？",
+    "options": [
+      "殺蟲劑開得太稀",
+      "冷霧(Turbo)噴得不均勻",
+      "殺蟲劑藥效已分解",
+      "繁殖源頭仍未處理"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "以下那種是鼠患的基本控制？",
+    "options": [
+      "杜絕老鼠食物源",
+      "擺放老鼠籠及/或老鼠夾",
+      "設置藥餌盒",
+      "安裝超聲波"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "盡力堵塞牠們出入位置(找出牠們出入位置叫客人堵塞)?",
+    "options": [
+      "II. 杜絕牠們食物來源",
+      "III. 放置老鼠籠",
+      "IV. 放置老鼠夾",
+      "A. II+III+IV",
+      "B. I+III+IV",
+      "C. I+II+IV",
+      "D. 以上皆是"
+    ],
+    "correct": 6
+  },
+  {
+    "question": "老鼠的繁殖能力十分驚人每年能生產多少？",
+    "options": [
+      "A. 每年可產3-5胎，每胎產仔數約為5-14隻",
+      "B. 每年可產5-7胎，每胎產仔數約為5-14隻",
+      "C. 每年可產6-9胎，每胎產仔數約為5-14隻",
+      "D. 每年可產5-8胎，每胎產仔數約為5-14隻."
+    ],
+    "correct": 3
+  },
+  {
+    "question": "老鼠藥餌盒的警告標語為何是用紅色印刷請找合適答案？",
+    "options": [
+      "A. 因牠們對紅色特別敏感及被吸引",
+      "B. 美觀、配合藥餌盒設計",
+      "C. 紅色代表危險、警剔其他人，勿胡亂觸碰",
+      "D. 牠們是色盲"
+    ],
+    "correct": 2
+  },
+  {
+    "question": ". 處理鼠隻屍體的個人衛生應注意地方請找合適答案？",
+    "options": [
+      "I. 所有被死老鼠污染的衣物和物品都要徹底消毒",
+      "II. 手套需要清洗和消毒或棄掉",
+      "III. 口罩需要清洗和消毒或棄掉",
+      "IV. 緊閉呼吸免吸入細箘",
+      "A. I+II+III",
+      "B. I+II+IV",
+      "C. I+III+IV",
+      "D. II+III+IV",
+      "13. 溝鼠又名褐鼠、普通鼠、挪威鼠牠們最愛出沒地方",
+      "A .在高層、屋頂空隙、管道及槽溝",
+      "B .在污水渠、低層、樹洞及草叢發現",
+      "C. 在污水渠、低層、地洞發現",
+      "D. 任何地方出沒"
+    ],
+    "correct": 11
+  },
+  {
+    "question": "有一市民顧用了一間蟲害公司在屋內滅鼠，而家中小朋友因誤服了老鼠藥下報警召喚救護車送去醫院，就此事件你估計該蟲害公司沒有使用以下那種物資？",
+    "options": [
+      "鼠夾",
+      "老鼠膠",
+      "老鼠藥餌盒",
+      "老鼠籠"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "一個已裝了蚊網並長開冷氣的物業，做了多次在課堂提及的品種的飛蟲治理仍有飛蟲問題但也有很多死的飛蟲，會是以下那個原因？",
+    "options": [
+      "殺蟲劑開得太稀",
+      "冷霧(Turbo)噴得不均勻",
+      "殺蟲劑藥效已分解",
+      "繁殖源頭仍未處理"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "當更換老鼠藥餌時應注意那幾個步驟請找合適答案？",
+    "options": [
+      "I. 更換殘破及不清警告標語",
+      "II. 不需要更換舊又發霉藥餌免做成浪費支持環保",
+      "III. 設置藥餌盒於老鼠活躍、覓食及棲息的地方",
+      "IV. 必須配戴合適防禦裝備",
+      "V.  確保藥餌盒完整無缺、藥餌可穩妥存放",
+      "A. I+II+III+IV",
+      "B. I+II+IV+V",
+      "C. I+III+IV+V",
+      "D.以上皆是"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "以下那種方法是處理鼠患應做的基本控制？",
+    "options": [
+      "杜絕老鼠食物源",
+      "擺放老鼠籠及/或老鼠夾",
+      "設置藥餌盒",
+      "D.  安裝超聲波"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "如有家蠅的滋擾我們需作檢查的重點在那，找出合適答案？",
+    "options": [
+      "牠不經常在室內繁殖，所以很可能來自外面",
+      "檢查外面的建物－周邊",
+      "尋找垃圾區域或腐爛的有機物品",
+      "檢查更衣室、什物房等等",
+      "A. I+II+III",
+      "B. I+II+IV",
+      "C. I+III+IV",
+      "D.以上皆是"
+    ],
+    "correct": 4
+  },
+  {
+    "question": "When we found that the rodent trap set in the kitchen of the restaurant is not effective, how can we follow?",
+    "options": [
+      "Try to seal their entrance (find out their location of entrance and ask the client to seal it)",
+      "Set highly effective rodent bait",
+      "Set rodent cage",
+      "Set rodent snap trap",
+      "A. II+III+IV",
+      "B. I+III+IV",
+      "C. I+II+IV",
+      "D. All of the above"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "The reproductive ability of rat is very high, how many rats can reproduce in a year?",
+    "options": [
+      "Each year can have 5-8 litters, 9-20 per litter",
+      "Each year can have 6-9 litters, 9-20 per litter",
+      "Each year can have 6-9 litters, 5-14 per litter",
+      "Each year can have 5-8 litters, 5-14 per litter"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "Why the warning and checking label sticked on the rodent bait station must be printed in red color?",
+    "options": [
+      "Because rats are sensitive to red colour and will be attracted by the colour",
+      "Nice outlook matching with the design of the rodent bait station",
+      "Red colour means dangerous, to warn others and do not touch easily",
+      "Required by the law"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "Sewer rat also known as Rattus norvegicus, common rat and Norway rat, where are the areas they like to appear?",
+    "options": [
+      "In sewage water underground system, lower floor, tree holes or grassland",
+      "In sewage water underground system, lower floor or ground holes",
+      "They appear anywhere",
+      "In upper floor, void of roof, piping or ducts"
     ],
     "correct": 1
   },
   {
-    "id": 27,
-    "question": "常用的殺鼠劑主要是什麼？",
+    "question": "Which of the following types of rodent are common in Hong Kong?",
     "options": [
-      "神經毒劑",
-      "抗凝血劑（引起內出血）",
-      "呼吸毒劑",
-      "皮膚毒劑"
+      "挪威鼠Norway rat",
+      "黑家鼠Rattus rattus",
+      "小家鼠Mus musculus",
+      "地家鼠 Ground rat",
+      "屋頂鼠Roof rat",
+      "I+II+III",
+      "I+II+IV",
+      "I+II+III+V",
+      "以上皆是All of the above"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "Rattus rattus, house rat; also known as roof rat. Where do they most likely to haunt?",
+    "options": [
+      "在低層、屋頂空隙、管道及 槽溝",
+      "In lower floor, void of roof, piping or ducts",
+      "在中低層、屋頂、空房間、管道及 槽溝",
+      "In middle to lower floor, void of roof, piping or ducts",
+      "在高層、屋頂空隙、管道及槽溝",
+      "In upper floor, void of roof, piping or ducts",
+      "在中低高層、屋頂空隙、管道及槽溝",
+      "In lower to upper floor, void of roof, piping or ducts"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "What are the behaviours and characteristic of rodent?",
+    "options": [
+      "每群均居於明確的領域內，成年的老鼠會攻擊所有侵略者",
+      "Each group is in a clear field, and adult rat attacks all invaders.",
+      "群居或與同族集居",
+      "Group living or living with the colony or group",
+      "對新奇物件充滿好奇",
+      "Curious about novelty items",
+      "每群均被一雄性支配",
+      "Lead by a male",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "以上皆是All of the above"
+    ],
+    "correct": 9
+  },
+  {
+    "question": "Which of the following are the skills & habits of the rodents?",
+    "options": [
+      "優良的平衡力，從高處跳下時能輕易地用雙腳著地",
+      "Excellent balance, easy to land with your feet when jumping from a height",
+      "跳躍力很好，可跳至一米高",
+      "Good jumper, can jump to 1 meter height",
+      "善於爬行及游泳",
+      "Good climber and swim",
+      "活動範圍:大鼠30-35米，小鼠5-10米",
+      "Range of movement: 30-50m for rats, 5-10 m for mice",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "以上皆是 All of the above"
+    ],
+    "correct": 11
+  },
+  {
+    "question": "Which of following are the sensory abilities of rodents?",
+    "options": [
+      "臭覺發達，能夠清楚記憶毒餌的氣味",
+      "Well-developed of the olfactory",
+      "聽覺敏銳，可聽到超聲波",
+      "Very sensitive of auditory, can hear ultrasound",
+      "能夠辨別同族成員、活動範圍的標記及食物來源的位置",
+      "Can identify members of the same family, the range of activities, and the location of the food source",
+      "視覺良好特別對黃色和綠色的物件反應較強",
+      "Well visual, stronger response to yellow and green objects",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "以上皆是All above"
+    ],
+    "correct": 8
+  },
+  {
+    "question": "We usually cannot find the rodent during inspectio. What are the traces that we should notice?",
+    "options": [
+      "糞便、通道、鼠洞、擦積、傷痕",
+      "Dropping, Runway, Rat hole, Smear, Scars",
+      "糞便、管道、鼠洞、擦積、咬痕",
+      "Dropping, Pipes, Rat hole, Smear, Gnawing marks",
+      "糞便、通道、鼠洞、擦積、咬痕",
+      "Dropping, Runway, Rat hole, Smear, Gnawing marks",
+      "糞便、氣味、毛髮、擦積、咬痕",
+      "Dropping, Smell, Hair, Smear, Gnawing marks"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "How far should be put between each stations when setting up at outdoor?",
+    "options": [
+      "5-10 米5-10 meters",
+      "5-10尺5-10 feets",
+      "10-15米10-15 meters",
+      "10-15尺10-15 feets"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "How long is the body length of a Norway rat?",
+    "options": [
+      "25厘米-45厘米 25-45 cm",
+      "30厘米-45厘米 30-45 cm",
+      "35厘米-45厘米 35-45 cm",
+      "40厘米-45厘米 40-45 cm"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "How can we identify the Phorid flies and the fruit flies?",
+    "options": [
+      "腳 Feet",
+      "腹部 Belly",
+      "起飛時的狀態Ways of lifting off",
+      "翅膀形狀 Shape of the wings"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "Which of the following are the characteristic of Moth Fly?",
+    "options": [
+      "有絨毛及纖細Delicate & Fuzzy",
+      "黃色,啡灰色至深黑色 Yellowish, brownish gray to blackish",
+      "翅膀呈橢圓形Oval wings",
+      "全身有細毛Hairy",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "以上皆是 All of the above"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "What are the following inspection points of House Fly?",
+    "options": [
+      "身長3至7.5毫米、呈暗黑色、腹部有3 條垂直紋",
+      "Body length is 3-7.5mm, dull black, thorax with 3 narrow black",
+      "longitudinal strips",
+      "身長4至7.5毫米、呈暗灰色、腹部有3 條垂直紋",
+      "Body length is 4-7.5mm, dull gray, thorax with 3 narrow black",
+      "longitudinal strips",
+      "身長3至7.5毫米、呈暗黑色、腹部有4 條垂直紋",
+      "Body length is 3-7.5mm, dull black, thorax with 4 narrow black",
+      "longitudinal strips",
+      "身長4至7.5毫米、呈暗灰色、腹部有4 條垂直紋",
+      "Body length is 4-7.5mm, dull gray, thorax with 4 narrow black",
+      "longitudinal strips"
+    ],
+    "correct": 11
+  },
+  {
+    "question": "A guy who has found pest control company for rodent treatment, his kid accidentally ate some rodent bait. He called 999 and the kid sent to hospital. Which of the following materials can you estimated that the pest control company did not use?",
+    "options": [
+      "鼠夾 Snap trap",
+      "老鼠膠 Glue trap",
+      "老鼠藥餌盒 Rodent bait station",
+      "老鼠籠 Cage"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "A property which has installed mosquito net and turned on air-conditionar for whole day, they did many flies treatment but still found live flies but also found many dead flies. Which of the following are the reasons?",
+    "options": [
+      "殺蟲劑開得太稀 the pesticide is too dilute",
+      "冷霧(Turbo)噴得不均勻 Turbo fogging is not well-distributed",
+      "殺蟲劑藥效已分解 the pesticide has been decomposed",
+      "繁殖源頭仍未處理 breeding origin is not fixed"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "Which of the following are the fundamental control for rodent?",
+    "options": [
+      "杜絕老鼠食物源 remove all foods for rodent",
+      "擺放老鼠籠及/或老鼠夾 set up cage or rodent traps",
+      "設置藥餌盒 set up rodent station",
+      "安裝超聲波 set up ultrasound device"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "盡力堵塞牠們出入位置(找出牠們出入位置叫客人堵塞，手能觸及可由技術員處)?",
+    "options": [
+      "II. 杜絕牠們食物來源",
+      "III. 放置老鼠籠",
+      "IV. 放置老鼠夾",
+      "A. II+III+IV",
+      "B. I+III+IV",
+      "C. I+II+IV",
+      "D. 以上皆是"
+    ],
+    "correct": 6
+  },
+  {
+    "question": "處理鼠隻屍體的個人衛生應注意地方請找合適答案？",
+    "options": [
+      "I. 所有被死老鼠污染的衣物和物品都要徹底消毒",
+      "II. 手套需要清洗和消毒或棄掉",
+      "III. 口罩需要清洗和消毒或棄掉",
+      "IV. 緊閉呼吸免吸入細箘",
+      "A. I+II+III",
+      "B. I+II+IV",
+      "C. I+III+IV",
+      "D. II+III+IV"
+    ],
+    "correct": 4
+  },
+  {
+    "question": "溝鼠又名褐鼠、普通鼠、挪威鼠牠們最愛出沒地方？",
+    "options": [
+      "A.在高層、屋頂空隙、管道及槽溝",
+      "B. 在污水渠、低層、樹洞及草叢發現",
+      "C. 在污水渠、低層、地洞發現",
+      "D. 任何地方出沒"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "Why the warning and checking label sticker on the rodent on the rodent bait station must be printer in red color?",
+    "options": [
+      "Because rats are sensitive to red colour and will be attracted by the colour",
+      "Nice outlook matching with the design of the rodent bait station",
+      "Red colour means dangerous, to warn others and do not touch easily",
+      "Required by the law"
     ],
     "correct": 1
   },
   {
-    "id": 28,
-    "question": "抗凝血劑殺鼠藥需要多少天生效？",
+    "question": "When disposing the dead rodent, what areas of the personal hygiene we need to pay attention at?",
     "options": [
-      "即時",
-      "3-4天",
-      "10天",
-      "30天"
+      "Please choose the correct answer.",
+      "All clothing and items contaminated by dead rodents to be thoroughly disinfected",
+      "Gloves to be washed and disinfected or disposed",
+      "Mask to be washed and disinfected or disposed",
+      "Keep on breathing to avoid intake of bacteria",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "II+III+IV"
     ],
-    "correct": 1
+    "correct": 6
   },
   {
-    "id": 29,
-    "question": "老鼠藥餌盒的設計目的是什麼？",
+    "question": "to appear?",
     "options": [
-      "只讓人打開",
-      "只讓鼠類進入盒內進食藥餌",
-      "讓所有動物進入",
-      "防水便可"
+      "In sewage water underground system, lower floor , tree holes or grassland",
+      "In sewage water underground system, lower floor or ground holes",
+      "They appear anywhere",
+      "In upper floor, void of roof, piping or ducts"
     ],
-    "correct": 1
+    "correct": 3
   },
   {
-    "id": 30,
-    "question": "處理鼠隻屍體時，應如何做？",
+    "question": "What are the behaviors and characteristic of rodent?",
     "options": [
-      "徒手撿拾",
-      "避免直接觸並穿戴適當的防護裝備",
-      "用腳踢",
-      "不用理會"
+      "Each group is in a clear field, and adult rat attacks all invaders",
+      "Group living or living with the colony or group",
+      "Curious about novelty items",
+      "Lead by a male",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "All of the above"
     ],
-    "correct": 1
+    "correct": 5
   },
   {
-    "id": 31,
-    "question": "防止鼠患再次發生的規格中，應用防鼠物料封閉超過多少毫米的洞口？",
+    "question": "10 Which of the following are the skills & habits of the rodents?",
     "options": [
-      "3毫米",
-      "6毫米",
-      "10毫米",
-      "20毫米"
+      "Excellent balance, easy to land with your feet when jumping from a height",
+      "Good jumper, can jump to 1 meter height",
+      "Good climber and swim",
+      "Range of movement: 30-50m for rats, 5-10m for mice",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "All of the above"
     ],
-    "correct": 1
+    "correct": 7
   },
   {
-    "id": 32,
-    "question": "容易被鼠咬的木門，應裝上什麼？",
+    "question": "We usually cannot find the rodent during inspection. What are the traces that we should notice?",
     "options": [
-      "膠板",
-      "金屬踢板",
-      "木板",
-      "玻璃"
+      "Dropping, Runway, Rat hole, Smear, Scars",
+      "Dropping, Pipes, Rat hole, Smear, Gnawing marks",
+      "Dropping, Runway, Rat holes, Smear, Gnawing marks",
+      "Dropping, Smell, Hair, Smear, Gnawing marks"
     ],
-    "correct": 1
+    "correct": 2
   },
   {
-    "id": 33,
-    "question": "排水孔應裝上什麼以防止老鼠進入？",
+    "question": "estimated that the pest control company did not use?",
     "options": [
-      "膠紙",
-      "鍍鋅網/球",
-      "木塞",
-      "水泥"
+      "Snap trap",
+      "Glue trap",
+      "Rodent bait station",
+      "Rodent cage"
     ],
-    "correct": 1
+    "correct": 2
+  },
+  {
+    "question": "are the reasons?",
+    "options": [
+      "The pesticide is too dilute",
+      "Turbo fogging is not well-distributed",
+      "The pesticide has been decomposed",
+      "Breeding origin is not fixed"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "Which of the following are the fundamental controls for rodent?",
+    "options": [
+      "Remove all foods for rodent",
+      "Set up cage or rodent traps",
+      "Set up rodent station",
+      "Set up ultrasound device"
+    ],
+    "correct": 0
   }
 ]

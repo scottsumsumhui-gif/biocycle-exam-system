@@ -1,802 +1,1359 @@
 [
   {
-    "question": "BioKill Training 今天的題目包括以下哪些內容？",
+    "question": "What is the common mechanism to kill insect?",
     "options": [
-      "滅蟲劑的介紹",
-      "BioKill 產品介紹",
-      "其他日常應用的滅蟲劑及老鼠藥",
-      "以上全部"
+      "Stomach Poison",
+      "Fumigant Poison",
+      "Contact Poison",
+      "Infectious Poison",
+      "I+II",
+      "II+III",
+      "I+II+III",
+      "All of the above"
+    ],
+    "correct": 6
+  },
+  {
+    "question": "How many diluted BKU Ming eats in 24 hours will get poison if he is 100 Kg?",
+    "options": [
+      "5,050mg",
+      "505,000mg",
+      "5,050,000mg",
+      "50,500,000mg"
     ],
     "correct": 3
   },
   {
-    "question": "以下哪項不是 BioKill Training 的教學內容？",
+    "question": "What is the biggest different of BK Universal Insecticide and BK Long-lasting Extra Insecticide?",
     "options": [
-      "Introduction of insecticide",
-      "Introduction of BioKill Products",
-      "建築工程技術",
-      "Rodenticides"
+      "Only BK Universal can be widely used in homes, offices, factories, restaurants, hospitals, zoos, plants",
+      "BK Long-lasting can apply on warm-blood animal’s object and areas",
+      "BK Long-lasting have unique microcapsules can release effective insecticidal ingredients on a regular basis",
+      "No different, both of them can use in hand pump, turbo and Backpack"
     ],
     "correct": 2
   },
   {
-    "question": "BioKill® 持久強效滅蟲劑的英文產品名稱是什麼？",
+    "question": "Which is not the way to absorb poison?",
     "options": [
-      "BioKill® Universal Insecticide",
-      "BioKill® Long Lasting Extra Insecticide",
-      "BioKill® Anti Mite Spray",
-      "BioKill® Safe Sanitizer"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "BioKill® 持久強效滅蟲劑能有效殺滅哪些害蟲？",
-    "options": [
-      "只限蟑螂",
-      "只限蚊和蒼蠅",
-      "所有已知冷血科害蟲",
-      "只限螞蟻"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "BioKill® 持久強效滅蟲劑的特有科技是什麼？",
-    "options": [
-      "奈米科技",
-      "微膠囊能定期釋放有效殺蟲成份",
-      "紫外線技術",
-      "生物科技"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "BioKill® 持久強效滅蟲劑的效力最長可達多久？",
-    "options": [
-      "1個月",
-      "3個月",
-      "6個月",
-      "12個月"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "BioKill® 持久強效滅蟲劑可用於以下哪些環境？",
-    "options": [
-      "只限辦公室",
-      "潮濕、害蟲滋擾及骯髒的地方及室外",
-      "只限醫院",
-      "只限住宅"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "BioKill® 持久強效滅蟲劑的成分包括什麼？",
-    "options": [
-      "Prallethrin 0.01% w/w, Lambda-cyhalothrin(CS) 0.07% w/w",
-      "Permethrin 0.25% w/w",
-      "Chlorfenapyr 24%",
-      "Deltamethrin 0.05%"
+      "Eyes",
+      "Mouth",
+      "Skin",
+      "Spiracles"
     ],
     "correct": 0
   },
   {
-    "question": "BioKill® 持久強效滅蟲劑的香港漁護處註冊編號是多少？",
+    "question": "What you need to considerate when using different dosage?",
     "options": [
-      "1P55 (AL)",
-      "1P196 (AL)",
-      "2P315 (SC)",
-      "2P244 (GE)"
+      "Targeted pests",
+      "Environmental restrictions",
+      "The cost of dosage",
+      "Impact on the nearby ecological environment",
+      "The surface treated by the pesticide",
+      "I+II+III+IV",
+      "I+II+IV+V",
+      "I+III+IV+V",
+      "All of the above"
+    ],
+    "correct": 6
+  },
+  {
+    "question": "Why Premise cannot spray on plant’ surface directly?",
+    "options": [
+      "Will damage root of plants",
+      "Affect plant to absorb nutrients",
+      "It will cause great damage to the bees",
+      "Will block plants to photosynthesis"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "Which Roach Bait Gel our company not using?",
+    "options": [
+      "Top Bait Gold",
+      "Top Bait Silver",
+      "Top Bait Imida",
+      "Roachgone"
     ],
     "correct": 1
   },
   {
-    "question": "BioKill® 持久強效滅蟲劑的殺蟲方式是什麼？",
+    "question": "What we need to pay attention when we using phantom to deal with bedbug?",
     "options": [
-      "胃毒中毒",
-      "觸殺中毒 (Contact Poison)",
+      "Cannot spray directly on the person's accessible location",
+      "Spray on everywhere of treatment area",
+      "Spray on the side of the bed and the position of the bed frame",
+      "Spray on the skirting of the wall, gap cracks",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "All of the above"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "The Fumigant Poison is using what of the active ingredient of the insecticide invades the insect body through the respiratory system - valve or body wall of the pest?",
+    "options": [
+      "Gas",
+      "Liquid",
+      "Solid",
+      "Foaming agent"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "What are the advantages of BioKill Natural Insect Repellent Cream?",
+    "options": [
+      "Without DEET",
+      "In addition to mosquito repellent, it also effectively drives away a variety of biting insects.",
+      "Suitable for both adults and kids",
+      "Mild nature, no damage to the skin, refreshing texture",
+      "Added Ingredient of BKU",
+      "I+II+III+IV",
+      "I+III+IV+V",
+      "II+III+IV+V",
+      "All of the above"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "What is the effective target of roach bait gel?",
+    "options": [
+      "American cockroaches",
+      "Brown strip cockroaches",
+      "Asian cockroaches",
+      "German cockroaches"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "If costumers’ home have cockroaches, ants, bookworms and squid but do not have any pets, what is the product that suitable for costumers?",
+    "options": [
+      "BioKill Universal Insecticide",
+      "BioKill Long-Lasting Extra Insecticide",
+      "BioKill Anti-mite Spray",
+      "BioKill Safe Sanitizer"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "What are the advantages of BioKill product?",
+    "options": [
+      "Safe to human and pet",
+      "Non-staining",
+      "odorless",
+      "Can spray on any object and area",
+      "Biodegradable",
+      "Non-flammable",
+      "I+II+III+IV+V",
+      "I+II+III+V+VI",
+      "I+III+IV+V+VI",
+      "All of the above"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "What are the mention of Biokill Universal Insecticide(BKU) and BioKill Long-lasting Extra Insecticide(BKL) are correct?",
+    "options": [
+      "The effective time of BKU is shorter than BKL",
+      "The active ingredient of BKL is stronger than BKU",
+      "Both BKU and BKL can use in Turbo and Backpack",
+      "BKL is especially suitable for wet, pest nuisance and dirty places and outdoors.",
+      "I+IV",
+      "II+IV",
+      "I+II+IV",
+      "I+III+IV"
+    ],
+    "correct": 4
+  },
+  {
+    "question": "Which Roach Bait Gel our company did not use?",
+    "options": [
+      "Top Bait Gold",
+      "Top Bait Silver",
+      "Top Bait Imida",
+      "Roachgone"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "What is the different of Biokill Universal Insecticide and Biokill Long-lasting Extra insecticide?",
+    "options": [
+      "Only BioKill Universal can be widely used in homes, offices, factories, restaurants, hospitals, zoos, plants.",
+      "BioKill long-lasting extra insecticide can apply on warm-blooded animals and place",
+      "BioKill long-lasting extra insecticide have unique microcapsules can release effective insecticidal ingredients on a regular basis",
+      "No different, both of them can use in Hand pump, Turbo and Backpack"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "According to the label guideline of Fendona, 25ml Fendona need how many water to dilution?",
+    "options": [
+      "A. 1LB. 3LC. 5LD. 7L",
+      "If there is serious rodent proble, you have Contrac Blox及FINAL Blox on your car，which they rodent blox need to use bait",
+      "Contrac Blox，Bromadiolone",
+      "Contrac Blox，Brodifacoum",
+      "FINAL Blox，Bromadiolone",
+      "FINAL Blox，Brodifacoum"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "What is the biggest different of BioKill universal insecticide and BioKill Long-lasting Extra insecticide?",
+    "options": [
+      "Only BioKill Universal can be widely used in homes, offices, factories, restaurants, hospitals, zoos, plants.",
+      "BioKill long-lasting extra insecticide can apply on warm-blooded animals and place",
+      "BioKill long-lasting extra insecticide have unique microcapsules can release effective insecticidal ingredients on a regular basis",
+      "No different, both of them can use in Hand pump, Turbo and Backpack"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "If there is serious rodent problem, which rodent product you suppose to use?",
+    "options": [
+      "Contrac Blox，Bromadiolone",
+      "Contrac Blox，Brodifacoum",
+      "FINAL Blox，Bromadiolone",
+      "FINAL Blox，Brodifacoum"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "What we need to pay attention when we using Phantom to do bedbug treatment?",
+    "options": [
+      "Do not spray directly on the person's accessible location",
+      "Spray on a widely area",
+      "Mainly sprayed on the side of the bed and the position of the bed frame",
+      "Spray on the skirting of the wall, gap cracks",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "All of the above"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "If there are cockroach, ant, bookworms, squid but no pet in a house which product will you recommend costumers to use?",
+    "options": [
+      "BioKill Universal Insecticide",
+      "BioKill Long-lasting Extra Insecticide",
+      "BioKill Anti-Mite Spray",
+      "BioKill Safe Sanitizer"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "What are the common killing mechanisms of insecticide?",
+    "options": [
+      "Stomach Poison",
+      "Fumigant Poison",
+      "Contact Poison",
+      "Infectious Poison",
+      "I+II",
+      "II+III",
+      "I+II+III",
+      "All of the above"
+    ],
+    "correct": 6
+  },
+  {
+    "question": "What mention of BioKill Universal Insecticide and BioKill Long-lasting Extra Insecticide are correct?",
+    "options": [
+      "The effective time of BKU is shorter than BKL BKU 的效力比BKL 短",
+      "The active ingredient of BKL is stronger than BKU",
+      "Both BKU and BKL can use in turbo and backpack",
+      "BKL especially suitable for wet, pest nuisance and dirty places and outdoors",
+      "I+IV",
+      "II+IV",
+      "I+II+IV",
+      "I+III+IV"
+    ],
+    "correct": 4
+  },
+  {
+    "question": "Why Premise cannot spray on plant surface?",
+    "options": [
+      "It will cause great damage to the root",
+      "It will affect plant to absorb nutrients",
+      "It will cause great damage to the bees",
+      "It will affect plant to do Photosynthesis"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "Which of the roach gel our company did not use?",
+    "options": [
+      "Top Bait Gold",
+      "Top Bait Silver",
+      "Top Bait Imida",
+      "Roachgone"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "What is the effective target of cockroach gel?",
+    "options": [
+      "America roach",
+      "Brown strip roach",
+      "Asian roach",
+      "Germen roach"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "Final Blox此藥餌對大鼠及小鼠也有效可作戶外投放，牠只需吃餌多少次便可致死？",
+    "options": [
+      "A. 1次",
+      "B. 2次",
+      "C. 3次",
+      "D. 4次"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "Biocycle所採用的Final Blox(腊粒) 康特堡有甚麼特點？",
+    "options": [
+      "它是第三代抗凝血劑",
+      "抗紋設計配合老鼠進食喜好",
+      "含染色及螢光劑使鼠糞便容易被追查",
+      "在嚴重鼠患的情況下，使用不同顏色藥餌可有助辦別治理效果",
+      "A. I+II+III",
+      "B. I+II+IV",
+      "C. I+III+IV",
+      "D. II+III+IV"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "保而剋全效滅蟲劑(BKU)噴灑後，效力可長達多久？",
+    "options": [
+      "A. 一星期",
+      "B. 兩星期",
+      "C. 四星期",
+      "D. 十二星期"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "保而剋持久強效滅蟲劑(BKL)特別適用於那些位置？",
+    "options": [
+      "A. 乾燥、冇害蟲地方作防禦",
+      "B. 潮濕、害蟲滋擾及骯髒的地方及室外",
+      "C. 潮濕、發霉位置",
+      "D. 任何地方及位置也可，因人畜安全。"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "保而剋環保老鼠膠內中間位置擺放的膠粒狀東西它的主要用途是？",
+    "options": [
+      "A. 能釋放氣味吸引老鼠走近",
+      "B. 防止老鼠膠黏貼一起",
+      "C. 夜晚會發出微光吸引老鼠走近",
+      "D. 設計上需要沒實制用途"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "選用不同劑型藥物時要考慮甚麼？",
+    "options": [
+      "I. 針對的目標害物",
+      "II. 環境的限制",
+      "III. 劑型的價錢",
+      "IV. 對附近的生態環境影響",
+      "V. 除害劑所處理的表面",
+      "A. I+II+III+IV",
+      "B. I+II+IV+V",
+      "C. I+III+IV+V",
+      "D. 以上皆是"
+    ],
+    "correct": 6
+  },
+  {
+    "question": "作為一個專業的防治蟲害人員，應要有良好的操作習慣請選出合適答案？",
+    "options": [
+      "以小心及負責的態度",
+      "注意工業安全（對藥品要了解）",
+      "注意環境保護",
+      "注意公眾安全",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "以上皆是",
+      "20.根據LD50的理論，請選出以下那個數字是最高毒性",
+      "LD50 0.022 mg/kg",
+      "LD50 0.002 mg/kg",
+      "LD50  200 mg/kg",
+      "LD50 2,000 mg/kg"
+    ],
+    "correct": 10
+  },
+  {
+    "question": "What is the killing mechanism of BioKill Universal Insecticide?",
+    "options": [
+      "Stomach Poison",
+      "Fumigant Poison",
+      "Infectious Poison",
+      "Contact Poison"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "What are the advantages of BioKill Producst?",
+    "options": [
+      "Safe to human and pets",
+      "Non-staining",
+      "Odorless",
+      "Can spray on any objects and places",
+      "Biodegradable",
+      "Non-flammable",
+      "I+II+III+IV+V",
+      "I+II+III+V+VI",
+      "I+III+IV+V+VI",
+      "All of the above"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "BioKill Natural Insect Repellent Cream can provide 8 hours protection, what is the active ingredient?",
+    "options": [
+      "Citric Acid Essence",
+      "Lemon Utah Leaf Essence",
+      "Citriodiol",
+      "citrus aurantium Eucalyptus Leaf Essence"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "How Temephos stop the growth of mosquito larvae in treatment?",
+    "options": [
+      "Effectively kill the mosquito",
+      "Effectively absorb Oxygen in water",
+      "Effectively stop the growth of mosquito larvae and block the growth cycle",
+      "Effectively kill all of the flying insect"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "Which product is not including to contract poison?",
+    "options": [
+      "BioKill Universal insecticide",
+      "BioKill Rodent trap",
+      "Fendona",
+      "Phantom"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "According to Fendona label guideline, where is the main application location?",
+    "options": [
+      "drainage, crack, continuous moisture and found",
+      "Wet, Pest nuisance and dirty place, Indoor",
+      "Widely spray on everywhere",
+      "Manhole, Slope, Hidden area"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "Why Premise cannot spray on plant surface directly?",
+    "options": [
+      "It will cause great damage to the root",
+      "It will affect plant to absorb nutrients",
+      "It will cause great damage to the bees",
+      "It will affect plant to do Photosynthesis"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "(FNK) Mainly aimed at bees, wasps and other insects that attack (stinging) but it contains some compressed gas, its storage temperature cannot be higher than how many C?",
+    "options": [
+      "10 c",
+      "30 c",
+      "50 c",
+      "70 c"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "How many m we set around the building when we used as outdoor area control?",
+    "options": [
+      "5-10m",
+      "10-15m",
+      "15-20m",
+      "20-25m"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "What we need to pay attention when we using Phantom to do bed bug control?",
+    "options": [
+      "Do not spray directly on the person's accessible location",
+      "Spray on a widely area",
+      "Mainly sprayed on the side of the bed and the position of the bed frame",
+      "Mainly sprayed on the skirting of the wall, gap cracks",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "All of the above"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "As a professional pest control personnel, what operating habits you need to have?",
+    "options": [
+      "Take a careful and responsible attitude",
+      "Pay attention to industrial safety to understand the insecticide",
+      "Pay attention to Environmental protection",
+      "Pay attention to public safety",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "All of the above"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "Cockroach sandwich is aim on deal with which type of cockroach?",
+    "options": [
+      "America roach",
+      "Brown strip roach",
+      "Asia roach",
+      "Germen roach"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "If there are cockroach, ant, bookworm, squid at costumers’ home and they do not have pet, what product will you recommend to them?",
+    "options": [
+      "Biokill Universal Insecticide",
+      "Biokill Long-lasting Extra Insecticide",
+      "Biokill Anti-Mite spray",
+      "Biokill Safe Sanitizer"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "以下那項是常規殺蟲劑的作用方式？",
+    "options": [
+      "消化中毒",
       "燻蒸中毒",
-      "以上全部"
+      "觸殺中毒",
+      "感染式中毒",
+      "I+II",
+      "II+III",
+      "I+II+III",
+      "以上皆是"
     ],
-    "correct": 1
+    "correct": 6
   },
   {
-    "question": "BioKill® 產品使用的微膠囊科技有什麼好處？",
+    "question": "全效滅蟲劑(BKU) 是用甚麼殺蟲方式殺滅害蟲？",
     "options": [
-      "消除釋放時的時間間隙",
-      "改善毒理數據",
-      "更好的功效",
-      "以上全部"
+      "消化中毒",
+      "燻蒸中毒",
+      "感染式中毒",
+      "觸殺中毒"
     ],
     "correct": 3
   },
   {
-    "question": "新一代 BioKill® 產品不再採用以下哪種成分？",
-    "options": [
-      "氯氰菊酯",
-      "毒死蜱",
-      "聯苯菊酯",
-      "溴氰菊酯"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "BioKill® 滅蟎噴劑針對性配方加有什麼成分？",
-    "options": [
-      "消毒成分",
-      "防腐劑",
-      "香精",
-      "色素"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "BioKill® 滅蟎噴劑專門殺滅哪些害蟲？",
-    "options": [
-      "蟎及其他依靠真菌或霉菌生存的昆蟲",
-      "只限蟑螂",
-      "只限蚊和蒼蠅",
-      "只限螞蟻"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "BioKill® 滅蟎噴劑適用於以下哪些表面？",
-    "options": [
-      "床褥、地氈和傢俬墊子",
-      "只限牆壁",
-      "只限天花板",
-      "只限地板"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "BioKill® 滅蟎噴劑的效力長達多久？",
-    "options": [
-      "1星期",
-      "2星期",
-      "4星期",
-      "8星期"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "BioKill® 滅蟎噴劑可用於哪些噴灑工具？",
-    "options": [
-      "只限 HANDPUMP",
-      "HANDPUMP、TURBO 及 BACKPACK",
-      "只限 BACKPACK",
-      "只限 TURBO"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "BioKill® 滅蟎噴劑的成分是什么？",
-    "options": [
-      "Permethrin 0.25% w/w",
-      "Prallethrin 0.01%",
-      "Chlorfenapyr 24%",
-      "Imidacloprid 20%"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "BioKill® 滅蟎噴劑的香港漁護處註冊編號是多少？",
-    "options": [
-      "1P196 (AL)",
-      "1P55 (AL)",
-      "2P315 (SC)",
-      "2P225 (BB)"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "BioKill® 安全消毒劑的成分是什麼？",
-    "options": [
-      "天然成分 Assan",
-      "化學成分",
-      "酒精",
-      "氯"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "BioKill® 安全消毒劑可以有效殺死什麼？",
-    "options": [
-      "只限細菌",
-      "細菌、病毒和霉菌",
-      "只限病毒",
-      "只限霉菌"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "BioKill® 安全消毒劑是否可以使用於水果、蔬菜或肉類？",
-    "options": [
-      "不可以",
-      "可以，能降低細菌污染及降低腐爛的可能性",
-      "只限水果",
-      "只限蔬菜"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "BioKill® 安全消毒劑的天然成份已獲哪些機構認可為安全產品？",
-    "options": [
-      "美國環境保護署及美國食物及藥物管理局",
-      "歐盟標準",
-      "中國衛生部",
-      "香港漁護處"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "BioKill® 安全消毒劑能有效殺菌達多少百分比？",
-    "options": [
-      "90%",
-      "95%",
-      "99.9%",
-      "100%"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "BioKill® 天然驅蚊膏不含以下哪種成分？",
-    "options": [
-      "避蚊胺 (DEET)",
-      "檸檬尤加利葉精華",
-      "天然成分",
-      "以上都不是"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "BioKill® 天然驅蚊膏能有效提供多長時間的保護？",
-    "options": [
-      "2小時",
-      "4小時",
-      "6小時",
-      "8小時"
-    ],
-    "correct": 3
-  },
-  {
-    "question": "BioKill® 天然驅蚊膏適用於哪些人群？",
-    "options": [
-      "只限成人",
-      "只限小童",
-      "小童及成人均適用",
-      "只限長者"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "BioKill® 天然驅蚊膏除驅蚊外，還能有效驅趕什麼？",
-    "options": [
-      "只限蒼蠅",
-      "多種螫人昆蟲",
-      "只限螞蟻",
-      "只限蟑螂"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "BioKill® 環保老鼠膠的 3D 設計有什麼特點？",
-    "options": [
-      "不可折疊",
-      "可依照壓線摺成不同形狀，以配合不同環境的需要",
-      "只能用於平面",
-      "只有一種形狀"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "BioKill® 環保老鼠膠的黏貼力如何？",
-    "options": [
-      "普通",
-      "超強黏貼力，黐住老鼠無得走甩",
-      "弱",
-      "中等"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "使用 BioKill® 環保老鼠膠後，如何棄置？",
-    "options": [
-      "只能清洗後重複使用",
-      "老鼠膠連同老鼠一並棄掉，使用方便",
-      "不能棄置",
-      "需要特殊處理"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "為什麼不建議使用老鼠米？",
-    "options": [
-      "太貴",
-      "老鼠食了會在其它地方死亡，如果死在假天花會很麻煩",
-      "效果不好",
-      "以上都不是"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "常規殺蟲劑的作用方式共有幾種？",
-    "options": [
-      "1種",
-      "2種",
-      "3種",
-      "4種"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "胃毒又稱消化中毒 (Stomach Poison) 是指什麼？",
-    "options": [
-      "害蟲接觸藥劑後死亡",
-      "害蟲用口取食被藥劑撒佈過的食物後，由其消化器官吸收毒分而至死亡",
-      "藥劑氣體經害蟲的呼吸系統侵入蟲體內",
-      "以上都不是"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "觸殺中毒 (Contact Poison) 是指什麼？",
-    "options": [
-      "藥劑撒佈過，使與害蟲蟲體接觸，經由其皮膚或溶解其表皮腊質，渗透入體內",
-      "害蟲用口取食被藥劑撒佈過的食物",
-      "藥劑氣體經害蟲的呼吸系統侵入",
-      "以上都不是"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "殘效性觸殺 (Residual Contact Poison) 是指什麼？",
-    "options": [
-      "必須將藥劑直接撒佈於蟲體上方能有效",
-      "除藥劑直接接觸到蟲體可將其殺滅外，凡是接觸到撒佈過藥劑部位之蟲體，亦能使蟲體致死",
-      "藥劑氣體經害蟲的呼吸系統侵入",
-      "以上都不是"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "燻蒸中毒 (Fumigant Poison) 是利用什麼方式殺蟲？",
-    "options": [
-      "藥劑有效成分的氣體狀體，經害蟲的呼吸系統侵入蟲體內",
-      "害蟲用口取食被藥劑撒佈過的食物",
-      "藥劑直接接觸蟲體",
-      "以上都不是"
-    ],
-    "correct": 0
-  },
-  {
-    "question": "以下哪項是選擇 BioKill® 產品的原因？",
+    "question": "保而剋安全滅蟲產品系列有那些優點？",
     "options": [
       "人畜安全",
+      "不沾污",
       "無嗅",
-      "不沾污及非易燃液體",
-      "以上全部"
+      "可噴灑於任何物品及地方",
+      "天然降解及環保",
+      "非易燃液體",
+      "I+II+III+IV+V",
+      "I+II+III+V+VI",
+      "I+III+IV+V+VI",
+      "以上皆是"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "保而剋產品中的全效滅蟲劑與持久強效滅蟲劑的最大分別是甚麼？",
+    "options": [
+      "只有全效滅蟲劑可廣泛應用於住宅、辦公室、工廠、食肆、醫院、動物園、植物",
+      "持久強效滅蟲劑可應用於溫血動物的用品和四周等地方",
+      "持久強效滅蟲劑特有的微膠囊能定期釋放有效殺蟲成份",
+      "沒有， 兩者也可用於Hand pump， Turbo及Backpack",
+      "20.根據LD50的理論，請選出以下那個數字是最高毒性",
+      "LD50 0.022 mg/kg",
+      "LD50 0.002 mg/kg",
+      "LD50  200 mg/kg",
+      "LD50 2,000 mg/kg"
+    ],
+    "correct": 6
+  },
+  {
+    "question": "以下那些關於Biokill全效滅蟲劑 (BKU) 與Biokill持久強效滅蟲劑 (BKL)是正確的？",
+    "options": [
+      "BKU 的效力比BKL 短",
+      "BKL的有效殺蟲成份比BKU 更強",
+      "BKU 及BKL 都可用於Turbo 和Backpack",
+      "BKL特別適用於潮濕、害蟲滋擾及骯髒的地方及室外",
+      "I+IV",
+      "II+IV",
+      "I+II+IV",
+      "I+III+IV",
+      "6. 根據LD50的理論，請選出以下那個數字是最高毒性",
+      "LD50 0.022 mg/kg",
+      "LD50 0.002 mg/kg",
+      "LD50  200 mg/kg",
+      "LD50 2,000 mg/kg"
+    ],
+    "correct": 10
+  },
+  {
+    "question": "保而剋天然驅蚊膏，能有效地提供長達8小時保護，它的主要成份是？",
+    "options": [
+      "檸檬酸精華",
+      "檸檬猶他州葉精華",
+      "檸檬尤加利葉精華",
+      "橙酸尤加利葉精華"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "Temephos 在治理中如何有效地制止蚊子生長？",
+    "options": [
+      "有效地殺滅蚊成蟲。",
+      "有效地吸收水中氧分。",
+      "有效地制止蚊幼蟲成長，阻斷成長週期。",
+      "有效地殺滅所有飛蟲。",
+      "以下那些滅蟲產品不是屬於觸殺中毒？A. 保而剋全效滅蟲劑B. 保而剋環保老鼠膠C. FendonaD. Phantom"
+    ],
+    "correct": 4
+  },
+  {
+    "question": "為何Premise不可直接噴灑在植物表面？",
+    "options": [
+      "滲入泥土後會損害植物的根部",
+      "影響植物吸收養份",
+      "會對蜜蜂造成很大傷害",
+      "阻止植物進行光合作用",
+      "老鼠藥餌盒當用作外圍控制時，我們一般會在建築物外圍約每隔多少米設置藥餌盒。",
+      "10-15米",
+      "15-20米",
+      "20-25米",
+      "25-30米",
+      "害蟲用口取食被藥劑撒佈過的食物後，由其消化器官吸收毒分而至死亡。"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "(FNK) 主要針對蜜蜂黄蜂及其他攻擊(刺人)的昆蟲等，但因它是一些壓縮氣體，因此存放時留意温度不能高於？",
+    "options": [
+      "10 c",
+      "30 c",
+      "50 c",
+      "70 c",
+      "老鼠藥餌盒當用作外圍控制時，我們一般會在建築物外圍約每隔多少米設置藥餌盒。",
+      "5-10米",
+      "10-15米",
+      "15-20米",
+      "20-25米"
+    ],
+    "correct": 6
+  },
+  {
+    "question": "我們在使用Phantom 治理木蝨時，應留意那些事項？",
+    "options": [
+      "不可直接噴灑在人可接觸位置",
+      "大範圍噴灑所有地方",
+      "噴灑在床褥邊位及床架",
+      "噴灑在牆腳線、空隙裂縫",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "以上皆是"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "急性毒性是指除害劑一次大劑量或_____小時多次對溫血科動物作用後所產生的毒性？",
+    "options": [
+      "燻蒸中毒是利用藥劑有效成分的______，經害蟲的呼吸系統 - 氣門或體壁侵入蟲體內",
+      "氣體",
+      "液體",
+      "固體",
+      "泡劑"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "俗稱(曱甴三文治)是有效針對那一種類型的曱甴？",
+    "options": [
+      "美國曱甴",
+      "啡間曱甴",
+      "亞洲曱甴",
+      "德國曱甴"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "如家中有曱甴、螞蟻、書蟲、衣魚這些害蟲；沒有詞養任何寵物，我們可以建議客人購買那種最適合的產品？",
+    "options": [
+      "保而剋全效滅蟲劑",
+      "保而剋持久強效滅蟲劑",
+      "保而剋滅蟎噴劑",
+      "保而剋安全消毒劑"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "Which of the following is the common killing mechanism of traditional insecticides?",
+    "options": [
+      "Stomach Poison",
+      "Fumigant Poison",
+      "Contact Poison",
+      "Infectious Poison",
+      "I+II",
+      "II+III",
+      "I+II+III",
+      "All of the above"
+    ],
+    "correct": 6
+  },
+  {
+    "question": "What is the killing mechanism of BioKill Universal Insecticide (BKU)?",
+    "options": [
+      "Stomach Poison",
+      "Fumigant Poison",
+      "Infectious Poison",
+      "Contact Poison"
     ],
     "correct": 3
   },
   {
-    "question": "BioKill® 產品是否具有預防作用？",
+    "question": "How to use the BioKill Products in order to achieve the best results？",
     "options": [
-      "沒有",
-      "有",
-      "只限某些產品",
-      "以上都不是"
+      "Shake evenly before use",
+      "Spray the target directly at close range and spray it onto the target surface to slightly wet",
+      "After the insecticide has dried out, the product will continue to be effective and prevent pests from invading for several weeks.",
+      "Do not use detergent to clean after spraying",
+      "The spraying target should be the area that insects were found or believe should have insects at that area",
+      "I+II+III+IV+V",
+      "I+II+III+V+V",
+      "I+III+IV+V",
+      "All of the above"
     ],
-    "correct": 1
+    "correct": 7
   },
   {
-    "question": "BioKill® 產品是否天然降解及環保？",
+    "question": "What is the biggest difference between BioKill Universal Insecticide and BioKill Long Lasting Extra Insecticide?",
     "options": [
-      "不是",
-      "是",
-      "只限某些產品",
-      "以上都不是"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "使用 BioKill® 產品前應該先做什麼？",
-    "options": [
-      "直接噴灑",
-      "先搖動均勻",
-      "加水稀釋",
-      "加熱"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "BioKill® 產品噴灑時應距離目標表面多少厘米？",
-    "options": [
-      "10厘米",
-      "20厘米",
-      "30厘米",
-      "50厘米"
+      "Only BioKill Universal Insecticide can spray in household, office, factory, restaurant, hospital, zoo and plants",
+      "BioKill Long Lasting Extra Insecticide can spray on the stuff and surroundings of the warm-blooded animals",
+      "BioKill Long Lasting Extra Insecticide contain microcapsules that can release the effective insecticidal ingredients on a regular basis",
+      "Nothing, both can use in handpump, turbo and backpack"
     ],
     "correct": 2
   },
   {
-    "question": "BioKill® 產品噴灑後是否需要使用清潔劑進行清潔？",
+    "question": "Which of the following are accurate about BioKill Universal Insecticide (BKU) and BioKill Long Lasting Extra Insecticide (BKL)?",
     "options": [
-      "需要",
-      "毋須",
-      "視情況而定",
-      "以上都不是"
+      "BKU’s effectiveness is shorter than BKL",
+      "BKL’s active ingredient is stronger than BKU",
+      "BKU and BKL can both use in Turbo and Backpack",
+      "BKL is suitable for wet, pest nuisance and dirty places and outdoors",
+      "I+IV",
+      "II+IV",
+      "I+II+IV",
+      "I+III+IV",
+      "6. According to the theory of LD50，Please choose the most toxic number",
+      "LD50 0.022 mg/kg",
+      "LD50 0.002 mg/kg",
+      "LD50  200 mg/kg",
+      "LD50 2,000 mg/kg"
     ],
-    "correct": 1
+    "correct": 10
   },
   {
-    "question": "BioKill® 持久滅蟲劑首次噴灑後需多久再作噴灑？",
+    "question": "BioKill Natural Insect Repellent Cream can provide up to 8 hours protection,    what is its active ingredient?",
     "options": [
-      "1星期",
-      "2-3星期",
-      "4星期",
-      "8星期"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "BioKill® 持久滅蟲劑其後每隔多久再作噴灑？",
-    "options": [
-      "1星期",
-      "2-3星期",
-      "3-4星期",
-      "8-12星期"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "最有效解決昆蟲及衛生問題的方法是什麼？",
-    "options": [
-      "只使用滅蟲產品",
-      "保持環境整潔並防止昆蟲從外進入",
-      "只使用老鼠膠",
-      "以上都不是"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "Phantom® 伐蟻克能對付哪些害蟲？",
-    "options": [
-      "只限蟑螂",
-      "一般害蟲如蟑螂、蟻、衣魚、木蝨等",
-      "只限蚊和蒼蠅",
-      "只限老鼠"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "Phantom® 伐蟻克的成分是什么？",
-    "options": [
-      "Prallethrin 0.01%",
-      "Chlorfenapyr 24% (w/v)",
-      "Permethrin 0.25%",
-      "Deltamethrin 0.05%"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "Phantom® 伐蟻克的香港漁護處註冊編號是多少？",
-    "options": [
-      "1P55 (AL)",
-      "2P315 (SC)",
-      "2P244 (GE)",
-      "1P196 (AL)"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "根據標籤指示，Phantom® 用於木蝨時稀釋比例為多少？",
-    "options": [
-      "5ml/1000ml",
-      "10ml/1000ml",
-      "25ml/1000ml",
-      "50ml/1000ml"
+      "Citric acid essence",
+      "Lemon Leaf Extract",
+      "Citridiol",
+      "Orange Jasmine Essence"
     ],
     "correct": 2
   },
   {
-    "question": "使用 Phantom® 治理木蝨時，主要噴灑在哪些位置？",
+    "question": "How do Temephos effectively stop the growth of mosquito during treatment?",
     "options": [
-      "只噴天花",
-      "床褥邊位及床架位置及牆腳線、空隙裂縫等",
-      "只噴地板",
-      "只噴窗外"
+      "Effectively kill the mosquito adult。",
+      "Effectively absorb the oxygen in the water。",
+      "Effectively stop the growth of mosquito larvae and block their growth cycle。",
+      "Effectively kill all the flying insects。"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "What we need to consider when choosing different dosage forms?",
+    "options": [
+      "Targeted pests",
+      "Environmental restrictions",
+      "Price",
+      "Impact on the nearby ecological environment",
+      "The surface treated by the pesticide",
+      "I+II+III+IV",
+      "I+II+IV+V",
+      "I+III+IV+V",
+      "All of the above",
+      "According to the theory of LD50，Please choose the most toxic number",
+      "LD50 0.022 mg/kg",
+      "LD50 0.002 mg/kg",
+      "LD50  200 mg/kg",
+      "LD50 2,000 mg/kg"
+    ],
+    "correct": 11
+  },
+  {
+    "question": "Why we cannot spray Premise directly on the plant surface？",
+    "options": [
+      "Penetrating the soil will damage the roots of the plant",
+      "Affect the plant to absorb the nutrients",
+      "Will cause harmful effect to bees",
+      "Prevent plants from photosynthesis"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "(FNK) is mainly target to bees, wasps and other stinging insects, but as it contains compressed gas, it cannot be stored in area with temperature higher than which level?",
+    "options": [
+      "10 c",
+      "30 c",
+      "50 c",
+      "70 c"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "When we use the bait station for outdoor control, how far we usually set the stations around the building?",
+    "options": [
+      "5-10m",
+      "10-15m",
+      "15-20m",
+      "20-25m"
     ],
     "correct": 1
   },
   {
-    "question": "Phantom® 伐蟻克是否可以直接噴灑在人可接觸位置？",
+    "question": "When we use Phantom to treat with bedbug，what we need to pay attention to？",
     "options": [
-      "可以",
-      "不可以，不可直接噴灑在人可接觸位置",
-      "視情況而定",
-      "以上都不是"
+      "Do not spray directly on the person's accessible location",
+      "Spray all areas in a wide range",
+      "Spray on the side of the bed and the position of the bed frame",
+      "Spray on the skirting of the wall, gap cracks",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "All of the above"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "Acute toxicity refers to the toxicity of a large dose of pesticides or _____ hours after repeated effects on warm-blooded animals？",
+    "options": [
+      "18. Fumigant poison is the use of the ________of the active ingredient of the drug, through the pest's respiratory system - valve or body wall invading the body",
+      "Gas",
+      "Liquid",
+      "Solid",
+      "Foam"
     ],
     "correct": 1
   },
   {
-    "question": "FNK® 驅殺能對付哪些害蟲？",
+    "question": "How many categories did the World Health Organization classified the toxicity of pesticides in 1975?",
     "options": [
-      "只限蟑螂",
-      "一般爬蟲及飛蟲類害蟲如蟑螂、虱、蟻、蚊、蠅、蛾等",
-      "只限老鼠",
-      "只限白蟻"
+      "Being a professional pest control personnel, what good operating habits should he have? Please choose the appropriate answer.",
+      "Take a careful and responsible attitude",
+      "Pay attention to industrial safety (to understand the insecticide)",
+      "Pay attention to Environmental protection",
+      "Pay attention to the public safety",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "All of the above",
+      "20. According to the theory of LD50，Please choose the most toxic number",
+      "LD50 0.022 mg/kg",
+      "LD50 0.002 mg/kg",
+      "LD50  200 mg/kg",
+      "LD50 2,000 mg/kg"
+    ],
+    "correct": 11
+  },
+  {
+    "question": "保而剋安全滅蟲產品如何使用能發揮最佳效果？",
+    "options": [
+      "使用前請先搖動均勻",
+      "近距離直接噴灑目標，並噴至目標表面輕微濕潤",
+      "待藥劑乾透後，產品可持續發揮效力，防止害蟲侵襲達數星期",
+      "噴灑後毋須使用清潔劑進行清潔",
+      "噴灑目標應為發現害蟲或相信有害蟲的地方",
+      "I+II+III+IV+V",
+      "I+II+III+V+VI",
+      "I+III+IV+V",
+      "以上皆是"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "選用不同劑型時要考慮甚麼？",
+    "options": [
+      "針對的目標害物",
+      "環境的限制",
+      "劑型的價錢",
+      "對附近的生態環境影響",
+      "除害劑所處理的表面",
+      "I+II+III+IV",
+      "I+II+IV+V",
+      "I+III+IV+V",
+      "以上皆是",
+      "以下那些滅蟲產品不是屬於觸殺中毒？A. 保而剋全效滅蟲劑B. 保而剋環保老鼠膠C. FendonaD. Phantom"
+    ],
+    "correct": 9
+  },
+  {
+    "question": "According to the label guidelines of Fendona，what is the mainly treatment area?",
+    "options": [
+      "A. Drainage, crack, continuous moisture and found (starting) positionB. Moist, pest nuisance, dirty places and indoor areaC. Spray all areas in a wide rangeD. Manhole, oblique wave and hidden place。",
+      "Why Premise cannot spray on plant surface directly Penetrating the soil will damage the roots of the plant",
+      "Affect the plant to absorb the nutrients",
+      "Will cause harmful effect to bees",
+      "Prevent plants from photosynthesis"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "FNK) is mainly target to bees, wasps and other stinging insects, but as it contains compressed gas, it cannot be stored in area with temperature higher than which level?",
+    "options": [
+      "10 c",
+      "30 c",
+      "50 c",
+      "70 c"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "What we need to pay attention to when we use Phantom to treat with bedbug?",
+    "options": [
+      "Do not spray directly on the person's accessible location",
+      "Widely spray on all areas",
+      "Mainly sprayed on the side of the bed and the position of the bed frame",
+      "Spray on the skirting of the wall, gap cracks",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "All of the above"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "Which of the following pest control products are not by contact poisoning?",
+    "options": [
+      "BioKill Universal Insecticide",
+      "BioKill Ecological Rodent Trap",
+      "Fendona",
+      "Phantom"
     ],
     "correct": 1
   },
   {
-    "question": "FNK® 驅殺的成分包括什麼？",
+    "question": "Which is the best product if a home has cockroach, ant, squid and fungus beetle with no pet?",
     "options": [
-      "Deltamethrin 0.05%, D-Allethrin 0.2%, Dichlorvos 0.7%",
-      "只含 Deltamethrin",
-      "只含 Permethrin",
-      "只含 Chlorfenapyr"
+      "BioKill Universal Insecticide",
+      "BioKill Long-lasting Extra Insecticide",
+      "BioKill Anti-Mite Spray",
+      "BioKill Safe Sanitizer"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "What is the function of colloidal particles at the center of BioKill Ecological Rodent Trap?",
+    "options": [
+      "Can release odor to attract mice",
+      "Avoid the glue stick together",
+      "Have Shimmer to attract mice to get close at night",
+      "For the design"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "How Temephos stop the mosquito growth in the treatment effectively?",
+    "options": [
+      "Effectively kill adult mosquitoes",
+      "Effectively absorb nutrition in water",
+      "Effectively kill all flying insect",
+      "Effectively stop the growth of mosquito larvae and block the growth cycle"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "What of the following product no belongs to contract poison?",
+    "options": [
+      "A. Fendona",
+      "B. PhantomC. Biokill Universal Insecticide D. BioKill Rodent Trap"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "According to Fendona’s label guideline, where is the main injection area?",
+    "options": [
+      "Drainage, crack, continuous moisture and found (starting) position",
+      "Moist, pest nuisance, dirty places and indoor area",
+      "Spray all areas in a wide range",
+      "Manhole, oblique wave and hidden place"
     ],
     "correct": 0
   },
   {
-    "question": "FNK® 驅殺的香港漁護處註冊編號是多少？",
+    "question": "Fendona dilute to 5ml/1000ml when used for pests according to the standard guidelines, each liter of Fendona can be sprayed to how many square meters?",
     "options": [
-      "1P75 (AE)",
-      "2P315 (SC)",
-      "1P55 (AL)",
-      "2P225 (BB)"
+      "A. 20",
+      "B. 30",
+      "C. 40",
+      "D. 50"
     ],
     "correct": 0
   },
   {
-    "question": "FNK® 驅殺主要針對哪些昆蟲？",
+    "question": "Why Premise cannot spray on plant’s surface?",
     "options": [
-      "只限蟑螂",
-      "蜜蜂、黄蜂及其他攻擊 (刺人) 的昆蟲",
-      "只限螞蟻",
-      "只限蚊"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "FNK® 驅殺是壓縮氣體，存放時温度不能高於多少度？",
-    "options": [
-      "30°C",
-      "40°C",
-      "50°C",
-      "60°C"
+      "Penetrating the soil will damage the roots of the plant",
+      "Affect the plant to absorb the nutrients",
+      "Will cause harmful effect to bees",
+      "Prevent plants from photosynthesis"
     ],
     "correct": 2
   },
   {
-    "question": "使用 FNK® 驅殺時必須戴上什麼防護裝備？",
+    "question": "What we need to pay attention when we using Phatom to control bedbug?",
     "options": [
-      "只戴手套",
-      "口罩如 (N95) 及合適防護裝備",
-      "只戴護目鏡",
-      "不需防護"
+      "Do not spray directly on the person's accessible location.",
+      "Spray on everywhere widely",
+      "Mainly sprayed on the side of the bed and the position of the bed frame",
+      "Mainly sprayed on the skirting of the wall, gap cracks",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "All of the above"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "As a professional pest control personnel, what operating habits you shoud have?",
+    "options": [
+      "Being flexible",
+      "Pay attention to happened problem",
+      "Pay attention to Environmental protection",
+      "Pay attention to public safety",
+      "I+II",
+      "I+III",
+      "III+IV",
+      "None of the above"
+    ],
+    "correct": 6
+  },
+  {
+    "question": "According to LD50 theory, which is most toxic?",
+    "options": [
+      "LD50 0.022 mg/kg",
+      "LD50 0.002 mg/kg",
+      "LD50  200 mg/kg",
+      "LD50 2,000 mg/kg"
     ],
     "correct": 1
   },
   {
-    "question": "Roach Bait Gel 的殺蟲方式是什麼？",
+    "question": "如家中有啡間曱甴、螞蟻、真菌甲蟲、衣魚這些害蟲；沒有飼養任何寵物，我們可以建議客人購買那種最適合的產品？",
     "options": [
-      "觸殺中毒",
-      "胃毒又稱消化中毒 (Stomach Poison)",
+      "保而剋全效滅蟲劑 BKU",
+      "保而剋持久強效滅蟲劑 BKL",
+      "保而剋滅蟎噴劑 BKA",
+      "保而剋安全消毒劑 BKS"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "以下那些滅蟲產品不是屬於觸殺中毒？",
+    "options": [
+      "A. Fendona",
+      "B. PhantomC. 保而剋全效滅蟲劑D. 保而剋環保老鼠膠"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Fendona根據標讖指引用於蟲害時稀釋為5ml/1000ml每一公升藥水可噴灑範圍約幾多平方米？",
+    "options": [
+      "A. 20",
+      "B. 30",
+      "C. 40",
+      "D. 50"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "Which of the following product is not including in contract poison?",
+    "options": [
+      "A. Fendona",
+      "B. PhantomC. BioKill Universal Insecticide D. BioKill Rodent Trap"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "According to Fendona label guideline, where is the mainly treatment area?",
+    "options": [
+      "Drainage, crack, continuous moisture and found (starting) position",
+      "Moist, pest nuisance, dirty places and indoor area",
+      "Spray all areas in a wide range",
+      "Manhole, oblique wave and hidden place。"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "What are the killing mechanisms of insecticide?",
+    "options": [
+      "Stomach Poison",
+      "Fumigant Poison",
+      "Contract Poison",
+      "Inflection Poison",
+      "I+II",
+      "II+III",
+      "I+II+III",
+      "All of the above"
+    ],
+    "correct": 6
+  },
+  {
+    "question": "What is the mechanism of BioKill Universal Insecticide?",
+    "options": [
+      "Stomach Poison",
+      "Fumigant Poison",
+      "Inflection Poison",
+      "Contract Poison"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "Which product will you recommend to customers who have cockroach, ants, fungi beetles at home without pets?",
+    "options": [
+      "BioKill Universal Insecticide",
+      "BioKill Long-lasting Extra Insecticide",
+      "BioKill Anti-Mite Spray",
+      "BioKill Safe Sanitizer"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "What are the biggest different between BioKill Universal Insecticide and BioKill Long-lasting Extra Insecticide?",
+    "options": [
+      "Only BioKill Universal Insecticide can widely apply on Household, office, factory, restaurant, hospital, zoo and plants",
+      "BioKill Long-lasting can apply on warm-blooded animals and places around it",
+      "BioKill Long-lasting Extra insecticide have unique microcapsules can release effective insecticidal ingredients on a regular basis",
+      "None, both of them can use in Hand pump, Turbo and Backpack"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "What are the mention of Biokill Universal Insecticide and Biokill Long-lasting Extra Insecticide is correct?",
+    "options": [
+      "BKU effective period is shorter than BKL",
+      "BKL have stronger active Ingredient compare with BKU",
+      "BKU and BKL can use in Turbo and Backpack",
+      "BKL especially suitable for wet, pest nuisance and dirty places and outdoors",
+      "I+IV",
+      "II+IV",
+      "I+II+IV",
+      "I+III+IV"
+    ],
+    "correct": 4
+  },
+  {
+    "question": "What is the function of the colloidal at the middle of BioKill rodent trap?",
+    "options": [
+      "Can release odor to attract mice to get closer",
+      "Avoid the trap stick together",
+      "Release glimmer to attract rodent to get closer",
+      "For the design"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "世界衛生組織於1975年將除害劑的毒性分類成多少類？",
+    "options": [
+      "作為一個專業的防治蟲害人員，應要有良好的操作習慣請選出合適答案？+",
+      "高度彈性、隨機應變",
+      "高度注意有問題地方",
+      "注意環境保護",
+      "注意公眾安全",
+      "I+II",
+      "I+III",
+      "III+IV",
+      "以上皆不是",
+      "以下那項是常規殺蟲劑的作用方式？+",
+      "消化中毒",
       "燻蒸中毒",
-      "以上都不是"
+      "觸殺中毒",
+      "感染式中毒",
+      "I+II",
+      "II+III",
+      "I+II+III",
+      "以上皆是"
+    ],
+    "correct": 16
+  },
+  {
+    "question": "根據LD50的理論，請選出以下那個數字是最高毒性?",
+    "options": [
+      "LD50 0.022 mg/kg",
+      "LD50 0.002 mg/kg",
+      "LD50  200 mg/kg",
+      "LD50 2,000 mg/kg"
     ],
     "correct": 1
   },
   {
-    "question": "針對德國蟑螂治理，主要在哪里施放藥餌？",
+    "question": "After the pests use the mouth to feed the food that has been spread by the insecticide, the digestive organs absorb the poison and die. What is this killing mechanism?",
     "options": [
-      "只在地板上",
-      "一些電器的背部及底部均要施放藥餌",
-      "只在天花板上",
-      "只在窗外"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "TopBait Max 的有效成分是什么？",
-    "options": [
-      "Fipronil 0.05% w/w",
-      "Hydramethylon (氟蟻腙) 2% w/w",
-      "Imidacloprid 2.15% w/w",
-      "Bromadiolone 0.005%"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "TopBait Gold 的有效成分是什么？",
-    "options": [
-      "Hydramethylon 2% w/w",
-      "Fipronil (氟蟲氰) 0.05% w/w",
-      "Imidacloprid 2.15% w/w",
-      "Chlorfenapyr 24%"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "RoachGone 的香港註冊編號是多少？",
-    "options": [
-      "2P218 (GE)",
-      "2P244 (GE)",
-      "1P158 (GE)",
-      "2P225 (BB)"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "除害劑對哺乳類動物的的毒性分為幾類？",
-    "options": [
-      "1類",
-      "2類",
-      "3類",
-      "4類"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "急性毒性 (Acute toxicity) 是指什麼？",
-    "options": [
-      "除害劑長期低劑量作用後所產生的毒性",
-      "除害劑一次大劑量或24小時內多次對生物體作用後所產生的毒性",
-      "除害劑對環境的影響",
-      "以上都不是"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "LD50 是指什麼？",
-    "options": [
-      "能使某種動物 100% 致死之藥物量",
-      "能使某種動物 50% 致死之藥物量",
-      "藥物的濃度",
-      "以上都不是"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "慢性毒性 (Chronic toxicity) 會引起哪些疾病？",
-    "options": [
-      "只會引起皮膚敏感",
-      "癌病、胚胎畸型、基因變異及神經系統不正常等",
-      "只會引起頭痛",
-      "以上都不是"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "Fendona® 奮鬥吶的成分是什么？",
-    "options": [
-      "Prallethrin 0.01%",
-      "alpha-cypermethrin 10% w/w",
-      "Permethrin 0.25%",
-      "Imidacloprid 20%"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "Fendona® 奮鬥吶的香港漁護處註冊編號是多少？",
-    "options": [
-      "1P55 (AL)",
-      "2P195 (SC)",
-      "2P315 (SC)",
-      "1P196 (AL)"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "根據標籤指示，Fendona® 用於蟲害時稀釋比例為多少？",
-    "options": [
-      "1.25ml/1000ml",
-      "5ml/1000ml",
-      "10ml/1000ml",
-      "25ml/1000ml"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "每一公升 Fendona® 藥水可噴灑範圍約多少平方米？",
-    "options": [
-      "10平方米",
-      "15平方米",
-      "20平方米",
-      "30平方米"
-    ],
-    "correct": 2
-  },
-  {
-    "question": "Fendona® 主要施藥位置在哪裡？",
-    "options": [
-      "只噴天花",
-      "渠位、裂縫、持續潮濕及發現 (起潺) 位置",
-      "只噴窗外",
-      "只噴地板"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "Fendona® 主要針對哪些蟲害才使用？",
-    "options": [
-      "只限蟑螂",
-      "千足及百足蟲害的情况",
-      "只限蚊",
-      "只限老鼠"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "Temephos 1% S.G 的主要作用是什么？",
-    "options": [
-      "殺死成蚊",
-      "有效地制止蚊幼蟲成長、阻斷成長週期",
-      "殺死蟑螂",
-      "殺死老鼠"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "Temephos 1% S.G 的成分是什么？",
-    "options": [
-      "temephos 1% W/W",
-      "Chlorfenapyr 24%",
-      "Permethrin 0.25%",
-      "Bromadiolone 0.005%"
+      "Stomach Poison",
+      "Fumigant Poison",
+      "Contact Poison",
+      "Infection Poison"
     ],
     "correct": 0
   },
   {
-    "question": "Temephos 1% S.G 的香港漁護處註冊編號是多少？",
+    "question": "After the insecticide is spread, it can come into contact with the pests and insects, penetrate their skin or dissolve its epidermis and into the body, and thus absorb the poison, affecting the nervous system, and cause poisoning. What is this killing mechanism?",
     "options": [
-      "1P55 (AL)",
-      "2P179 (SG)",
-      "2P315 (SC)",
-      "2P225 (BB)"
+      "Stomach Poison",
+      "Fumigant Poison",
+      "Infection Poison",
+      "Contact Poison"
     ],
-    "correct": 1
+    "correct": 3
   },
   {
-    "question": "Temephos 1% S.G 應用於什麼地方？",
+    "question": "If there are mattresses, carpets and furniture mats and surfaces that may be found by insects or other insects that depend on fungi or mold what is the suitable product to use?",
     "options": [
-      "只限乾燥地方",
-      "沒流動的水 (死水) 與溝渠、水箱、花盆或花瓶",
-      "只限辦公室",
-      "只限住宅"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "Temephos 1% S.G 每 10g 可以用於多少升水？",
-    "options": [
-      "45公升",
-      "60公升",
-      "90公升",
-      "120公升"
+      "BioKill Universal Insecticide (BKU)",
+      "BioKIll Long-lasting Extra Insecticide (BKL)",
+      "BioKIll Anti-Mite Spray (BKA)",
+      "BioKill Safe Sanitizer (BKS)"
     ],
     "correct": 2
   },
   {
-    "question": "使用 Temephos 1% S.G 時需戴上什麼？",
+    "question": "What is the biggest different of BKU and BKL?",
     "options": [
-      "不需防護",
-      "手套",
-      "面罩",
-      "護目鏡"
+      "Only BKU can be widely used in homes, offices, factories, restaurants, hospitals, zoos, plants",
+      "BKL can be applied to supplies of warm-blooded animals and places",
+      "BKL have unique microcapsules can release effective insecticidal ingredients on a regular basis",
+      "None, both of them can use in hand pump, turbo and backpack",
+      "According to the theory of LD50，Please choose the most toxic number",
+      "LD50 0.022 mg/kg",
+      "LD50 0.002 mg/kg",
+      "LD50  200 mg/kg",
+      "LD50 2,000 mg/kg"
     ],
-    "correct": 1
+    "correct": 6
   },
   {
-    "question": "Premise 200 SC 主要對付哪些害蟲？",
+    "question": "If there is no any influence, how long can BKU last after spraying?",
     "options": [
-      "只限蟑螂",
-      "白蟻及蛀木蟲",
-      "只限蚊",
-      "只限老鼠"
+      "1 week",
+      "2 weeks",
+      "4 weeks",
+      "2 months"
     ],
-    "correct": 1
+    "correct": 2
+  },
+  {
+    "question": "How Temephos stop the growth of mosquito larvae?",
+    "options": [
+      "Kill the mosquito",
+      "Absorb oxygen in water",
+      "Kill all flying insect",
+      "Effectively stop the growth of mosquito larvae and block the growth cycle"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "Which of the following product is not contract poison?",
+    "options": [
+      "Fendona",
+      "Phantom",
+      "BioKill Universal Insecticide",
+      "BioKIll Rodent Trap"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "According to label guideline of Fendona, where is the mainly injection area?",
+    "options": [
+      "Drainage, crack, continuous moisture and found (starting) position",
+      "Moist, pest nuisance, dirty places and indoor area",
+      "Spray all areas in a wide range",
+      "Manhole, oblique wave and hidden place。"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "在常規殺蟲劑的作用方式是那一種中毒？",
+    "options": [
+      "A. 消化中毒",
+      "B. 燻蒸中毒",
+      "C. 觸殺中毒",
+      "D. 感染式中毒"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "藥劑撒佈過，使與害蟲蟲體接觸， 經由其皮膚或溶解其表皮腊質，渗透入體內， 吸收毒分， 影響神經系統， 中毒致死。在常規殺蟲劑的作用方式是那一種中毒？",
+    "options": [
+      "消化中毒",
+      "燻蒸中毒",
+      "感染式中毒",
+      "觸殺中毒"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "適用於床褥、地氈和傢俬墊子及可能有蟎或其他依靠真菌或霉菌生存的昆蟲出現的表面等，選出較合適的產品？",
+    "options": [
+      "保而剋全效滅蟲劑 BKU",
+      "保而剋持久強效滅蟲劑 BKL",
+      "保而剋滅蟎噴劑 BKA",
+      "保而剋安全消毒劑 BKS"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "Biokill全效滅蟲劑 (BKU) 噴灑後，如沒有受任何影響下可維持多久？",
+    "options": [
+      "一星期",
+      "兩星期",
+      "四星期",
+      "兩個月"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "As a professional pest control personnel, what operating habits you should have?",
+    "options": [
+      "Being flexible",
+      "Pay attention to happened problem",
+      "Pay attention to Environmental protection",
+      "Pay attention to public safety",
+      "I+II",
+      "I+III",
+      "III+IV",
+      "None of the above"
+    ],
+    "correct": 6
   }
 ]

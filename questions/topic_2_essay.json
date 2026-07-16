@@ -1,38 +1,22 @@
 [
   {
-    "question": "請簡述 BioKill® 持久強效滅蟲劑的微膠囊科技原理及其優點。"
+    "question": "Temephos是針對那些害蟲及地方使用？",
+    "maxScore": 5
   },
   {
-    "question": "請說明常規殺蟲劑的三種作用方式 (殺蟲方式) 及其原理。"
+    "question": "在預防白蟻時，Premise的目的是甚麼及如何產生作用？",
+    "maxScore": 5
   },
   {
-    "question": "請列出使用 BioKill® 產品的正確步驟及注意事項。"
+    "question": "請寫出5種BioKill的產品？",
+    "maxScore": 5
   },
   {
-    "question": "請比較 Phantom® 伐蟻克和 Fendona® 奮鬥吶的用途、成分及使用方法。"
+    "question": "請列出2個BKU和BKM在成份及功能上的分別",
+    "maxScore": 5
   },
   {
-    "question": "請說明 Roach Bait Gel 的正確使用方法及針對德國蟑螂的治理位置。"
-  },
-  {
-    "question": "請解釋除害劑對哺乳類動物的的急性毒性和慢性毒性的分別。"
-  },
-  {
-    "question": "請列出選用不同除害劑劑型時需要考慮的因素。"
-  },
-  {
-    "question": "請說明除害劑的三種吸收中毒途徑及預防方法。"
-  },
-  {
-    "question": "請列出專業的防治蟲害人員應具備的良好操作習慣、衛生習慣及除害劑管理習慣。"
-  },
-  {
-    "question": "請比較 Contrac Blox 和 FINAL Blox 的成份、特性及使用方法。"
-  },
-  {
-    "question": "請說明 Temephos 1% S.G 的用途、使用方法及安全注意事項。"
-  },
-  {
-    "question": "請解釋為什麼 BioKill® 產品系列適合在日常防治蟲害工作中使用。"
+    "question": "在一個半數致死量的測試中，有一隻哺乳類動物在24小時內吸入了75750mg 的BKU原藥中毒，請問這隻動物體重是多少公斤？",
+    "maxScore": 5
   }
 ]

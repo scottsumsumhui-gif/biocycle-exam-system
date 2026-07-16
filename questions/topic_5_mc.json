@@ -1,882 +1,764 @@
 [
   {
-    "id": 1,
-    "question": "生機源（香港）有限公司的使命及目標是什麼？",
+    "question": "Being a BioCycle technician, what are our missions and objectives?",
     "options": [
-      "以最低成本提供服務",
-      "提供優質的服務、科技及產品以提高人類生活質素，同時減少環境污染及客人實質支出",
-      "只求快速完成工作",
-      "只關注公司利潤"
+      "Provide competent and quality service",
+      "Commit to improve the pest control techniques",
+      "Be the leader of the industry",
+      "Receiving reasonable and high service fee",
+      "I+II+III",
+      "I+III+IV",
+      "I+II+IV",
+      "All of the above"
     ],
-    "correct": 1
+    "correct": 4
   },
   {
-    "id": 2,
-    "question": "技術員的職責不包括以下哪一項？",
+    "question": "What we need to pay attention before starting the treatment?",
     "options": [
-      "檢視滅蟲地點，查看是否有害蟲活動跡象",
-      "根據指定程序進行例行滅蟲治理",
-      "代替客戶做家務",
-      "正確及完整地填妥工作紀錄表"
+      "All cold-blooded animals (such as fish and reptiles) have been kept in a safe area.",
+      "All small size warm-blooded animals such as hamster must be covered or removed from the treatment area",
+      "BioKill insecticide is safe to warm-blooded animals but MUST not spray directly to the face and head of the animals or pets",
+      "During the treatment, MUST not discuss with client about non-treatment private conversation",
+      "I+II+III",
+      "II+III+IV",
+      "I+III+IV",
+      "All of the above"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "What are the two ISO audit does the company follow in order to improve our service quality?",
+    "options": [
+      "Quality ISO9002/ Environmental ISO14001",
+      "Quality ISO9001/ Environmental ISO14002",
+      "Quality ISO9001/ Environmental ISO14001",
+      "Quality ISO9001/ Environment ISO14001"
     ],
     "correct": 2
   },
   {
-    "id": 3,
-    "question": "如發現白蟻或其他嚴重的蟲害問題，技術員應該怎麼做？",
+    "question": "What you need to pay attention when using company vehicles?",
     "options": [
-      "自行處理",
-      "必須報告公司",
-      "忽略不理",
-      "只告訴客戶"
+      "Non-company staff are not allowed to use the company vehicles, any violation will result in immediate dismissal",
+      "Strictly prohibited to change or remove anything from the vehicle/ vehicle structure without approval, any violation will result in immediate dismissal",
+      "If the vehicle has damages during any traffic accidents, no matter it is due to you or other parties, you must report to the company or solve it by yourself",
+      "Drivers are not permitted to drive a company vehicle if you have consumed alcohol",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "I+II+IV"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "What you need to pay attention when using Hot Fogger according to technician manual?",
+    "options": [
+      "Must wear proper protective clothing such as mask",
+      "Must inform the client in advance or the on site management officer/ security and ensure the smoke detector system has been switched off",
+      "MUST close all the windows and ventilation system before the treatment starts",
+      "Spraying should start in the entrance of the premises and finished at the end of the site",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "All of the above"
+    ],
+    "correct": 4
+  },
+  {
+    "question": "What are the daily preparations according to technician manual?",
+    "options": [
+      "Must wear full set of uniform",
+      "Make sure you have brought all the necessary equipment and insecticides or other materials and have sufficient quantities before you leave",
+      "Must leave on time to avoid late arrival",
+      "Check the timetable for that day and make sure schedules are correct.",
+      "I+II+III",
+      "I+III+IV",
+      "I+II+IV",
+      "All of the above"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "Which is the most appropriate answer for vehicle parking according to the technician manual?",
+    "options": [
+      "Park the car in the assigned area such as “Visitor carpark” or meter area, but need to follow the traffic safety license",
+      "Park the car outside the building as convenience is the most important",
+      "Park in the road nearby as the most important thing is to make myself convenient to work and take the equipment",
+      "Try to park in the free area such as along the road or outside the building as cost control is our main responsibility."
+    ],
+    "correct": 0
+  },
+  {
+    "question": "What you need to pay attention to when enter the clients’ premises to conduct a treatment?",
+    "options": [
+      "You must wear your shoes to avoid staining your foot and protect yourself.",
+      "You must take off your shoes to avoid staining or damaging floor and carpets.",
+      "You must wear your shoes so as to make yourself convenient to conduct the treatment",
+      "None of the above"
     ],
     "correct": 1
   },
   {
-    "id": 4,
-    "question": "工作紀錄表有什麼重要性？",
+    "question": "What you need to pay attention to when you finished the treatment according to technician manual?",
     "options": [
-      "不重要",
-      "對將來其他滅蟲員工作時有重要幫助",
-      "只供公司存檔",
-      "可以隨意填寫"
+      "Ask the client to acknowledge the completion of treatment by signing the working report.",
+      "Say goodbye to client",
+      "Check if you have taken all company equipment and materials",
+      "Inform the management office the job has been done and leave",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "All of the above"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "What you need to do if technicians cannot arrive on time to next treatment destinations?",
+    "options": [
+      "Must call back to the company at least 15 minutes before the treatment time so that schedulers can contact client for the new arrival time",
+      "Need to inform office at least 15 minutes before the treatment via Whatsapp",
+      "No need to inform, just arrive the site as soon as possible is fine as on time arrival is our commitment",
+      "No need to care as late arrival is not my problem"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "According to technician manual, which of the followings are the basic requirements for promotion?",
+    "options": [
+      "Have management ability, like to judge others, good at communication",
+      "Perform responsibility, have reliability working attitude, high level of working performance",
+      "Competent, Friendly, popular among supervisor and colleagues."
     ],
     "correct": 1
   },
   {
-    "id": 5,
-    "question": "滅蟲治理開始前，必須確定客戶飼養的冷血科動物已如何處理？",
+    "question": "What are the duties of technicians according to technician manual?",
     "options": [
-      "不用理會",
-      "已保存在安全的地方，不受滅蟲噴射所影響",
-      "可以繼續留在原處",
-      "直接噴灑藥劑"
+      "Upon client’s special request, provide unusual professional pest management services.",
+      "According to information in the working report, carry out treatment specific to certain insect",
+      "Carry out inspection for the site, check if there are any signs of pest activities, check the extent of the pest infestation, and the entrances of all the pest",
+      "If termites or other serious pest problems are found, must report to the office",
+      "I+II+III",
+      "II+III+IV",
+      "I+II+IV",
+      "All of the above"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "What is the usage of hand pump in technician manual?",
+    "options": [
+      "Spraying specific areas like baseboard, door frame, window frame, cracks etc.",
+      "Spraying specific areas like baseboard, door, window flame, cloths in cabinets etc.",
+      "Spraying specific areas like baseboard, door, window flame, cloths in cabinets and cracks etc.",
+      "Spraying specific areas like baseboard, electric wires & socket, window flame, cracks etc."
+    ],
+    "correct": 0
+  },
+  {
+    "question": "What should we do if we receive customer complaints?",
+    "options": [
+      "All complaints received must be directed to the office at once. Cannot try to argue with customers.",
+      "Never argue with client because they are always right.",
+      "Leave immediately",
+      "Prove you are right and avoid the company thinking you are wrong"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "How to apply annual leave？",
+    "options": [
+      "All applications can be approved any time with notice to department head.",
+      "All applications will only be effective after the permission from department head with written application form 14 days in advance.",
+      "All application must be approved at least 4 days with written notice in advance by department head.",
+      "There is no need special notice if I have emergency"
     ],
     "correct": 1
   },
   {
-    "id": 6,
-    "question": "保而剋系列殺蟲劑對溫血科動物是否安全？",
+    "question": "How to apply annul leave for 4 days or longer according to technician manual?",
     "options": [
-      "完全不安全",
-      "是安全的，但絕不能直接噴灑動物/寵物面部及頭部",
-      "對所有動物都有毒",
-      "只對狗安全"
+      "Applications can be approved any time with notice to department head.",
+      "Must apply the annual leave with written notice 14 days before the application date and will only be effective after the approval from department head.",
+      "Submit the Leave application form at least one month before the application date and will only be effective after the approval from department head.",
+      "Apply with written notice at least 4 days before the application date and will only be effective after the approval from General Manager"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "How to deal with the accumulated leave?",
+    "options": [
+      "The company will inform the colleague at least 14 dates before the appointed annual leave dates, if both side agree, can shorten the notice days.",
+      "The maximum number of accumulated annual leave is 6 days. Unless with the special approval from the General Manager, otherwise no more than 6 days of annual leave is allowed.",
+      "The approved accumulated leave must be taken within 3 months from the approval date. Otherwise, the unapplied annual leave will be appointed to take by the company with consultation with the employee.",
+      "If agreed by both sides, the annual leave can be replaced by money.",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "All of the above"
+    ],
+    "correct": 4
+  },
+  {
+    "question": "How to apply sick leave?",
+    "options": [
+      "Technicians must inform their supervisors by telephone or text half hour before the attending time to get approval and report to related office colleague before 12.00 noon of that day",
+      "Technicians must inform their supervisors by telephone or text 1 hour before the attending time to get approval and report to related office colleague before 12.00 noon of that day.",
+      "Technicians must inform their supervisor by telephone or text 1 hour before the attending time to get approval and report to related office colleague after 12.00noon of that day.",
+      "Technicians must inform their supervisors by telephone or text 15 minute before attending time to get approval and report to related office colleague after 12.00 noon of that day."
     ],
     "correct": 1
   },
   {
-    "id": 7,
-    "question": "所有新入職之滅蟲員在進行正式的服務前，必須先接受什麼？",
+    "question": "What is the requirement of medical certificate?",
     "options": [
-      "不用培訓",
-      "由管理層及滅蟲員主管主持的工作介紹",
-      "只閱讀手冊便可",
-      "直接上崗"
+      "All sick leave application must be supported by certificate of attendance issued by registered medical practitioners and approved by departmental head.",
+      "All sick leave application must be supported by certificate of attendance issue by medical practitioners or certificate with stamp and approved by departmental head.",
+      "All sick leave applications must be supported by medical certificates issued by registered medical practitioners and approved by the departmental head.",
+      "All sick leave applications must be supported by medical certificates with attendance date and stamp of clinic issued by any medical practitioners and approved by departmental head."
+    ],
+    "correct": 2
+  },
+  {
+    "question": "What to do when costumers is not at home/ in the treatment premises？",
+    "options": [
+      "If there is no answer from the treatment area, don’t leave the place immediately but please check the treatment time and destination again to see if you are in the right place at the right time. If everything is correct, please call the office and inform the situation. The office will call to the client’s place to check again if there is really no answer.",
+      "If client is not in the treatment area, wait for around 15 minute patiently, left down a notice immediately and leave as we have next order.",
+      "If there is no answer from the treatment area, leave the place at once and reschedule booking by office colleague."
+    ],
+    "correct": 0
+  },
+  {
+    "question": "作為生機源技術員我們的使命及目標是甚麼？",
+    "options": [
+      "提供專業及高質服務",
+      "致力提升滅蟲方面技術",
+      "建立在業內領先地位",
+      "收取合理而高價費用",
+      "A. I+II+III",
+      "B. I+III+IV",
+      "C. I+II+IV",
+      "D.以上皆是"
+    ],
+    "correct": 4
+  },
+  {
+    "question": "進行蟲害治理前我們要留意甚麼？",
+    "options": [
+      "I. 冷血科動物(魚, 爬蟲類等) 已保存在安全的地方",
+      "II. 小的温血科竉物，如：倉鼠，必須被蓋着或被移離治理範圍。",
+      "III. 温血科動物是安全，但絕不能夠直接噴灑動物/竉物面部及頭部",
+      "IV. 嚴禁在進行治理時，傾談一些與治理無關的私人對話。",
+      "A.I+II+III",
+      "B.II+III+IV",
+      "C.I+III+IV",
+      "D.以上皆是"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "公司根據那兩個ISO政策審核從而提升我們的服務質素?",
+    "options": [
+      "A.   品質ISO9002/ 環保ISO14001",
+      "B.   品質ISO9001/ 環保ISO14002",
+      "C.   品質ISO9001/ 環保ISO14001",
+      "D.   品質ISO9001/ 環境ISO14001"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "根據技術員手冊公司車輛必須要注意事項？",
+    "options": [
+      "公司車輛不得接載非公司集團屬下員工，違者將被立即解僱",
+      "公司車輛不得私自進行改裝/拆除任何車輛結構性的裝置，違者將被立即解僱",
+      "如於任何交通意外中，車輛遭受任何損毀，不論是由你或其他人做成的，必須報告公司及自行處理",
+      "不論是否受酒精影響, 酒後不準駕駛公司車輛",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "I+II+IV"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "根據技術員手冊使用熱霧噴霧機(Hot Fogger)時必須要注意事項？",
+    "options": [
+      "必須使用應有的保護裝備，如合適口罩",
+      "必須先通知客人或在場的管理處/保安員及確定煙霧感應系統巳關上",
+      "噴灑前，須將所有的門窗及通風系統關上",
+      "噴灑應由場所的入口開始並於未端結束",
+      "I+II+III",
+      "I+III+IV",
+      "II+III+IV",
+      "以上皆是"
+    ],
+    "correct": 4
+  },
+  {
+    "question": "根據技術員手冊日常預備工作須知是甚麼？",
+    "options": [
+      "必須穿著公司制服 (全套)",
+      "檢查是否已帶備所需設備及足夠滅蟲劑應用",
+      "必須按時出車，以免誤時",
+      "查看當日的正確工作日程",
+      "A.  I+II+III",
+      "B.  I+III+IV",
+      "C.  I+II+IV",
+      "D. 以上皆是"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "根據技術員手冊日常車輛停泊須知找出最合適答案？",
+    "options": [
+      "A.  將車輛停泊在指定的地點如「訪客車位」或路邊咪表位，但須符合交通安全",
+      "條例",
+      "B.  將車輛停泊在大廈外圍，因一般情況下不會抄牌方便自己最重要",
+      "C.  停泊在附近路邊，因最重要方便自己工作及提取工具",
+      "D.  盡可能停泊不收費地方，如路邊或大廈外圍，控制成本是我們最大的責任"
     ],
     "correct": 1
   },
   {
-    "id": 8,
-    "question": "新入職滅蟲員通過最後的測驗後，還需要什麼？",
+    "question": "進入客戶家居進行治理時必須注意事項？",
     "options": [
-      "不用再做什麼",
-      "跟隨合資格的滅蟲員進行實地的訓練並吸取經驗",
-      "立即獨立工作",
-      "可以晉升"
+      "必須穿上鞋子，以免弄污雙腳及保護自己",
+      "必須脫下鞋子，以免弄污及破壞地毯或地板",
+      "必須穿上鞋子，方便自己進出家居內外範圍工作",
+      "以上皆不是"
     ],
     "correct": 1
   },
   {
-    "id": 9,
-    "question": "公司每月將定期安排什麼培訓？",
+    "question": "根據技術員手冊日常完成治理後應注意事項？",
     "options": [
-      "沒有培訓",
-      "各種不同的在職培訓",
-      "只有理論培訓",
-      "只有安全培訓"
+      "請客人簽署”工作報告表”以確認此次滅蟲工作已經完成",
+      "與客人道別",
+      "檢查是否已帶走所有滅蟲劑及工具",
+      "通知管理員工作已完成並離去",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "以上皆是"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "根據技術員手冊如未能準時到達下一個目的地我們如何處理？",
+    "options": [
+      "A. 須於預定時間的最少十五分鐘前致電回公司，待公司常務部同事聯絡並通知客人新的到訪時間",
+      "B. 須於預定時間的最少十五分鐘前What’s app公司便可",
+      "C. 不需通知爭取第一時間到達目的地便可，因守時是我們的承諾",
+      "D. 遲到唔係我問題，不用理會"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "根據技術員手冊技術員之職位晉升的基本條件為？",
+    "options": [
+      "具管理才能、愛指指點點、善於溝通",
+      "完成及覆行職責、可靠的工作態度、高水準的工作表現",
+      "能幹、友善、受同事及上司愛戴",
+      "小說話、多做事、多與客戶溝通表現自己有能力晉升"
     ],
     "correct": 1
   },
   {
-    "id": 10,
-    "question": "技術員之職位晉升的基本條件不包括以下哪一項？",
+    "question": "根據技術員手冊日常手動唧壺(Handpump) 噴灑於甚麼地方？",
     "options": [
-      "完成及履行職責",
-      "可靠的工作態度",
-      "高水準的工作表現",
-      "與上司關係好"
+      "向個別位置如牆腳線,天花線, 門框, 窗框, 隙縫等地方噴灑",
+      "向個別位置如牆腳線,天花線, 大門, 窗框,衣柜內衣物等地方噴灑",
+      "向個別位置如牆腳線,天花線, 門, 窗框,衣柜內衣物及隙縫等地方噴灑",
+      "向個別位置如牆腳線, 電線及電制,窗框,及隙縫等地方噴灑"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "根據技術員手冊如接獲客戶投訴應如何處理？",
+    "options": [
+      "所有客戶之投訴均需轉介到公司在任何的情況下，均不可與客戶爭吵",
+      "顧客永遠是對的，冇謂爭吵，嘆自己倒霉",
+      "有理說不清，即時離開",
+      "據理力爭，免得公司誤會自己做錯"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "根據技術員手冊如何申請一般年假？",
+    "options": [
+      "按個人需要隨時申請也可，通知部門主管便可",
+      "年假須14天前以書面通知預先申請，獲得部門主管批准後，方可生效",
+      "年假不少於4天前以書面通知預先申請，獲得部門主管批准後，方可生效",
+      "有事便申請不用特別通知，合情合理"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "根據技術員手冊如果申請四個工作天或以上之年假時？",
+    "options": [
+      "按個人需要隨時申請也可，通知部門主管便可",
+      "年假須14天前以書面通知預先申請，獲得部門主管批准後，方可生效",
+      "須在放假前一個月或以上，填寫「假期申請表」，待部門主管批准後才可放取",
+      "四天年假申請不少於4天前以書面通知上司申請，獲得總經理批准後方可生效"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "根據技術員手冊年假之累積如何處理？",
+    "options": [
+      "僱主須至少在假期開始的14天前以書面通知僱員年假的日期；如雙方同意，可以較短時間通知。",
+      "年假最多累積為6天。除總經理書面特別批准外，年假不得累積多於6天",
+      "獲批准累積之年假，亦須於後三個月內放取，否則逾期未享用之年假日期由僱主在徵詢僱員或其代表後，在指定日期內享用",
+      "如雙方同意，可以金錢代替。",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "以上皆是"
+    ],
+    "correct": 4
+  },
+  {
+    "question": "根據技術員手冊病假申請辦法？",
+    "options": [
+      "技術員則須於上班時間前半小時以電話或短訊通知其上司以取得休假批准，並於當日中午十二時前致電予辦公室負責同事報告",
+      "技術員則須於上班時間前一小時以電話或短訊通知其上司以取得休假批准，並於當日中午十二時前致電予辦公室負責同事報告",
+      "技術員則須於上班時間前一小時以電話或短訊通知其上司以取得休假批准，並於當日中午十二時後致電予辦公室負責同事報告",
+      "D.  技術員則須於上班時間前十五分鐘以電話或短訊通知其上司以取得休假批准，並於",
+      "當日中午十二時後致電予辦公室負責同事報告"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "根據技術員手冊病假紙証明的要求？",
+    "options": [
+      "所有病假申請須附有符合法例之註冊醫生到診紙證明書及獲部門主管批准",
+      "所有病假申請須有醫生到診紙或蓋印的證明書及獲部門主管批准",
+      "所有病假申請須附有符合法例之註冊醫生所簽發之病假證明書及獲部門主管批准",
+      "所有病假申請須附有到診日期及診所蓋印非註冊醫生也可簽發之病假證明書及獲部門主管批准"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "根據技術員手冊如客戶不在應如何處理？",
+    "options": [
+      "如遇上客人不在的情況,請勿立即離開,先採取以下行動:",
+      "核對工作表上的時間和地址是否正確，如正確無誤的話,請致電回公司告知情況，公司同事會致電到客人家中",
+      "如遇上客人不在的情況,耐心等候客人十五，放下到訪通知立即離開，因還有下一個工作",
+      "如遇上客人不在的情況,立即離開由公司另約時間",
+      "如遇上客人不在的情況,請勿立即離開,先採取以下行動:"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "When did Biocycle establish?",
+    "options": [
+      "1997",
+      "1991",
+      "1998",
+      "1992"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "What are the major organizations of Biocycle?",
+    "options": [
+      "Urban Pest Management, Termite Consulting & Services, Sanitation and other Services",
+      "Urban Pest Management, Termite Consulting & Services, Sanitation and Cleaning Services",
+      "Urban Pest Services, Termite Services, Sanitation and other Services",
+      "Urban Pest services, Termite Services, Sanitation and Cleaning Services"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "Where is the formula of BioKill Products from?",
+    "options": [
+      "Sweden",
+      "Australia",
+      "Switzerland",
+      "Hong Kong"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "What are the features of Biokill’s products?",
+    "options": [
+      "Safe for Humans, warm-blooded Pets and Plants, odourless, Non-staining, Biodegradable, Environmental Friendly.",
+      "Safe for Humans, warm-blooded Pets and Plants, Small amount of odor, Non-staining, Biodegradable, Environmental Friendly.",
+      "Safe for Humans, warm-blooded Pets and Plants, odourless, Non-staining,   Biodegradable, Environmental Friendly, Long-lasting effect.",
+      "Safe for Humans, warm-blooded Pets and Plants, Small amount of odor, Non-staining, Biodegradable, Environmental Friendly, Long-lasting effect.",
+      "5. Although BioKills’ products are safe, there are some situations you need to avoid."
+    ],
+    "correct": 2
+  },
+  {
+    "question": "Which one of the following is not the situation you need to avoid?",
+    "options": [
+      "Spray on human, electrical device and electric power source directly.",
+      "Do not spray areas with cold-blooded animals’ present",
+      "Do not spray over gas water heater while it is on.",
+      "If you need to remove the socket, you need to have agreement of client and check is that the electrical device running."
+    ],
+    "correct": 0
+  },
+  {
+    "question": "What are the main ingredients of Biokill Sanitizer?",
+    "options": [
+      "Extracted from citric acid and grapefruits through a special process. Through a special process. The extract contains a mixture of natural ingredients that can produce extremely powerful antibacterial, anti-mould and anti-fungal agents.",
+      "Extracted from orange and grapefruits through a special process. Through a special process. The extract contains a mixture of natural ingredients that can produce extremely powerful antibacterial, anti-mould and anti-fungal agents.",
+      "Extracted from lime and orange through a special process. Through a special process. The extract contains a mixture of natural ingredients that can produce extremely powerful antibacterial, anti-mould and anti-fungal agents.",
+      "Extracted from fruit acid and grapefruits through a special process. Through a special process. The extract contains a mixture of natural ingredients that can produce extremely powerful antibacterial, anti-mould and anti-fungal agents"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Biokill Sanitizer can be used at different areas. What are these?",
+    "options": [
+      "Food Processing Areas and Clean Rooms",
+      "Fruit & Vegetables",
+      "Fish and Prawn Production",
+      "Chicken Carcasses",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "All of the above"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "Bromodiolone is which generation of anticoagulant rodenticide?",
+    "options": [
+      "First-generation",
+      "Second-generation",
+      "Third-generation",
+      "Fourth-generation"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "The first step of treatment application by using hand bump is to spray on which area?",
+    "options": [
+      "Along the walls, center area, ceiling",
+      "Ceiling, individual places, within baseboard",
+      "Along the walls, center area, individual places",
+      "All of the walls, center area, individual area"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "The Company welcomes suggestions of all kinds for continuing improvement and to fulfill our service commitment to clients through?",
+    "options": [
+      "Discuss with their Operation Manager / General Manager",
+      "Put them down in writing in an envelope and deposit them in the suggestions box in the communications corner in the garage. This can be done anonymously or otherwise.",
+      "Discuss this openly with all technicians and supervisors in the regular technician meeting.",
+      "Discuss this openly with all technicians in the monthly training meeting.",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "All of the above"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "生機源有限公司在那年成立？",
+    "options": [
+      "1997",
+      "1991",
+      "1998",
+      "1992"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "生機源有限公司主要業務？",
+    "options": [
+      "環保蟲害管理服務、環保白蟻顧問服務、消毒及其他服務",
+      "環保蟲害管理服務、環保白蟻顧問服務、消毒及清潔服務",
+      "環保蟲害服務、環保白蟻服務、消毒及其他服務",
+      "環保蟲害服務、環保白蟻服務、消毒及清潔服務"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "保而剋滅蟲劑產品是那個國家配方？",
+    "options": [
+      "瑞典",
+      "澳洲",
+      "瑞士",
+      "中國香港"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "保而剋滅蟲劑全線產品有甚麼特點？",
+    "options": [
+      "對人類，寵物和植物均安全、無嗅、不留痕跡、環保、可自然降解",
+      "對人類，寵物和植物均安全、有少量氣味、不留痕跡、環保、可自然降解",
+      "對人類，寵物和植物均安全、無嗅、不留痕跡、環保、可自然降解、效力特長",
+      "對人類，寵物和植物均安全、有少量氣味、不留痕跡、環保、可自然降解、效力特長",
+      "5. 保而剋滅蟲劑全線產品安全性很高，但在噴灑時也要留意那些情況？請找出不合適的答案。",
+      "A. 可直接噴灑在人牲身上、電器用品、電源位置等",
+      "B. 切勿在有冷血動物附近噴射",
+      "C. 切勿在煤氣熱水爐開時作噴射",
+      "D. 如要拔除客人插頭時、要詢問客人及查看該電器是否在使用中"
+    ],
+    "correct": 5
+  },
+  {
+    "question": "保而剋消毒劑主要成份？",
+    "options": [
+      "檸檬酸及西柚的精華，經處理後，變成有效的抗細菌及防霉劑",
+      "橙及西柚的精華，經處理後，變成有效的抗細菌及防霉劑",
+      "青檸檬及橙的精華，經處理後，變成有效的抗細菌及防霉劑",
+      "果酸及西柚的精華，經處理後，變成有效的抗細菌及防霉劑"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "保而剋消毒劑用途廣泛可用於不同場合，請找出合適答案？",
+    "options": [
+      "食物製造工場",
+      "蔬果",
+      "漁業及海鮮業",
+      "雞隻飼養",
+      "A.I+II+III",
+      "B.I+II+IV",
+      "C.I+III+IV",
+      "D.以上皆是"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "Bromodiolone 乃是第    代抗凝血劑滅鼠藥，可殺滅不同種類的鼠類？",
+    "options": [
+      "第一代",
+      "第二代",
+      "第三代",
+      "第四代"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "噴灑應用技術第一個工序: 手動噴射(儀器：手動唧壺)－主要目的是針對性地把個別地方覆蓋請找出合適答案？",
+    "options": [
+      "靠牆位置、中央位置、天花位置",
+      "天花位置、個別位置、靠牆腳線",
+      "靠牆位置、中央位置、個別位置",
+      "所有牆壁位置、中央位置、個別位置"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "公司對於技術員之所有意見提供，均採取非常重視的態度，故請各滅蟲員多用以下渠道發表意見？",
+    "options": [
+      "與直屬營運部經理或總經理反映",
+      "以不記名的方式寫下並放入公司意見箱內",
+      "於定期的技術員會議上提出並與其他技術員及技術員主管研究",
+      "於每月的培訓期間在會議上提出並與其他技術員及技術員主管研究",
+      "I+II+III",
+      "I+II+IV",
+      "I+III+IV",
+      "以上皆是"
+    ],
+    "correct": 7
+  },
+  {
+    "question": "Disinfect Safe BKOD 強效消毒，使用甚麽藥劑、時效、特點？",
+    "options": [
+      "A. 保而剋消毒劑、一個月、公司產品",
+      "B. 包而剋消毒劑、三個月、公司有機產品",
+      "C. 保而剋有機消毒劑、一星期、公司有機產品",
+      "D. 保而剋有機消毒劑、即效、公司有機產品"
     ],
     "correct": 3
   },
   {
-    "id": 11,
-    "question": "見習高級技術員的試用期為多久？",
+    "question": "Disinfect Premier長效消毒，使用甚麽藥劑、時效、特點？",
     "options": [
-      "1個月",
-      "2個月",
-      "3個月",
-      "6個月"
+      "A. Zero、一星期、納米刺穿",
+      "B. Zoo co、兩星期、光觸媒納米剌針",
+      "C. Zoono、可達三十天(實驗報告顯示)、納米級刺針",
+      "D. BKOD有機消毒劑、一星期、強酸性"
     ],
     "correct": 2
   },
   {
-    "id": 12,
-    "question": "獲考慮晉升的技術員必須具備什麼條件？",
+    "question": "就下列選項中如何選擇合適個人防護裝備？",
     "options": [
-      "只需年資夠",
-      "足一年的良好服務記錄、有足夠的滅蟲經驗、一定的英文水平",
-      "只需英文好",
-      "只需經驗豐富"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 13,
-    "question": "如在試用期內表現未如理想，會如何處理？",
-    "options": [
-      "立即解僱",
-      "試用期將會延長，一般不會多於3個月",
-      "不用處理",
-      "立即晉升"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 14,
-    "question": "技術員的晉升將由誰批准？",
-    "options": [
-      "技術員主管",
-      "營運部經理批准，並由總經理確認",
-      "客戶",
-      "自己決定"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 15,
-    "question": "負責公司車輛的技術員必須做什麼？",
-    "options": [
-      "可以不保養車輛",
-      "保持車輛清潔、整齊及適合駕駛，並安全駕駛",
-      "可以隨意改裝車輛",
-      "可以借給朋友使用"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 16,
-    "question": "公司車輛不得接載非公司集團屬下員工，違者會如何處理？",
-    "options": [
-      "警告",
-      "將被立即解僱",
-      "罰款",
-      "不用處理"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 17,
-    "question": "酒後可否駕駛公司車輛？",
-    "options": [
-      "可以",
-      "不準駕駛",
-      "少量可以",
-      "視情況而定"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 18,
-    "question": "車輛如超過100,000公里，更換機油的頻率是多少？",
-    "options": [
-      "每年1次",
-      "每4個月一次（每年3次）",
-      "每年2次",
-      "不用更換"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 19,
-    "question": "車輛如少於100,000公里，更換機油的頻率是多少？",
-    "options": [
-      "每年1次",
-      "每6個月一次（每年2次）",
-      "每年4次",
-      "不用更換"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 20,
-    "question": "車輛輪胎將視什麼而更換？",
-    "options": [
-      "使用時間",
-      "胎紋深度（少於5毫米）",
-      "外觀",
-      "隨意更換"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 21,
-    "question": "手動唧壺主要用於噴灑哪些保而剋滅蟲劑？",
-    "options": [
-      "任何藥劑",
-      "BKL或BKMF",
-      "只可用水",
-      "只能用消毒劑"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 22,
-    "question": "手動唧壺的容器每天完成工作後應如何處理？",
-    "options": [
-      "可以留有滅蟲劑在容器內",
-      "不可留有滅蟲劑在容器內，必須將容器內的滅蟲劑儲存在別處",
-      "不用處理",
-      "可以留到明天"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 23,
-    "question": "霧化器（ULV）能噴灑出什麼？",
-    "options": [
-      "大水珠",
-      "細小微粒，可以殘留在空間的時間較長",
-      "只有空氣",
-      "大顆粒"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 24,
-    "question": "霧化器的隔器應多久檢查/清潔/更換一次？",
-    "options": [
-      "每天",
-      "每週/月",
-      "每年",
-      "不用檢查"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 25,
-    "question": "熱霧噴霧機（Hot Fogger）使用什麼來運作？",
-    "options": [
-      "電池",
-      "燃燒電油",
-      "太陽能",
-      "手動"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 26,
-    "question": "使用熱霧噴霧機前，必須先通知誰？",
-    "options": [
-      "不用通知",
-      "保安或場所的負責人",
-      "只需通知同事",
-      "通知朋友"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 27,
-    "question": "熱霧噴霧機噴灑前，必須戴上什麼？",
-    "options": [
-      "不用防護",
-      "公司提供之面罩",
-      "太陽眼鏡",
-      "普通眼鏡"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 28,
-    "question": "熱霧噴霧機噴灑應由場所的哪個位置開始？",
-    "options": [
-      "入口",
-      "最末端開始並於入口結束",
-      "中間",
-      "隨意位置"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 29,
-    "question": "熱霧噴霧機噴灑後，場所應封閉約多久？",
-    "options": [
-      "30分鐘",
-      "約兩小時",
-      "半天",
-      "一天"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 30,
-    "question": "熱霧噴霧機噴灑後，最少於多少小時後才可開啟煙霧感應系統？",
-    "options": [
-      "1小時",
-      "4小時",
-      "8小時",
-      "24小時"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 31,
-    "question": "每輛滅蟲車均配備有一張十呎乘十呎尼龍布（帆布），用途是什麼？",
-    "options": [
-      "舖地席",
-      "用以覆蓋魚池或爬蟲類的籠",
-      "做雨傘",
-      "包東西"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 32,
-    "question": "絕大部份殺蟲劑對魚類/冷血科寵物有什麼影響？",
-    "options": [
-      "完全無毒",
-      "極高毒性",
-      "只有少許毒",
-      "不確定"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 33,
-    "question": "滅蟲車上配備的吸塵機可以用來做什麼？",
-    "options": [
-      "吸水和濕的地方",
-      "吸除在工作/治理地方的昆蟲及工作後的清潔",
-      "吸金屬碎片",
-      "吸液體"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 34,
-    "question": "技術員每天須按編更期準時回到公司做什麼？",
-    "options": [
-      "吃早餐",
-      "領取當天的工作時間表",
-      "聊天",
-      "開會"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 35,
-    "question": "到達現場後，接觸到客人時必須先怎麼做？",
-    "options": [
-      "直接開始工作",
-      "作合適的問候語，然後表明身份",
-      "不用理會客人",
-      "只給名片"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 36,
-    "question": "進入客人地方時，必須做什麼？",
-    "options": [
-      "穿鞋進入",
-      "脫下鞋子，以免弄污及破壞地毯或地板",
-      "跑步進入",
-      "帶同寵物"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 37,
-    "question": "滅蟲前必須先詢問客人什麼？",
-    "options": [
-      "今天有沒有特別的害蟲問題",
-      "不用詢問",
-      "只問姓名",
-      "問電話號碼"
+      "A. 頭套、面罩、防護口罩、防護衣、一次性乳膠手套、鞋套",
+      "B. 頭箍、面罩、防護口罩、防護衣、一次性乳膠手套、鞋套",
+      "C. 頭套、面紗、防護口罩、防護衣、一次性乳膠手套、鞋套",
+      "D. 頭套、面罩、防護口罩、防護衣、重覆性乳膠手套、鞋套"
     ],
     "correct": 0
   },
   {
-    "id": 38,
-    "question": "如有嬰兒或小孩，最好怎麼做？",
+    "question": "穿著防護裝備前要如何徹底清潔雙手？",
     "options": [
-      "不用理會",
-      "最好不要讓他們留在噴灑範圍地方內",
-      "讓他們幫忙",
-      "給他們玩具"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 39,
-    "question": "滅蟲完成後，需要請客人簽署什麼文件？",
-    "options": [
-      "合約",
-      "工作報告表",
-      "宣傳單張",
-      "發票"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 40,
-    "question": "如未能準時到達下一個目的地，應於預定時間的最少多少分鐘前致電回公司？",
-    "options": [
-      "5分鐘",
-      "15分鐘",
-      "30分鐘",
-      "1小時"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 41,
-    "question": "如技術員因未能準時到達目的地並沒有致電通知公司於一個月內超過三次，會如何處理？",
-    "options": [
-      "警告",
-      "公司有權因該滅蟲員沒有遵守公司政策而作出解僱",
-      "不用處理",
-      "罰款"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 42,
-    "question": "如車輛有任何損毀，無論是否技術員出錯，都必須怎麼做？",
-    "options": [
-      "不用理會",
-      "必定要向公司匯報",
-      "可以隱瞞",
-      "下次再說"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 43,
-    "question": "一天工作完成後，技術員須將工作紀錄表於什麼時候交回公司？",
-    "options": [
-      "不必交回",
-      "一天工作完成後交回，如於晚上才完成，翌日交回",
-      "隨意時間",
-      "可以不用交"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 44,
-    "question": "如接獲客戶投訴，應如何處理？",
-    "options": [
-      "與客戶爭吵",
-      "所有客戶之投訴均需轉介到公司",
-      "不用理會",
-      "自行處理"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 45,
-    "question": "在任何的情況下，均不可與客戶怎樣？",
-    "options": [
-      "握手",
-      "爭吵",
-      "交談",
-      "微笑"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 46,
-    "question": "如客戶拒絕簽署確認噴灑工作，應如何處理？",
-    "options": [
-      "強迫客戶簽署",
-      "耐心地及有禮貌地向客戶解釋，如仍然拒絕請致電公司",
-      "放棄離開",
-      "大聲爭論"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 47,
-    "question": "如客戶不在，技術員可離去前往下一個目的地的前提是什麼？",
-    "options": [
-      "不用確認",
-      "經公司同事證實客人真的不在",
-      "猜測客人不在",
-      "等待5分鐘便可"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 48,
-    "question": "僱員享用年假須以什麼為原則？",
-    "options": [
-      "不影響部門正常運作",
-      "隨意申請",
-      "只考慮自己",
-      "不用原則"
-    ],
-    "correct": 0
-  },
-  {
-    "id": 49,
-    "question": "所有年假須提前多少天以書面通知預先申請？",
-    "options": [
-      "7天",
-      "14天",
-      "30天",
-      "不用提前"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 50,
-    "question": "年假最多可累積為多少天？",
-    "options": [
-      "3天",
-      "6天",
-      "10天",
-      "14天"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 51,
-    "question": "技術員如生病或受傷不能上班，應於什麼時間通知上司？",
-    "options": [
-      "上班時間前一小時",
-      "正常上班時間三十分鐘內",
-      "不用通知",
-      "下午才通知"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 52,
-    "question": "所有病假申請須附有什麼？",
-    "options": [
-      "不用證明",
-      "符合法例之註冊醫生所簽發之病假證明書",
-      "自己寫的證明",
-      "同事證明"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 53,
-    "question": "手動唧壺的橡膠及活動零件應多久檢查一次？",
-    "options": [
-      "每天",
-      "每週",
-      "每月",
-      "每年"
+      "A. 搓手過程最少二十秒。揉擦包括手掌、手背、拇指、指尖、手腕。",
+      "B. 搓手過程最少二十秒。揉擦包括手掌、手背、指罅、指背、拇指。",
+      "C. 搓手過程最少二十秒。揉擦包括手掌、手背、指罅、指背、拇指、指尖、手腕。",
+      "D. 搓手過程最少十秒。揉擦包括手掌、手背、指罅、指背、拇指、指尖、手腕。",
+      "4.  在整個消毒霧化過程中，高度與平面應保持距離約"
     ],
     "correct": 2
   },
   {
-    "id": 54,
-    "question": "霧化器的容器應多久清潔一次？",
+    "question": "佩戴口罩應注意事項？",
     "options": [
-      "每天",
-      "每週",
-      "每月",
-      "每年"
+      "A. 佩戴尺碼合適，金屬條一方朝上，有顏色的一面朝外，摺疊開口層向下。將橡筋掛上耳朵，向下拉開口罩，確保口罩完全覆蓋下巴。口罩金屬條沿鼻樑兩側按緊，檢查口罩覆蓋合適範圍。",
+      "B. 佩戴時常款式，金屬條一方朝上，有顏色的一面朝外，摺疊開口層向下。將橡筋掛上耳朵，向下拉開口罩，確保口罩完全覆蓋口、鼻、及下巴。口罩金屬條沿鼻樑兩側按緊，檢查口罩覆蓋合適範圍。",
+      "C. 佩戴尺碼合適，金屬條一方朝上，有顏色的一面朝內，摺疊開口層向上。將橡筋掛上耳朵，向下拉開口罩，確保口罩完全覆蓋口、鼻、及下巴。口罩金屬條沿鼻樑兩側按緊，檢查口罩覆蓋合適範圍。",
+      "D. 佩戴尺碼合適的口罩，金屬條一方朝上，有顏色的一面朝外，摺疊開口層向下。將橡筋掛上耳朵，向下拉開口罩，確保口罩完全覆蓋口、鼻、及下巴。口罩金屬條沿鼻樑兩側按緊，檢查口罩覆蓋合適範圍。"
     ],
-    "correct": 1
+    "correct": 3
   },
   {
-    "id": 55,
-    "question": "熱霧噴霧機完成噴灑後，最遲於什麼時候將工具退回公司？",
+    "question": "消毒工序中我們先要評估工作風險及路線，並在噴灑過程中應留意甚麽細節？",
     "options": [
-      "同一天",
-      "第二天",
-      "一週內",
-      "不用退回"
+      "A. 由內而外、由上至下緩慢移動進行霧化式消毒治理，每一個空間位置約停留三秒。觀察現場環境，隊員作互相提醒，如有水中生物或電器設備，要格外留意、減免意外發生。",
+      "B. 由外而內、由上至下快速移動進行霧化式消毒治理，每一個空間位置不作停留。觀察現場環境，隊員作互相提醒，如有水中生物或電器設備，要格外留意、減免意外發生。",
+      "C. 由內而外、由上至下緩慢移動進行霧化式消毒治理，每一個空間位置約停留三秒。觀察現場環境，隊員並分開工作，減免意外發生。",
+      "D. 由內而外、由上至下緩慢移動進行霧化式消毒治理，每一個空間位置約停留不少於三十秒。觀察現場環境，隊員作互相提醒，如有水中生物或電器設備，要格外留意、減免意外發生。",
+      "8.  霧化式消毒治理重點是令到藥水渗透到場所內每一個角落，",
+      "達致最佳消毒效果，噴灑位置需特別留意那些地方，找出較",
+      "合適答案？",
+      "A. 隱秘渠口、假天花、常被忽略位置",
+      "B. 藏污纳垢地方、電制房、什物房",
+      "C. 手柄位置、枱及座椅、常常接觸地方、所有平面位置",
+      "D. 櫃桶內外、出入口位置、枱底椅背",
+      "9. 在整個消毒霧化過程中，高度與平面應保持距離約"
     ],
-    "correct": 1
+    "correct": 9
   },
   {
-    "id": 56,
-    "question": "滅蟲前，必須穿著什麼？",
+    "question": "避免藥劑在霧化期間過度沾濕物件？",
     "options": [
-      "便服",
-      "公司制服（全套）",
-      "短袖衫",
-      "拖鞋"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 57,
-    "question": "車輛停泊須知中，如該處並沒設有訪客車位，應如何處理？",
-    "options": [
-      "隨意停泊",
-      "將車輛停泊在附近的公眾停車場或路邊咪表位",
-      "雙黃線停泊",
-      "禁用車位"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 58,
-    "question": "技術員向客人自我介紹時，應表明什麼身份？",
-    "options": [
-      "生機源環保滅蟲服務",
-      "隨意說",
-      "不用表明",
-      "說其他公司"
+      "A. 1 米",
+      "B. 1.5 米",
+      "C. 2 米",
+      "D. 以上皆是"
     ],
     "correct": 0
   },
   {
-    "id": 59,
-    "question": "滅蟲後，應告知客人什麼？",
+    "question": "消毒治理完畢，應如何有次序除下裝備，找出較合適答案？",
     "options": [
-      "不用告知",
-      "下次噴灑的大約日期及時間",
-      "不用再來",
-      "只給發票"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 60,
-    "question": "如與客戶在語言溝通上出現問題，應如何處理？",
-    "options": [
-      "用大叫方式",
-      "請致電公司尋求翻譯支援",
-      "放棄溝通",
-      "用手勢"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 61,
-    "question": "手動唧壺主要用於滅蟲噴灑程序的第幾部分？",
-    "options": [
-      "第一部分",
-      "第二部分",
-      "第三部分",
-      "不用於噴灑"
+      "A. 依次序首先除下防護衣、頭套、護目鏡/ 面罩、口罩，手套然後潔手。",
+      "B. 依次序首先除下護目鏡/ 面罩、口罩，手套、防護衣、頭套、然後潔手。",
+      "C. 依次序首先除下口罩，手套、防護衣、頭套、護目鏡/ 面罩、然後潔手。",
+      "D. 依次序首先除下口罩，手套、防護衣、護目鏡/ 面罩、、頭套、然後潔手。"
     ],
     "correct": 0
   },
   {
-    "id": 62,
-    "question": "霧化器主要用於滅蟲噴灑程序的第幾部分？",
+    "question": "噴灑位置需特別留意那些地方，找出較合適答案？",
     "options": [
-      "第一部分",
-      "第二部分",
-      "第三部分",
-      "不用於噴灑"
+      "隱秘渠口、假天花、常被忽略位置",
+      "藏污纳垢地方、電制房、什物房",
+      "手柄位置、枱及座椅、常常接觸地方、所有平面位置",
+      "櫃桶內外、出入口位置、枱底椅背"
     ],
-    "correct": 1
-  },
-  {
-    "id": 63,
-    "question": "技術員手冊中，公司地址在哪裡？",
-    "options": [
-      "香港島",
-      "九龍新蒲崗大有街36號華興工業大廈9樓C室",
-      "新界",
-      "澳門"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 64,
-    "question": "公司之營業時間為什麼？",
-    "options": [
-      "9:00am至6:00pm",
-      "8:00am至5:00pm",
-      "24小時",
-      "只限上午"
-    ],
-    "correct": 0
-  },
-  {
-    "id": 65,
-    "question": "所有物料的存取，均須通知誰？",
-    "options": [
-      "不用通知",
-      "營運部經理或技術員主管",
-      "保安",
-      "清潔工"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 66,
-    "question": "存取物料後，必須於什麼地方作填寫紀錄？",
-    "options": [
-      "不用紀錄",
-      "櫃裡的紀錄表",
-      "隨意紙張",
-      "用手機記錄"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 67,
-    "question": "如客戶出現非常不滿的情緒，應如何處理？",
-    "options": [
-      "與客戶爭吵",
-      "嘗試安撫客人並告知客人一定會盡量配合，於同一時間致電公司",
-      "不理會",
-      "離開"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 68,
-    "question": "預防措施中，冷血動物隔離的原因是什麼？",
-    "options": [
-      "殺蟲劑對冷血動物無影響",
-      "滅蟲劑是針對殺滅冷血的昆蟲而設計，對冷血動物有傷害",
-      "只是公司規定",
-      "沒有特殊原因"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 69,
-    "question": "進行室外噴灑前，必須留意什麼？",
-    "options": [
-      "不用特別留意",
-      "風向以確保滅蟲劑的飛沫不會被吹到其他地方",
-      "只看地面",
-      "只看天空"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 70,
-    "question": "技術員主管檢查每週車輛檢查表的內容後，會安排什麼？",
-    "options": [
-      "不用安排",
-      "預防性保養及其他維修事項",
-      "只記錄",
-      "丟棄"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 71,
-    "question": "所有維修在指定車房進行並由誰批准？",
-    "options": [
-      "技術員自己",
-      "總經理",
-      "客戶",
-      "不用批准"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 72,
-    "question": "如技術員對該道路熟識，知道該路經常擠塞，該如何做？",
-    "options": [
-      "不用理會",
-      "告知公司，以便預留多些交通時間",
-      "遲到便可",
-      "走其他路"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 73,
-    "question": "技術員須要經常帶備什麼，當找不到目的地時使用？",
-    "options": [
-      "手電筒",
-      "街道圖",
-      "食物",
-      "水"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 74,
-    "question": "如不幸遇上交通意外，須第一時間做什麼？",
-    "options": [
-      "離開現場",
-      "致電回公司，告知實際情況",
-      "不理會",
-      "與對方爭論"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 75,
-    "question": "完成一天的滅蟲工作後，車輛需要如何處理？",
-    "options": [
-      "不用處理",
-      "將公司車輛駛回公司停車場，並將車輛安全地停泊",
-      "停泊在附近",
-      "停在客戶處"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 76,
-    "question": "保而剋滅蟲劑須到哪裡作補充？",
-    "options": [
-      "不用補充",
-      "工廠",
-      "客戶處",
-      "家中"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 77,
-    "question": "滅鼠及其他工具零件在公司什麼地方補充？",
-    "options": [
-      "工廠",
-      "生產部及營運部存儲物料櫃內",
-      "車上",
-      "家中"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 78,
-    "question": "如收到客戶的支票，應如何處理？",
-    "options": [
-      "自己保管",
-      "須親手交回公司",
-      "存入自己戶口",
-      "丟棄"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 79,
-    "question": "技術經理是負責進行什麼的負責人？",
-    "options": [
-      "銷售",
-      "內部審核（品質檢定）",
-      "清潔",
-      "駕駛"
-    ],
-    "correct": 1
-  },
-  {
-    "id": 80,
-    "question": "根據環保政策要求，技術員主管確保所有工序根據什麼進行？",
-    "options": [
-      "隨意方式",
-      "環保工作指引及ISO9001/ISO14001",
-      "只用中文指引",
-      "不用指引"
-    ],
-    "correct": 1
+    "correct": 2
   }
 ]
