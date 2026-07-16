@@ -884,12 +884,12 @@ app.get('/api/admin/export-csv', authRequired('admin'), async (req, res) => {
 
 app.get('/api/admin/questions/:topicId', authRequired('admin'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
-  if (tid < 1 || tid > 6) return res.status(400).json({ success: false, error: '無效主題 ID' });
-  
+  if (isNaN(tid) || tid < 1) return res.status(400).json({ success: false, error: '無效主題 ID' });
+
   try {
     const mc = await loadQuestions('mc', tid);
     const essay = await loadQuestions('essay', tid);
-    
+
     res.json({ success: true, mc: mc || [], essay: essay || [], mcCount: (mc || []).length, essayCount: (essay || []).length });
   } catch(e) {
     console.error(e);
