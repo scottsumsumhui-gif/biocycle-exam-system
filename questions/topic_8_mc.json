@@ -258,68 +258,6 @@
     "correct": 3
   },
   {
-    "question": "Which of the following insect cannot be killed by BioKill?",
-    "options": [
-      "German cockroach",
-      "Australian cockroach",
-      "Booklice",
-      "Earwig",
-      "I",
-      "II+III+IV",
-      "III+IV",
-      "None of the above"
-    ],
-    "correct": 7
-  },
-  {
-    "question": "American cockroach and Australian cockroach have a similar appearance. How can we classify them?",
-    "options": [
-      "The contrast of the color of the bands",
-      "2 conspicuous yellowish stripes near the base of wings",
-      "clear “T” pattern on head",
-      "Walking Style",
-      "I+II",
-      "III+IV",
-      "I+II+III",
-      "All of the above"
-    ],
-    "correct": 6
-  },
-  {
-    "question": "How many cockroach species have been identified up to date?",
-    "options": [
-      "3,000",
-      "3,500",
-      "5,000",
-      "5,300"
-    ],
-    "correct": 1
-  },
-  {
-    "question": "From the training, which of the following insect has the longest history and how many year it appears before human?",
-    "options": [
-      "Cockroach appears more than 3,000,000,000 years before human.",
-      "Cockroach appears more than 300,000,000 years before human.",
-      "Booklice appears more than 3,000,000,000 years before human.",
-      "Silverfish appears more than 3,000,000,000 years before human."
-    ],
-    "correct": 1
-  },
-  {
-    "question": "Why cockroach can run rapidly over most surfaces and glass windows or walk across a ceiling?",
-    "options": [
-      "Spiny legs",
-      "Specialized pads in their feet",
-      "Wings",
-      "Tentacle",
-      "I",
-      "III + IV",
-      "I + II",
-      "I + II + III"
-    ],
-    "correct": 6
-  },
-  {
     "question": "德國蟑螂在最後一次脫皮完成後，牠們便長出甚麼和可進行甚麼？What will German cockroach grow after last molt?",
     "options": [
       "長出翅膀和可進行產卵 emerges fully wings and hatching",
@@ -328,16 +266,6 @@
       "長出咀巴和可進行餵食 emerges mouth and feeding"
     ],
     "correct": 2
-  },
-  {
-    "question": "Apply insecticide is one of the important treatment to The American Cockroach. Where should be minimize to spray because of the flush-out effect?",
-    "options": [
-      "主人房 Master room",
-      "BB房 Baby room",
-      "狗屋 Dog house",
-      "沙井內 Manhole"
-    ],
-    "correct": 3
   },
   {
     "question": "那品種蟑螂的卵囊，內有最多卵？Which of the following cockroach has the most eggs?",
