@@ -210,7 +210,7 @@ function showAddEmployee() {
         <div class="form-group"><label>員工編號</label><input id="newEmpNum" placeholder="EMP001"></div>
         <div class="form-group"><label>姓名</label><input id="newEmpName" placeholder="陳大明"></div>
         <div class="form-group"><label>職級</label><select id="newEmpLevel"><option value="junior">初級技術員</option><option value="senior">高級技術員</option><option value="supervisor">技術員主管</option></select></div>
-        <div class="form-group"><label>組別</label><select id="newEmpGroup"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+        <div class="form-group"><label>組別</label><select id="newEmpGroup"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option></select></div>
         <div class="form-group"><label>初始密碼</label><input id="newEmpPw" value="0000"></div>
       </div>
       <button class="btn btn-primary" onclick="addEmployee()">確認新增</button>
@@ -249,7 +249,7 @@ async function editEmployee(id) {
         <div class="form-group"><label>員工編號</label><input id="editEmpNum" value="${emp.emp_number}"></div>
         <div class="form-group"><label>姓名</label><input id="editEmpName" value="${emp.name}"></div>
         <div class="form-group"><label>職級</label><select id="editEmpLevel"><option value="junior" ${emp.level==='junior'?'selected':''}>初級技術員</option><option value="senior" ${emp.level==='senior'?'selected':''}>高級技術員</option><option value="supervisor" ${emp.level==='supervisor'?'selected':''}>技術員主管</option></select></div>
-        <div class="form-group"><label>組別</label><select id="editEmpGroup"><option value="A" ${emp.group_name==='A'?'selected':''}>A</option><option value="B" ${emp.group_name==='B'?'selected':''}>B</option><option value="C" ${emp.group_name==='C'?'selected':''}>C</option><option value="D" ${emp.group_name==='D'?'selected':''}>D</option><option value="" ${!emp.group_name?'selected':''}>未分配</option></select></div>
+        <div class="form-group"><label>組別</label><select id="editEmpGroup"><option value="A" ${emp.group_name==='A'?'selected':''}>A</option><option value="B" ${emp.group_name==='B'?'selected':''}>B</option><option value="C" ${emp.group_name==='C'?'selected':''}>C</option><option value="D" ${emp.group_name==='D'?'selected':''}>D</option><option value="E" ${emp.group_name==='E'?'selected':''}>E</option><option value="F" ${emp.group_name==='F'?'selected':''}>F</option><option value="" ${!emp.group_name?'selected':''}>未分配</option></select></div>
         <div class="form-group"><label>新密碼(留空不改)</label><input id="editEmpPw" placeholder="留空不改密碼"></div>
       </div>
       <button class="btn btn-primary" onclick="saveEmployee(${id})">保存</button>
@@ -362,9 +362,9 @@ async function loadExamConfig() {
   html += `<button class="btn btn-sm btn-primary" onclick="showAddConfig()">+ 新增配置</button>`;
   html += `</div>`;
   
-  html += `<table class="data-table"><thead><tr><th>月份</th><th>主題</th><th>開始日期</th><th>結束日期</th><th>狀態</th><th>操作</th></tr></thead><tbody>`;
+  html += `<table class="data-table"><thead><tr><th>月份</th><th>主題</th><th>組別</th><th>開始日期</th><th>結束日期</th><th>狀態</th><th>操作</th></tr></thead><tbody>`;
   for (const c of configs.configs) {
-    html += `<tr><td>${c.year}/${c.month}</td><td>${c.topic_name}</td><td>${c.start_date}</td><td>${c.end_date}</td>`;
+    html += `<tr><td>${c.year}/${c.month}</td><td>${c.topic_name}</td><td>${c.groups || '全部'}</td><td>${c.start_date}</td><td>${c.end_date}</td>`;
     html += `<td><span class="badge ${c.is_active?'badge-green':'badge-gray'}">${c.is_active?'開放':'關閉'}</span></td>`;
     html += `<td><button class="btn btn-xs btn-outline" onclick="toggleConfig(${c.id},${c.is_active})">${c.is_active?'關閉':'開放'}</button>`;
     html += `<button class="btn btn-xs btn-outline" onclick="editConfig(${c.id})">編輯日期</button>`;
@@ -391,6 +391,11 @@ function showAddConfig() {
       <div class="form-group"><label>年份</label><input id="cfgYear" type="number" value="${now.getFullYear()}"></div>
       <div class="form-group"><label>開始日期(YYYY-MM-DD HH:MM)</label><input id="cfgStart" value="${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01 09:00"></div>
       <div class="form-group"><label>結束日期(YYYY-MM-DD HH:MM)</label><input id="cfgEnd" value="${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-28 18:00"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>考試組別 (不勾選=所有組別)</label>
+        <div style="display:flex; gap:12px; flex-wrap:wrap; padding:4px 0">
+          ${['A','B','C','D','E','F'].map(g=>`<label style="display:flex; align-items:center; gap:4px; cursor:pointer"><input type="checkbox" class="cfgGroup" value="${g}"> <span>${g}</span></label>`).join('')}
+        </div>
+      </div>
     </div>
     <button class="btn btn-primary" onclick="addConfig()">確認</button>
     <button class="btn btn-outline" onclick="document.getElementById('configForm').style.display='none'">取消</button>
@@ -398,6 +403,7 @@ function showAddConfig() {
 }
 
 async function addConfig() {
+  const checkedGroups = Array.from(document.querySelectorAll('.cfgGroup:checked')).map(cb => cb.value);
   const res = await fetch(API + '/api/admin/exam-config', {
     method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
     body: JSON.stringify({
@@ -405,7 +411,8 @@ async function addConfig() {
       month: document.getElementById('cfgMonth').value,
       year: document.getElementById('cfgYear').value,
       startDate: document.getElementById('cfgStart').value,
-      endDate: document.getElementById('cfgEnd').value
+      endDate: document.getElementById('cfgEnd').value,
+      groups: checkedGroups.join(',')
     })
   });
   const data = await res.json();
@@ -425,6 +432,8 @@ async function editConfig(id) {
   const configs = await cRes.json();
   const config = configs.configs.find(c => c.id === id);
   
+  const currentGroups = (config.groups || '').split(',').map(g => g.trim());
+  
   const form = document.getElementById('configForm');
   form.style.display = 'block';
   form.innerHTML = `
@@ -432,6 +441,11 @@ async function editConfig(id) {
     <div class="form-grid">
       <div class="form-group"><label>開始日期</label><input id="editCfgStart" value="${config.start_date}"></div>
       <div class="form-group"><label>結束日期</label><input id="editCfgEnd" value="${config.end_date}"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>考試組別 (不勾選=所有組別)</label>
+        <div style="display:flex; gap:12px; flex-wrap:wrap; padding:4px 0">
+          ${['A','B','C','D','E','F'].map(g=>`<label style="display:flex; align-items:center; gap:4px; cursor:pointer"><input type="checkbox" class="editCfgGroup" value="${g}" ${currentGroups.includes(g)?'checked':''}> <span>${g}</span></label>`).join('')}
+        </div>
+      </div>
     </div>
     <button class="btn btn-primary" onclick="saveConfig(${id})">保存</button>
     <button class="btn btn-outline" onclick="document.getElementById('configForm').style.display='none'">取消</button>
@@ -439,12 +453,14 @@ async function editConfig(id) {
 }
 
 async function saveConfig(id) {
+  const checkedGroups = Array.from(document.querySelectorAll('.editCfgGroup:checked')).map(cb => cb.value);
   await fetch(API + `/api/admin/exam-config/${id}`, {
     method:'PUT', headers:{'Content-Type':'application/json'}, credentials:'include',
     body: JSON.stringify({
       isActive: true,
       startDate: document.getElementById('editCfgStart').value,
-      endDate: document.getElementById('editCfgEnd').value
+      endDate: document.getElementById('editCfgEnd').value,
+      groups: checkedGroups.join(',')
     })
   });
   loadExamConfig();

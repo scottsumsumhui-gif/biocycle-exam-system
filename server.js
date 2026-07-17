@@ -295,6 +295,16 @@ app.get('/api/exam/current', authRequired('employee'), async (req, res) => {
 
   if (!config) return res.json({ available: false, reason: '當月沒有開放的考試' });
 
+  // Check if employee's group is allowed for this exam config
+  // Backward compatible: if config has no 'groups' field, all groups are allowed
+  if (config.groups) {
+    const allowedGroups = config.groups.split(',').map(g => g.trim());
+    const empGroup = emp.group_name || 'A';
+    if (!allowedGroups.includes(empGroup)) {
+      return res.json({ available: false, reason: `此考試批次為 ${config.groups} 組，您所在的是 ${empGroup} 組` });
+    }
+  }
+
   const results = await loadJSON('exam_results.json', []);
   const existingResult = results.find(r =>
     r.employee_id === emp.id && r.topic_id === config.topic_id && r.month === currentMonth && r.year === currentYear
@@ -345,7 +355,7 @@ app.get('/api/exam/questions/:topicId', authRequired('employee'), async (req, re
   }
 
   const group = emp.group_name || 'A';
-  const groupIndex = ['A', 'B', 'C', 'D'].indexOf(group);
+  const groupIndex = ['A', 'B', 'C', 'D', 'E', 'F'].indexOf(group);
 
   const shuffledMC = [...mcQuestions];
   while (shuffledMC.length < mcCount * 4) shuffledMC.push(...mcQuestions);
@@ -422,7 +432,7 @@ app.post('/api/exam/submit', authRequired('employee'), async (req, res) => {
   }
 
   const group = emp.group_name || 'A';
-  const groupIndex = ['A', 'B', 'C', 'D'].indexOf(group);
+  const groupIndex = ['A', 'B', 'C', 'D', 'E', 'F'].indexOf(group);
   const shuffledMC = [...mcQuestions];
   while (shuffledMC.length < mcCount * 4) shuffledMC.push(...mcQuestions);
   const seedNum = tid * 10000 + emp.id * 100 + currentMonth;
@@ -695,7 +705,7 @@ app.post('/api/admin/exam-config', authRequired('admin'), async (req, res) => {
   const topicId = parseInt(req.body.topicId);
   const month = parseInt(req.body.month);
   const year = parseInt(req.body.year);
-  const { startDate, endDate } = req.body;
+  const { startDate, endDate, groups } = req.body;
 
   let configs = await loadJSON('exam_config.json', []);
   configs = configs.map(c => (c.month === month && c.year === year ? { ...c, is_active: 0 } : c));
@@ -703,14 +713,15 @@ app.post('/api/admin/exam-config', authRequired('admin'), async (req, res) => {
   const nextId = configs.length > 0 ? Math.max(...configs.map(c => c.id)) + 1 : 1;
   configs.push({
     id: nextId, topic_id: topicId, month, year,
-    start_date: startDate, end_date: endDate, is_active: 1, created_at: nowStr()
+    start_date: startDate, end_date: endDate, is_active: 1,
+    groups: groups || null, created_at: nowStr()
   });
   await saveJSON('exam_config.json', configs);
   res.json({ success: true });
 });
 
 app.put('/api/admin/exam-config/:id', authRequired('admin'), async (req, res) => {
-  const { isActive, startDate, endDate } = req.body;
+  const { isActive, startDate, endDate, groups } = req.body;
   const cid = parseInt(req.params.id);
   const configs = await loadJSON('exam_config.json', []);
   const idx = configs.findIndex(c => c.id === cid);
@@ -718,6 +729,7 @@ app.put('/api/admin/exam-config/:id', authRequired('admin'), async (req, res) =>
     if (isActive !== undefined) configs[idx].is_active = isActive ? 1 : 0;
     if (startDate) configs[idx].start_date = startDate;
     if (endDate) configs[idx].end_date = endDate;
+    if (groups !== undefined) configs[idx].groups = groups || null;
     await saveJSON('exam_config.json', configs);
   }
   res.json({ success: true });
