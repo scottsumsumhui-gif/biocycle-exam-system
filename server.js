@@ -897,6 +897,26 @@ app.get('/api/admin/questions/:topicId', authRequired('admin'), async (req, res)
   }
 });
 
+// Re-seed question bank from local files into Redis (or overwrite file storage)
+app.post('/api/admin/questions/reseed', authRequired('admin'), async (req, res) => {
+  try {
+    const results = [];
+    for (const tid of [1, 2, 3, 4, 5, 7, 8]) {
+      for (const type of ['mc', 'essay']) {
+        const file = path.join(__dirname, 'questions', `topic_${tid}_${type}.json`);
+        if (!fs.existsSync(file)) continue;
+        const data = JSON.parse(fs.readFileSync(file, 'utf-8'));
+        await saveQuestions(type, tid, data);
+        results.push({ topicId: tid, type, count: data.length });
+      }
+    }
+    res.json({ success: true, message: 'Re-seeded from local files', results });
+  } catch (e) {
+    console.error('Reseed failed:', e);
+    res.status(500).json({ success: false, error: 'Re-seed failed: ' + e.message });
+  }
+});
+
 app.post('/api/admin/questions/mc/:topicId', authRequired('admin'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const { question, options, answer } = req.body;

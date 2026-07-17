@@ -681,6 +681,7 @@ async function loadQuestionBank() {
       html += `<option value="${t.id}">${t.name} (${t.name_en})</option>`;
     });
     html += `</select>`;
+    html += ` <button class="btn btn-sm btn-warning" onclick="reseedFromFiles()" style="margin-left:12px" title="將本地檔案的題庫強制寫入 Redis/雲端儲存 (解決更新後題目不顯示的問題)">🔄 從檔案重新載入 Re-seed from Files</button>`;
     html += `</div>`;
     html += `<div id="questionList" style="margin-top:20px"></div>`;
     html += `</div>`;
@@ -689,6 +690,28 @@ async function loadQuestionBank() {
   } catch(e) {
     console.error(e);
     body.innerHTML = '<div class="error-msg">載入失敗</div>';
+  }
+}
+
+async function reseedFromFiles() {
+  if (!confirm('確定要將所有題目從本地檔案強制重新載入嗎？\n這會覆蓋雲端（Redis）現有的題目資料！\n你之前人手編輯的修改將會被取代。')) return;
+  try {
+    const res = await fetch(API + '/api/admin/questions/reseed', {
+      method: 'POST',
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (data.success) {
+      const total = data.results.reduce((s, r) => s + r.count, 0);
+      alert('✅ 成功從檔案重新載入 ' + total + ' 條題目！\n\n詳情：\n' + data.results.map(r => `Topic ${r.topicId} ${r.type}: ${r.count} 條`).join('\n'));
+      // Reload current topic if selected
+      const sel = document.getElementById('qbTopic');
+      if (sel && sel.value) loadQuestions(sel.value);
+    } else {
+      alert('❌ 載入失敗：' + (data.error || '未知錯誤'));
+    }
+  } catch (e) {
+    alert('❌ 載入失敗：' + e.message);
   }
 }
 
