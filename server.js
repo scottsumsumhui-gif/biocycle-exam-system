@@ -350,13 +350,28 @@ app.get('/api/exam/questions/:topicId', authRequired('employee'), async (req, re
   const shuffledMC = [...mcQuestions];
   while (shuffledMC.length < mcCount * 4) shuffledMC.push(...mcQuestions);
 
+  // Deduplicate by question text first (first line as key) to prevent same question appearing twice
+  const seenMC = new Set();
+  const uniqueMC = [];
+  for (const q of shuffledMC) {
+    if (!q.question) continue;
+    const key = q.question.split('\n')[0].trim();
+    if (seenMC.has(key)) continue;
+    seenMC.add(key);
+    uniqueMC.push(q);
+  }
+
   const now = new Date();
   const seedNum = tid * 10000 + emp.id * 100 + (now.getMonth() + 1);
-  for (let i = shuffledMC.length - 1; i > 0; i--) {
+  for (let i = uniqueMC.length - 1; i > 0; i--) {
     const j = (seedNum + i * 7 + 13) % (i + 1);
-    [shuffledMC[i], shuffledMC[j]] = [shuffledMC[j], shuffledMC[i]];
+    [uniqueMC[i], uniqueMC[j]] = [uniqueMC[j], uniqueMC[i]];
   }
-  const selectedMC = shuffledMC.slice(0, mcCount);
+  // If after dedup we don't have enough questions, pad by re-shuffling without dedup (shouldn't happen)
+  let selectedMC = uniqueMC.slice(0, mcCount);
+  if (selectedMC.length < mcCount) {
+    console.warn(`[exam] Only ${selectedMC.length} unique MC questions for topic ${tid} (need ${mcCount})`);
+  }
 
   let selectedEssay = [];
   if (essayCount > 0) {
