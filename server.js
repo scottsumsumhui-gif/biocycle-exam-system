@@ -16,6 +16,7 @@ const SESSION_TTL_MS = 24 * 3600000;
 // ====== UPSTASH REDIS (any platform) + DUAL-MODE DATA LAYER ======
 const isVercel = !!process.env.VERCEL;
 let redis = null;
+let redisPing = 'unknown'; // unknown | ok | failed
 
 // Try to connect to Upstash Redis if env vars are set (works on Vercel, Railway, etc.)
 if (process.env.UPSTASH_REDIS_REST_URL) {
@@ -25,10 +26,21 @@ if (process.env.UPSTASH_REDIS_REST_URL) {
       url: process.env.UPSTASH_REDIS_REST_URL,
       token: process.env.UPSTASH_REDIS_REST_TOKEN,
     });
-    console.log('Upstash Redis connected');
+    console.log('[REDIS] Upstash configured. URL=' + process.env.UPSTASH_REDIS_REST_URL);
+    // Real connectivity test (the line above only creates the client, not a connection)
+    redis.ping().then(() => {
+      redisPing = 'ok';
+      console.log('[REDIS] PING OK - persisted session/score enabled');
+    }).catch(e => {
+      redisPing = 'failed';
+      console.error('[REDIS] PING FAILED:', e.message);
+    });
   } catch(e) {
-    console.log('Upstash Redis not available:', e.message);
+    redisPing = 'failed';
+    console.error('[REDIS] init failed:', e.message);
   }
+} else {
+  console.log('[REDIS] No UPSTASH_REDIS_REST_URL set - using local file mode');
 }
 
 const DATA_DIR = path.join(__dirname, 'data');
@@ -278,6 +290,15 @@ app.get('/api/auth/check', async (req, res) => {
   }
 
   res.json({ authenticated: true, userType: session.user_type, user: userInfo });
+});
+
+// Health check: shows whether Upstash Redis is actually connected (ping verified)
+app.get('/api/health', (req, res) => {
+  res.json({
+    redis: redisPing,
+    mode: redis ? 'upstash' : 'file',
+    url: redis ? process.env.UPSTASH_REDIS_REST_URL : null
+  });
 });
 
 // Heartbeat: keep the session alive while the exam/tab is open.
