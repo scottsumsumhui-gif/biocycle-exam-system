@@ -300,6 +300,44 @@ app.post('/api/auth/heartbeat', async (req, res) => {
 
 // ===== EMPLOYEE EXAM ROUTES =====
 
+// Deterministically select the MC and essay questions for an employee's exam.
+// CRITICAL: this is used by BOTH /api/exam/questions (what the user sees) and
+// /api/exam/submit (how answers are graded), so the question order MUST be
+// identical. Any difference here causes the user to be graded on a different
+// question than the one they answered.
+function selectExamQuestions(mcQuestions, essayQs, emp, tid, monthVal, mcCount, essayCount) {
+  // MC: deduplicate by first line of question text, then a deterministic
+  // Fisher-Yates shuffle, then take the first mcCount questions.
+  const seen = new Set();
+  const uniqueMC = [];
+  for (const q of mcQuestions) {
+    if (!q || !q.question) continue;
+    const key = q.question.split('\n')[0].trim();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    uniqueMC.push(q);
+  }
+
+  const seedNum = tid * 10000 + emp.id * 100 + monthVal;
+  for (let i = uniqueMC.length - 1; i > 0; i--) {
+    const j = (seedNum + i * 7 + 13) % (i + 1);
+    [uniqueMC[i], uniqueMC[j]] = [uniqueMC[j], uniqueMC[i]];
+  }
+  const selectedMC = uniqueMC.slice(0, mcCount);
+
+  let selectedEssay = [];
+  if (essayCount > 0 && essayQs && essayQs.length > 0) {
+    const shuffledEssay = [...essayQs];
+    for (let i = shuffledEssay.length - 1; i > 0; i--) {
+      const j = (seedNum + i * 3 + 7) % (i + 1);
+      [shuffledEssay[i], shuffledEssay[j]] = [shuffledEssay[j], shuffledEssay[i]];
+    }
+    selectedEssay = shuffledEssay.slice(0, essayCount);
+  }
+
+  return { selectedMC, selectedEssay };
+}
+
 app.get('/api/exam/current', authRequired('employee'), async (req, res) => {
   const employees = await loadJSON('employees.json', []);
   const emp = employees.find(e => e.id === req.session.user_id);
@@ -378,45 +416,13 @@ app.get('/api/exam/questions/:topicId', authRequired('employee'), async (req, re
   }
 
   const group = emp.group_name || 'A';
-  const groupIndex = ['A', 'B', 'C', 'D', 'E', 'F'].indexOf(group);
-
-  const shuffledMC = [...mcQuestions];
-  while (shuffledMC.length < mcCount * 4) shuffledMC.push(...mcQuestions);
-
-  // Deduplicate by question text first (first line as key) to prevent same question appearing twice
-  const seenMC = new Set();
-  const uniqueMC = [];
-  for (const q of shuffledMC) {
-    if (!q.question) continue;
-    const key = q.question.split('\n')[0].trim();
-    if (seenMC.has(key)) continue;
-    seenMC.add(key);
-    uniqueMC.push(q);
-  }
-
   const now = new Date();
-  const seedNum = tid * 10000 + emp.id * 100 + (now.getMonth() + 1);
-  for (let i = uniqueMC.length - 1; i > 0; i--) {
-    const j = (seedNum + i * 7 + 13) % (i + 1);
-    [uniqueMC[i], uniqueMC[j]] = [uniqueMC[j], uniqueMC[i]];
-  }
-  // If after dedup we don't have enough questions, pad by re-shuffling without dedup (shouldn't happen)
-  let selectedMC = uniqueMC.slice(0, mcCount);
+  const monthVal = now.getMonth() + 1;
+  const essayQs = essayCount > 0 ? await loadQuestions('essay', tid) : [];
+  const { selectedMC, selectedEssay } = selectExamQuestions(mcQuestions, essayQs, emp, tid, monthVal, mcCount, essayCount);
+
   if (selectedMC.length < mcCount) {
     console.warn(`[exam] Only ${selectedMC.length} unique MC questions for topic ${tid} (need ${mcCount})`);
-  }
-
-  let selectedEssay = [];
-  if (essayCount > 0) {
-    const essayQs = await loadQuestions('essay', tid);
-    if (essayQs && essayQs.length > 0) {
-      const shuffledEssay = [...essayQs];
-      for (let i = shuffledEssay.length - 1; i > 0; i--) {
-        const j = (seedNum + i * 3 + 7) % (i + 1);
-        [shuffledEssay[i], shuffledEssay[j]] = [shuffledEssay[j], shuffledEssay[i]];
-      }
-      selectedEssay = shuffledEssay.slice(0, essayCount);
-    }
   }
 
   res.json({
@@ -455,25 +461,11 @@ app.post('/api/exam/submit', authRequired('employee'), async (req, res) => {
   }
 
   const group = emp.group_name || 'A';
-  const groupIndex = ['A', 'B', 'C', 'D', 'E', 'F'].indexOf(group);
 
-  // Deduplicate MC questions by first line of question text to prevent same question appearing twice
-  const seenQuestionKeys = new Set();
-  const uniqueMC = mcQuestions.filter(q => {
-    const key = (q.question || '').split('\n')[0].trim();
-    if (seenQuestionKeys.has(key)) return false;
-    seenQuestionKeys.add(key);
-    return true;
-  });
-
-  const shuffledMC = [...uniqueMC];
-  while (shuffledMC.length < mcCount * 4) shuffledMC.push(...uniqueMC);
-  const seedNum = tid * 10000 + emp.id * 100 + currentMonth;
-  for (let i = shuffledMC.length - 1; i > 0; i--) {
-    const j = (seedNum + i * 7 + 13) % (i + 1);
-    [shuffledMC[i], shuffledMC[j]] = [shuffledMC[j], shuffledMC[i]];
-  }
-  const selectedMC = shuffledMC.slice(0, mcCount);
+  const essayQs = hasEssay ? await loadQuestions('essay', tid) : [];
+  // Use the SAME selection as /api/exam/questions so the question the user
+  // answered (mc_i / essay_i) is graded against the identical question.
+  const { selectedMC, selectedEssay } = selectExamQuestions(mcQuestions, essayQs, emp, tid, currentMonth, mcCount, hasEssay ? 3 : 0);
 
   let mcCorrect = 0;
   const questionDetails = [];
@@ -520,32 +512,24 @@ app.post('/api/exam/submit', authRequired('employee'), async (req, res) => {
   await saveJSON('exam_results.json', results);
 
   if (hasEssay && essayAnswers) {
-    const essayQs = await loadQuestions('essay', tid);
     const allEssays = await loadJSON('essay_answers.json', []);
 
-    if (essayQs && essayQs.length > 0) {
-      const shuffledEssay = [...essayQs];
-      for (let i = shuffledEssay.length - 1; i > 0; i--) {
-        const j = (seedNum + i * 3 + 7) % (i + 1);
-        [shuffledEssay[i], shuffledEssay[j]] = [shuffledEssay[j], shuffledEssay[i]];
-      }
-      const selectedEssay = shuffledEssay.slice(0, 3);
-
-      for (let i = 0; i < selectedEssay.length; i++) {
-        allEssays.push({
-          id: allEssays.length > 0 ? Math.max(...allEssays.map(e => e.id)) + 1 : 1,
-          result_id: resultId,
-          question_id: `essay_${i}`,
-          question_text: selectedEssay[i].question,
-          answer_text: essayAnswers[`essay_${i}`] || '',
-          score: 0,
-          max_score: selectedEssay[i].maxScore || 5,
-          graded_by: null,
-          graded_at: null
-        });
-      }
-      await saveJSON('essay_answers.json', allEssays);
+    // selectedEssay comes from the shared selectExamQuestions() helper, so it
+    // matches exactly what the employee saw during the exam.
+    for (let i = 0; i < selectedEssay.length; i++) {
+      allEssays.push({
+        id: allEssays.length > 0 ? Math.max(...allEssays.map(e => e.id)) + 1 : 1,
+        result_id: resultId,
+        question_id: `essay_${i}`,
+        question_text: selectedEssay[i].question,
+        answer_text: essayAnswers[`essay_${i}`] || '',
+        score: 0,
+        max_score: selectedEssay[i].maxScore || 5,
+        graded_by: null,
+        graded_at: null
+      });
     }
+    await saveJSON('essay_answers.json', allEssays);
   }
 
   res.json({
