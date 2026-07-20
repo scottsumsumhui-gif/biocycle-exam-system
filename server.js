@@ -310,10 +310,11 @@ app.post('/api/auth/heartbeat', async (req, res) => {
     const sessions = await loadJSON('sessions.json', []);
     const idx = sessions.findIndex(s => s.id === sessionId && s.expires_at > nowStr());
     if (idx < 0) return res.status(401).json({ error: 'Session expired or invalid' });
-    sessions[idx].expires_at = expiresAtStr();
+    const newExpiry = expiresAtStr();
+    sessions[idx].expires_at = newExpiry;
     await saveJSON('sessions.json', sessions);
     res.cookie('session_id', sessionId, { maxAge: SESSION_TTL_MS, httpOnly: true });
-    res.json({ success: true });
+    res.json({ success: true, expiresAt: newExpiry });
   } catch (e) {
     res.status(500).json({ success: false, error: 'Heartbeat failed' });
   }

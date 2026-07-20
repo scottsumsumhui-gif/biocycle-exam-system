@@ -207,6 +207,24 @@ async function startExam() {
     startTime = Date.now();
     timeRemaining = examQuestions.timeLimit * 60;
     
+    // Restore unsaved answers from a previous session-expired submission attempt
+    const backupKey = 'exam_backup_' + currentTopicId;
+    try {
+      const backupRaw = localStorage.getItem(backupKey);
+      if (backupRaw) {
+        const backup = JSON.parse(backupRaw);
+        if (backup && backup.answers) {
+          answers = backup.answers;
+          if (backup.timeUsed) {
+            startTime = Date.now() - backup.timeUsed * 1000;
+            timeRemaining = Math.max(0, examQuestions.timeLimit * 60 - backup.timeUsed);
+          }
+          localStorage.removeItem(backupKey);
+          setTimeout(() => alert('已恢復你上次未提交的答案，請按「提交考試」完成提交。'), 300);
+        }
+      }
+    } catch (e) {}
+    
     document.getElementById('empInfoHeader').textContent = `${empData.name} | ${levelNames[empData.level]} | Group ${empData.group}`;
     
     showScreen('examScreen');
@@ -219,20 +237,24 @@ async function startExam() {
 }
 
 // Keep the session alive while the exam page is open by pinging the server
-// every 5 minutes. This prevents the session from expiring during a long exam
+// every minute. This prevents the session from expiring during a long exam
 // and keeps the container awake if it would otherwise idle out.
 function startHeartbeat() {
   stopHeartbeat();
   heartbeatInterval = setInterval(async () => {
-    try {
-      const res = await fetch(API + '/api/auth/heartbeat', { method: 'POST', credentials: 'include' });
-      if (!res.ok) {
-        console.warn('[heartbeat] session no longer valid');
-      }
-    } catch (e) {
-      // network error — will retry on next tick
+    await pingHeartbeat();
+  }, 60 * 1000);
+}
+
+async function pingHeartbeat() {
+  try {
+    const res = await fetch(API + '/api/auth/heartbeat', { method: 'POST', credentials: 'include' });
+    if (!res.ok) {
+      console.warn('[heartbeat] session no longer valid');
     }
-  }, 5 * 60 * 1000);
+  } catch (e) {
+    // network error — will retry on next tick
+  }
 }
 
 function stopHeartbeat() {
@@ -330,7 +352,7 @@ function saveEssay(qId, value) {
 }
 
 function prevQuestion() {
-  if (currentQ > 0) { currentQ--; renderQuestion(); }
+  if (currentQ > 0) { currentQ--; renderQuestion(); pingHeartbeat(); }
 }
 
 function nextQuestion() {
@@ -345,6 +367,7 @@ function nextQuestion() {
   if (currentQ < allQ.length - 1) {
     currentQ++;
     renderQuestion();
+    pingHeartbeat();
   } else {
     submitExam();
   }
@@ -353,6 +376,23 @@ function nextQuestion() {
 async function submitExam() {
   clearInterval(timerInterval);
   stopHeartbeat();
+  
+  // Try to refresh the session immediately before submitting
+  try {
+    const hbRes = await fetch(API + '/api/auth/heartbeat', { method: 'POST', credentials: 'include' });
+    if (!hbRes.ok) {
+      // Session already expired; save answers and ask for re-login
+      const timeUsedSoFar = Math.round((Date.now() - startTime) / 1000);
+      try {
+        localStorage.setItem('exam_backup_' + currentTopicId, JSON.stringify({ answers, timeUsed: timeUsedSoFar, savedAt: new Date().toISOString() }));
+      } catch (e) {}
+      alert('登入狀態已過期，無法提交。請重新整理頁面並重新登入後再提交（你的答案已暫存，不會遺失）。');
+      return;
+    }
+  } catch (e) {
+    // network error during heartbeat — still try to submit
+  }
+  
   const timeUsed = Math.round((Date.now() - startTime) / 1000);
   
   // Separate mc and essay answers
