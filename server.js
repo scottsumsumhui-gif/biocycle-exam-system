@@ -433,8 +433,18 @@ app.post('/api/exam/submit', authRequired('employee'), async (req, res) => {
 
   const group = emp.group_name || 'A';
   const groupIndex = ['A', 'B', 'C', 'D', 'E', 'F'].indexOf(group);
-  const shuffledMC = [...mcQuestions];
-  while (shuffledMC.length < mcCount * 4) shuffledMC.push(...mcQuestions);
+
+  // Deduplicate MC questions by first line of question text to prevent same question appearing twice
+  const seenQuestionKeys = new Set();
+  const uniqueMC = mcQuestions.filter(q => {
+    const key = (q.question || '').split('\n')[0].trim();
+    if (seenQuestionKeys.has(key)) return false;
+    seenQuestionKeys.add(key);
+    return true;
+  });
+
+  const shuffledMC = [...uniqueMC];
+  while (shuffledMC.length < mcCount * 4) shuffledMC.push(...uniqueMC);
   const seedNum = tid * 10000 + emp.id * 100 + currentMonth;
   for (let i = shuffledMC.length - 1; i > 0; i--) {
     const j = (seedNum + i * 7 + 13) % (i + 1);
