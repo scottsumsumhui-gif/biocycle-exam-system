@@ -105,6 +105,7 @@ let currentQ = 0;
 let answers = {};
 let startTime = null;
 let timerInterval = null;
+let heartbeatInterval = null;
 let timeRemaining = 0;
 
 const levelNames = { junior: '初級技術員', senior: '高級技術員', supervisor: '技術員主管' };
@@ -211,8 +212,33 @@ async function startExam() {
     showScreen('examScreen');
     renderQuestion();
     startTimer();
+    startHeartbeat();
   } catch (e) {
     console.error(e);
+  }
+}
+
+// Keep the session alive while the exam page is open by pinging the server
+// every 5 minutes. This prevents the session from expiring during a long exam
+// and keeps the container awake if it would otherwise idle out.
+function startHeartbeat() {
+  stopHeartbeat();
+  heartbeatInterval = setInterval(async () => {
+    try {
+      const res = await fetch(API + '/api/auth/heartbeat', { method: 'POST', credentials: 'include' });
+      if (!res.ok) {
+        console.warn('[heartbeat] session no longer valid');
+      }
+    } catch (e) {
+      // network error — will retry on next tick
+    }
+  }, 5 * 60 * 1000);
+}
+
+function stopHeartbeat() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
   }
 }
 
@@ -326,6 +352,7 @@ function nextQuestion() {
 
 async function submitExam() {
   clearInterval(timerInterval);
+  stopHeartbeat();
   const timeUsed = Math.round((Date.now() - startTime) / 1000);
   
   // Separate mc and essay answers
@@ -353,6 +380,15 @@ async function submitExam() {
         timeUsed
       })
     });
+    
+    // Session expired/invalid: save answers locally so they can re-login and retry
+    if (res.status === 401) {
+      try {
+        localStorage.setItem('exam_backup_' + currentTopicId, JSON.stringify({ answers, timeUsed, savedAt: new Date().toISOString() }));
+      } catch (e) {}
+      alert('登入狀態已過期，無法提交。請重新整理頁面並重新登入後再提交（你的答案已暫存，不會遺失）。');
+      return;
+    }
     
     const data = await res.json();
     
@@ -502,6 +538,7 @@ async function showMyResults() {
 async function logout() {
   await fetch(API + '/api/auth/logout', { method: 'POST', credentials: 'include' });
   clearInterval(timerInterval);
+  stopHeartbeat();
   empData = null;
   showScreen('loginScreen');
 }

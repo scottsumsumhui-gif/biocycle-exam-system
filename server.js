@@ -8,6 +8,11 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Session lifetime: 24 hours for both the cookie and the server-side expiry.
+// Long enough to survive a full exam (max 45 min) plus prep time, and rolling
+// refresh via heartbeat keeps it alive while the exam page stays open.
+const SESSION_TTL_MS = 24 * 3600000;
+
 // ====== UPSTASH REDIS (any platform) + DUAL-MODE DATA LAYER ======
 const isVercel = !!process.env.VERCEL;
 let redis = null;
@@ -142,9 +147,9 @@ function nowStr() {
   return d.toISOString().replace('T', ' ').substring(0, 19);
 }
 
-// Helper: get expiry time (current local + 8 hours)
+// Helper: get expiry time (current local + 24 hours)
 function expiresAtStr() {
-  const d = new Date(Date.now() + 16 * 3600000);
+  const d = new Date(Date.now() + SESSION_TTL_MS);
   return d.toISOString().replace('T', ' ').substring(0, 19);
 }
 
@@ -184,7 +189,7 @@ app.post('/api/auth/employee-login', async (req, res) => {
   });
   await saveJSON('sessions.json', sessions);
 
-  res.cookie('session_id', sessionId, { maxAge: 8 * 3600000, httpOnly: true });
+  res.cookie('session_id', sessionId, { maxAge: SESSION_TTL_MS, httpOnly: true });
   res.json({
     success: true,
     employee: { id: emp.id, empNumber: emp.emp_number, name: emp.name, level: emp.level, group: emp.group_name }
@@ -210,7 +215,7 @@ app.post('/api/auth/admin-login', async (req, res) => {
   });
   await saveJSON('sessions.json', sessions);
 
-  res.cookie('session_id', sessionId, { maxAge: 8 * 3600000, httpOnly: true });
+  res.cookie('session_id', sessionId, { maxAge: SESSION_TTL_MS, httpOnly: true });
   res.json({ success: true, admin: { id: admin.id, username: admin.username, displayName: admin.display_name, isSuper: admin.is_super } });
 });
 
@@ -273,6 +278,24 @@ app.get('/api/auth/check', async (req, res) => {
   }
 
   res.json({ authenticated: true, userType: session.user_type, user: userInfo });
+});
+
+// Heartbeat: keep the session alive while the exam/tab is open.
+// Works for both employee and admin sessions, extends expiry and cookie.
+app.post('/api/auth/heartbeat', async (req, res) => {
+  const sessionId = req.cookies.session_id;
+  if (!sessionId) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const sessions = await loadJSON('sessions.json', []);
+    const idx = sessions.findIndex(s => s.id === sessionId && s.expires_at > nowStr());
+    if (idx < 0) return res.status(401).json({ error: 'Session expired or invalid' });
+    sessions[idx].expires_at = expiresAtStr();
+    await saveJSON('sessions.json', sessions);
+    res.cookie('session_id', sessionId, { maxAge: SESSION_TTL_MS, httpOnly: true });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: 'Heartbeat failed' });
+  }
 });
 
 // ===== EMPLOYEE EXAM ROUTES =====
