@@ -100,6 +100,7 @@
 const API = '';
 let empData = null;
 let examQuestions = null;
+let currentTopicId = null;
 let currentQ = 0;
 let answers = {};
 let startTime = null;
@@ -197,6 +198,8 @@ async function startExam() {
       alert(examQuestions.error);
       return;
     }
+    
+    currentTopicId = info.config.topicId;
     
     currentQ = 0;
     answers = {};
@@ -334,15 +337,17 @@ async function submitExam() {
   }
   
   try {
-    const infoRes = await fetch(API + '/api/exam/current', { credentials: 'include' });
-    const info = await infoRes.json();
-    
+    if (!currentTopicId) {
+      alert('考試資訊已失效，請重新整理頁面後再試');
+      return;
+    }
+
     const res = await fetch(API + '/api/exam/submit', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       credentials: 'include',
       body: JSON.stringify({
-        topicId: info.config.topicId,
+        topicId: currentTopicId,
         mcAnswers,
         essayAnswers,
         timeUsed
@@ -358,7 +363,7 @@ async function submitExam() {
     }
   } catch (e) {
     console.error(e);
-    alert('提交失敗，請重試');
+    alert('提交失敗，請重新整理頁面再試（網絡錯誤或連線中斷）');
   }
 }
 
