@@ -128,13 +128,6 @@
     </div>
     <p id="whEmpInfo" style="color:#666"></p>
 
-    <h3 style="margin-top:18px">即時庫存</h3>
-    <div style="margin-bottom:8px">
-      <label>分類篩選：</label>
-      <select id="whStockCatFilter" onchange="renderWhStock(this.value)"><option value="">全部</option></select>
-    </div>
-    <div id="whStockTable" style="overflow-x:auto"></div>
-
     <h3 style="margin-top:18px">記錄出入倉</h3>
     <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end">
       <div class="form-group" style="margin:0">
@@ -142,9 +135,9 @@
         <select id="whItemSelect" style="min-width:180px"></select>
       </div>
       <div class="form-group" style="margin:0">
-        <label><input type="radio" name="whType" value="in" checked onchange="onWhTypeChange()"> 入倉</label>
+        <label><input type="radio" name="whType" value="out" checked onchange="onWhTypeChange()"> 出倉</label>
         &nbsp;&nbsp;
-        <label><input type="radio" name="whType" value="out" onchange="onWhTypeChange()"> 出倉</label>
+        <label><input type="radio" name="whType" value="in" onchange="onWhTypeChange()"> 入倉</label>
       </div>
       <div class="form-group" style="margin:0">
         <label>數量</label>
@@ -175,6 +168,18 @@
 
     <h3 style="margin-top:18px">我的記錄</h3>
     <div id="whHistoryTable" style="overflow-x:auto"></div>
+
+    <h3 style="margin-top:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+      <span>即時庫存</span>
+      <button class="btn btn-sm btn-outline" id="whStockToggle" onclick="toggleWhStock()">收起</button>
+    </h3>
+    <div id="whStockPanel">
+      <div style="margin-bottom:8px">
+        <label>分類篩選：</label>
+        <select id="whStockCatFilter" onchange="renderWhStock(this.value)"><option value="">全部</option></select>
+      </div>
+      <div id="whStockTable" style="overflow-x:auto"></div>
+    </div>
   </div>
 </div>
 
@@ -287,13 +292,35 @@ async function showWarehouse() {
   showScreen('warehouseScreen');
   document.getElementById('whEmpInfo').textContent = `${empData.name} | ${levelNames[empData.level] || empData.level}`;
   await loadWarehouseItems();
-  await loadWarehouseStock();
   await loadWarehouseHistory();
+  await loadWarehouseStock();
+  onWhTypeChange();
+  applyWhStockCollapsed();
 }
 
 function toggleWhAddNew() {
   const box = document.getElementById('whAddNewBox');
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleWhStock() {
+  const panel = document.getElementById('whStockPanel');
+  const btn = document.getElementById('whStockToggle');
+  if (!panel || !btn) return;
+  const collapsed = panel.style.display === 'none';
+  panel.style.display = collapsed ? 'block' : 'none';
+  btn.textContent = collapsed ? '收起' : '展開';
+  try { localStorage.setItem('whStockCollapsed', collapsed ? '0' : '1'); } catch (e) {}
+}
+
+function applyWhStockCollapsed() {
+  const panel = document.getElementById('whStockPanel');
+  const btn = document.getElementById('whStockToggle');
+  if (!panel || !btn) return;
+  let collapsed = false;
+  try { collapsed = localStorage.getItem('whStockCollapsed') === '1'; } catch (e) {}
+  panel.style.display = collapsed ? 'none' : 'block';
+  btn.textContent = collapsed ? '展開' : '收起';
 }
 
 function onWhTypeChange() {
