@@ -209,6 +209,7 @@ async function login() {
     
     if (data.success) {
       empData = data.employee;
+      startHeartbeat();
       showHome();
     } else {
       errEl.textContent = data.error;
@@ -277,6 +278,12 @@ function showHome() {
 
 // ===== WAREHOUSE MODULE =====
 async function showWarehouse() {
+  const hb = await pingHeartbeat();
+  if (!hb.ok) {
+    alert('登入狀態已過期，請重新登入。');
+    await logout();
+    return;
+  }
   showScreen('warehouseScreen');
   document.getElementById('whEmpInfo').textContent = `${empData.name} | ${levelNames[empData.level] || empData.level}`;
   await loadWarehouseItems();
@@ -323,6 +330,12 @@ async function addWarehouseItem() {
   const unit = document.getElementById('whNewUnit').value.trim();
   const category = document.getElementById('whNewCat').value.trim();
   if (!name) { alert('請填寫物資名稱'); return; }
+  const hb = await pingHeartbeat();
+  if (!hb.ok) {
+    alert('登入狀態已過期，請重新登入。');
+    await logout();
+    return;
+  }
   const res = await fetch(API + '/api/warehouse/items', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
     body: JSON.stringify({ name, unit, category })
@@ -372,6 +385,12 @@ function renderWhStock(filterCat) {
 async function submitWarehouseTx() {
   const itemId = document.getElementById('whItemSelect').value;
   if (!itemId) { alert('請先選擇或新增物資'); return; }
+  const hb = await pingHeartbeat();
+  if (!hb.ok) {
+    alert('登入狀態已過期，請重新登入。');
+    await logout();
+    return;
+  }
   const type = document.querySelector('input[name="whType"]:checked').value;
   const qty = document.getElementById('whQty').value;
   const remark = document.getElementById('whRemark').value.trim();
@@ -483,11 +502,12 @@ function startHeartbeat() {
 async function pingHeartbeat() {
   try {
     const res = await fetch(API + '/api/auth/heartbeat', { method: 'POST', credentials: 'include' });
-    if (!res.ok) {
-      console.warn('[heartbeat] session no longer valid');
-    }
+    const ok = res.ok;
+    if (!ok) console.warn('[heartbeat] session no longer valid');
+    return { ok, status: res.status };
   } catch (e) {
     // network error — will retry on next tick
+    return { ok: true };
   }
 }
 
@@ -609,8 +629,7 @@ function nextQuestion() {
 
 async function submitExam() {
   clearInterval(timerInterval);
-  stopHeartbeat();
-  
+
   // Try to refresh the session immediately before submitting
   try {
     const hbRes = await fetch(API + '/api/auth/heartbeat', { method: 'POST', credentials: 'include' });
@@ -829,6 +848,7 @@ function showScreen(id) {
     const data = await res.json();
     if (data.authenticated && data.userType === 'employee') {
       empData = data.user;
+      startHeartbeat();
       showHome();
     }
   } catch (e) {}
