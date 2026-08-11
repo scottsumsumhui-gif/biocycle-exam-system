@@ -1272,9 +1272,26 @@ async function deleteQuestion(type, topicId, qIndex) {
   }
 }
 
+// Keep the admin session alive while the panel is open (long-lived 30-day TTL,
+// refreshed every 5 minutes so an admin editing the warehouse never gets kicked out).
+let adminHeartbeatTimer = null;
+function startAdminHeartbeat() {
+  if (adminHeartbeatTimer) return;
+  const ping = () => {
+    fetch(API + '/api/auth/heartbeat', { method: 'POST', credentials: 'include' }).catch(() => {});
+  };
+  ping();
+  adminHeartbeatTimer = setInterval(ping, 5 * 60 * 1000);
+}
+function stopAdminHeartbeat() {
+  if (adminHeartbeatTimer) { clearInterval(adminHeartbeatTimer); adminHeartbeatTimer = null; }
+}
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
   document.getElementById(id).style.display = '';
+  if (id === 'adminPanel') startAdminHeartbeat();
+  else if (id === 'adminLogin') stopAdminHeartbeat();
 }
 
 // Check existing session on load

@@ -12,6 +12,9 @@ const PORT = process.env.PORT || 3000;
 // Long enough to survive a full exam (max 45 min) plus prep time, and rolling
 // refresh via heartbeat keeps it alive while the exam page stays open.
 const SESSION_TTL_MS = 24 * 3600000;
+// Admin sessions last much longer (30 days) and are kept alive by a background
+// heartbeat in admin.html, so an admin editing the warehouse won't be kicked out.
+const ADMIN_SESSION_TTL_MS = 30 * 24 * 3600000;
 
 // ====== UPSTASH REDIS (any platform) + DUAL-MODE DATA LAYER ======
 const isVercel = !!process.env.VERCEL;
@@ -159,9 +162,9 @@ function nowStr() {
   return d.toISOString().replace('T', ' ').substring(0, 19);
 }
 
-// Helper: get expiry time (current local + 24 hours)
-function expiresAtStr() {
-  const d = new Date(Date.now() + SESSION_TTL_MS);
+// Helper: get expiry time (current local + ttl). Defaults to employee TTL.
+function expiresAtStr(ttl = SESSION_TTL_MS) {
+  const d = new Date(Date.now() + ttl);
   return d.toISOString().replace('T', ' ').substring(0, 19);
 }
 
@@ -223,11 +226,11 @@ app.post('/api/auth/admin-login', async (req, res) => {
   sessions.push({
     id: sessionId, user_type: 'admin', user_id: admin.id,
     username: admin.username, created_at: nowStr(),
-    expires_at: expiresAtStr()
+    expires_at: expiresAtStr(ADMIN_SESSION_TTL_MS)
   });
   await saveJSON('sessions.json', sessions);
 
-  res.cookie('session_id', sessionId, { maxAge: SESSION_TTL_MS, httpOnly: true });
+  res.cookie('session_id', sessionId, { maxAge: ADMIN_SESSION_TTL_MS, httpOnly: true });
   res.json({ success: true, admin: { id: admin.id, username: admin.username, displayName: admin.display_name, isSuper: admin.is_super } });
 });
 
@@ -310,10 +313,11 @@ app.post('/api/auth/heartbeat', async (req, res) => {
     const sessions = await loadJSON('sessions.json', []);
     const idx = sessions.findIndex(s => s.id === sessionId && s.expires_at > nowStr());
     if (idx < 0) return res.status(401).json({ error: 'Session expired or invalid' });
-    const newExpiry = expiresAtStr();
+    const ttl = sessions[idx].user_type === 'admin' ? ADMIN_SESSION_TTL_MS : SESSION_TTL_MS;
+    const newExpiry = expiresAtStr(ttl);
     sessions[idx].expires_at = newExpiry;
     await saveJSON('sessions.json', sessions);
-    res.cookie('session_id', sessionId, { maxAge: SESSION_TTL_MS, httpOnly: true });
+    res.cookie('session_id', sessionId, { maxAge: ttl, httpOnly: true });
     res.json({ success: true, expiresAt: newExpiry });
   } catch (e) {
     res.status(500).json({ success: false, error: 'Heartbeat failed' });
