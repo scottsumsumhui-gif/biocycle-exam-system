@@ -579,8 +579,11 @@ async function loadAdmins() {
   html += `</div>`;
   html += `<table class="data-table"><thead><tr><th>用戶名</th><th>顯示名</th><th>類型</th><th>創建時間</th><th>操作</th></tr></thead><tbody>`;
   for (const a of data.admins) {
+    const canManage = adminData && (adminData.is_super || adminData.id === a.id);
+    let ops = `<button class="btn btn-xs btn-outline" onclick="showChangeAdminPw(${a.id},'${a.username}')">修改密碼</button>`;
+    if (!a.is_super) ops += ` <button class="btn btn-xs btn-danger" onclick="deleteAdmin(${a.id},'${a.username}')">刪除</button>`;
     html += `<tr><td>${a.username}</td><td>${a.display_name}</td><td>${a.is_super?'超級管理員':'管理員'}</td><td>${a.created_at}</td>`;
-    html += `<td>${a.is_super ? '-' : `<button class="btn btn-xs btn-danger" onclick="deleteAdmin(${a.id},'${a.username}')">刪除</button>`}</td></tr>`;
+    html += `<td>${canManage ? ops : '-'}</td></tr>`;
   }
   html += `</tbody></table></div>`;
   
@@ -620,6 +623,39 @@ async function deleteAdmin(id, username) {
   if (!confirm(`確定刪除管理員 ${username}?`)) return;
   await fetch(API + `/api/admin/admins/${id}`, {method:'DELETE', credentials:'include'});
   loadAdmins();
+}
+
+function showChangeAdminPw(id, username) {
+  const form = document.getElementById('adminForm');
+  form.style.display = 'block';
+  form.innerHTML = `
+    <div class="section-card"><h3>修改密碼：${username}</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>新密碼</label><input type="password" id="chgAdminPw" placeholder="至少 4 位"></div>
+      <div class="form-group"><label>確認新密碼</label><input type="password" id="chgAdminPw2" placeholder="再次輸入"></div>
+    </div>
+    <button class="btn btn-primary" onclick="changeAdminPw(${id})">確認</button>
+    <button class="btn btn-outline" onclick="document.getElementById('adminForm').style.display='none'">取消</button>
+    </div>`;
+}
+
+async function changeAdminPw(id) {
+  const pw = document.getElementById('chgAdminPw').value;
+  const pw2 = document.getElementById('chgAdminPw2').value;
+  if (!pw || pw.length < 4) { alert('新密碼至少 4 位'); return; }
+  if (pw !== pw2) { alert('兩次輸入嘅密碼唔一致'); return; }
+  const res = await fetch(API + `/api/admin/admins/${id}/password`, {
+    method:'PUT', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({ newPassword: pw })
+  });
+  const data = await res.json();
+  if (data.success) {
+    alert('密碼已修改');
+    document.getElementById('adminForm').style.display = 'none';
+    loadAdmins();
+  } else {
+    alert(data.error || '修改失敗');
+  }
 }
 
 // ===== EXAM CONFIG =====

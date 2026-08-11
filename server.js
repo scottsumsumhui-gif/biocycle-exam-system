@@ -732,6 +732,26 @@ app.delete('/api/admin/admins/:id', authRequired('admin'), async (req, res) => {
   res.json({ success: true });
 });
 
+app.put('/api/admin/admins/:id/password', authRequired('admin'), async (req, res) => {
+  try {
+    const aid = parseInt(req.params.id);
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 4) return res.json({ success: false, error: '新密碼至少 4 位' });
+    const current = req.session.user_id;
+    const admins = await loadJSON('admins.json', []);
+    const me = admins.find(a => a.id === current);
+    if (!me) return res.status(401).json({ success: false, error: 'Session invalid' });
+    if (aid !== current && !me.is_super) return res.json({ success: false, error: '只有超級管理員可以更改他人密碼' });
+    const idx = admins.findIndex(a => a.id === aid);
+    if (idx < 0) return res.json({ success: false, error: '管理員不存在' });
+    admins[idx].password_hash = bcrypt.hashSync(newPassword, 10);
+    await saveJSON('admins.json', admins);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '修改失敗' });
+  }
+});
+
 app.get('/api/admin/exam-config', authRequired('admin'), async (req, res) => {
   const configs = await loadJSON('exam_config.json', []);
   const topics = await loadJSON('topics.json', []);
