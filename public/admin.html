@@ -166,6 +166,7 @@ function renderWarehouse(filterCat) {
     <select id="whCatFilter" onchange="renderWarehouse(this.value)">${opts}</select>
     <button class="btn btn-sm btn-primary" onclick="exportWarehouseCSV()">&#128229; 匯出交易記錄 CSV</button>
     <button class="btn btn-sm btn-outline" onclick="toggleWhVehicles()">🚚 車號管理 (${vehicles.length})</button>
+    <button class="btn btn-sm btn-outline" onclick="reindexWarehouseItems()" title="將物資 ID 重新排列為 1,2,3... 並同步更新交易記錄">🔢 重新整理 ID</button>
   </div>`;
 
   // --- Stock table ---
@@ -379,6 +380,18 @@ async function deleteWarehouseVehicle(id) {
 
 function exportWarehouseCSV() {
   window.open(API + '/api/admin/warehouse/export', '_blank');
+}
+
+async function reindexWarehouseItems() {
+  if (!confirm('確定將物資 ID 重新排列為 1,2,3...？\n相關交易記錄會同步更新，過程不可還原。')) return;
+  try {
+    const res = await fetch(API + '/api/admin/warehouse/reindex', { method: 'POST', credentials: 'include' });
+    const data = await res.json();
+    if (data.success) loadWarehouse();
+    else alert(data.error || '重整失敗');
+  } catch (e) {
+    alert('重整失敗：' + e.message);
+  }
 }
 
 // ===== DASHBOARD =====

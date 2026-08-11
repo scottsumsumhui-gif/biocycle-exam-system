@@ -1323,6 +1323,34 @@ app.delete('/api/admin/warehouse/items/:id', authRequired('admin'), async (req, 
   }
 });
 
+// Admin: reindex item IDs to be continuous (1,2,3...) and remap related transactions
+app.post('/api/admin/warehouse/reindex', authRequired('admin'), async (req, res) => {
+  try {
+    const items = await loadJSON(WH_ITEMS, []);
+    const sorted = items.slice().sort((a, b) => a.id - b.id);
+    const idMap = {};
+    const remapped = sorted.map((it, idx) => {
+      const newId = idx + 1;
+      idMap[it.id] = newId;
+      return { ...it, id: newId };
+    });
+    await saveJSON(WH_ITEMS, remapped);
+
+    const tx = await loadJSON(WH_TX, []);
+    let txChanged = false;
+    for (const t of tx) {
+      if (idMap[t.item_id] != null && idMap[t.item_id] !== t.item_id) {
+        t.item_id = idMap[t.item_id];
+        txChanged = true;
+      }
+    }
+    if (txChanged) await saveJSON(WH_TX, tx);
+    res.json({ success: true, remapped: remapped.length, tx_remapped: txChanged });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '重整編號失敗' });
+  }
+});
+
 // Admin: directly set stock -> auto in/out adjust transaction
 app.post('/api/admin/warehouse/adjust', authRequired('admin'), async (req, res) => {
   try {
