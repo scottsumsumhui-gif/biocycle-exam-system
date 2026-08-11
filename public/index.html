@@ -131,8 +131,12 @@
     <h3 style="margin-top:18px">記錄出入倉</h3>
     <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end">
       <div class="form-group" style="margin:0">
+        <label>選擇分類</label>
+        <select id="whCatSelect" style="min-width:140px" onchange="onWhCatChange()"><option value="">— 選擇分類 —</option></select>
+      </div>
+      <div class="form-group" style="margin:0">
         <label>選擇物資</label>
-        <select id="whItemSelect" style="min-width:180px"></select>
+        <select id="whItemSelect" style="min-width:220px" disabled><option value="">先選分類</option></select>
       </div>
       <div class="form-group" style="margin:0">
         <label><input type="radio" name="whType" value="out" checked onchange="onWhTypeChange()"> 出倉</label>
@@ -348,23 +352,43 @@ async function fillCarOptions() {
   sel.innerHTML = html;
 }
 
+let whItemsCache = [];
+
 async function loadWarehouseItems() {
   const res = await fetch(API + '/api/warehouse/items', { credentials: 'include' });
-  const items = await res.json();
-  const sel = document.getElementById('whItemSelect');
+  whItemsCache = await res.json();
+  const itemSel = document.getElementById('whItemSelect');
+  const catSel = document.getElementById('whCatSelect');
   const catList = document.getElementById('whCatList');
-  if (catList) {
-    const cats = [...new Set(items.map(i => i.category).filter(Boolean))];
-    catList.innerHTML = cats.map(c => `<option value="${c}">`).join('');
-  }
-  if (!items.length) {
-    sel.innerHTML = '<option value="">（暫無物資，請先新增）</option>';
+  const cats = [...new Set(whItemsCache.map(i => i.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  if (catList) catList.innerHTML = cats.map(c => `<option value="${c}">`).join('');
+  if (!whItemsCache.length) {
+    catSel.innerHTML = '<option value="">（暫無物資）</option>';
+    itemSel.innerHTML = '<option value="">（暫無物資）</option>';
+    itemSel.disabled = true;
     return;
   }
-  const sorted = items.slice().sort((a, b) =>
-    (a.category || '').localeCompare(b.category || '') || a.name.localeCompare(b.name)
-  );
-  sel.innerHTML = sorted.map(i => `<option value="${i.id}">[${i.category || '其他'}] ${i.name} (${i.unit})</option>`).join('');
+  catSel.innerHTML = '<option value="">— 選擇分類 —</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  itemSel.innerHTML = '<option value="">先選分類</option>';
+  itemSel.disabled = true;
+}
+
+function onWhCatChange() {
+  const cat = document.getElementById('whCatSelect').value;
+  const itemSel = document.getElementById('whItemSelect');
+  if (!cat) {
+    itemSel.innerHTML = '<option value="">先選分類</option>';
+    itemSel.disabled = true;
+    return;
+  }
+  const filtered = whItemsCache.filter(i => (i.category || '其他') === cat).sort((a, b) => a.name.localeCompare(b.name));
+  if (!filtered.length) {
+    itemSel.innerHTML = '<option value="">（此分類暫無物資）</option>';
+    itemSel.disabled = true;
+    return;
+  }
+  itemSel.innerHTML = filtered.map(i => `<option value="${i.id}">${i.name} (${i.unit})</option>`).join('');
+  itemSel.disabled = false;
 }
 
 async function addWarehouseItem() {
