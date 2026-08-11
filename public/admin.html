@@ -169,14 +169,20 @@ function renderWarehouse(filterCat) {
   </div>`;
 
   // --- Stock table ---
-  html += '<h3>即時庫存</h3>';
+  html += '<h3>即時庫存（點擊名稱/分類/單位可直接修改）</h3>';
   const stockFiltered = filterCat ? stock.filter(s => s.category === filterCat) : stock;
   if (!stockFiltered.length) html += '<p>暫無物資</p>';
   else {
-    html += '<table class="data-table"><thead><tr><th>ID</th><th>物資</th><th>分類</th><th>單位</th><th>現有存量</th><th>操作</th></tr></thead><tbody>';
+    html += `<table class="data-table"><thead><tr><th>ID</th><th>物資</th><th>分類</th><th>單位</th><th>現有存量</th><th>操作</th></tr></thead><tbody>`;
     for (const s of stockFiltered) {
       const low = s.balance <= 0 ? ' style="color:#e74c3c;font-weight:bold"' : '';
-      html += `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.category || '—'}</td><td>${s.unit}</td><td${low}>${s.balance}</td>
+      const catDisplay = s.category || '—';
+      const cellStyle = 'cursor:pointer;text-decoration:underline;color:#2980b9';
+      html += `<tr><td>${s.id}</td>
+        <td style="${cellStyle}" onclick="inlineWhEdit(this,'name',${s.id},'${escapeHtml(s.name)}')">${s.name}</td>
+        <td style="${cellStyle}" onclick="inlineWhEdit(this,'category',${s.id},'${escapeHtml(catDisplay)}')">${catDisplay}</td>
+        <td style="${cellStyle}" onclick="inlineWhEdit(this,'unit',${s.id},'${escapeHtml(s.unit)}')">${s.unit}</td>
+        <td${low}>${s.balance}</td>
         <td>
           <button class="btn btn-sm btn-outline" onclick="editWarehouseItem(${s.id})">修改</button>
           <button class="btn btn-sm btn-outline" onclick="adjustWarehouseStock(${s.id})">改庫存</button>
@@ -184,6 +190,7 @@ function renderWarehouse(filterCat) {
         </td></tr>`;
     }
     html += '</tbody></table>';
+    html += `<datalist id="whInlineCatList">${catOpts}</datalist>`;
   }
 
   // --- Transactions table ---
@@ -211,6 +218,41 @@ function renderWarehouse(filterCat) {
 
   document.getElementById('adminBody').innerHTML = html;
   renderWhVehiclesList();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML.replace(/'/g, '&#39;');
+}
+
+function inlineWhEdit(cell, field, id, currentValue) {
+  if (cell.querySelector('input')) return;
+  const raw = currentValue === '—' ? '' : currentValue;
+  const input = document.createElement(field === 'category' ? 'input' : 'input');
+  input.value = raw;
+  input.style.width = '100%';
+  input.style.boxSizing = 'border-box';
+  if (field === 'category') input.setAttribute('list', 'whInlineCatList');
+  cell.innerHTML = '';
+  cell.appendChild(input);
+  input.focus();
+
+  async function save() {
+    const newVal = input.value.trim();
+    cell.innerHTML = escapeHtml(newVal || '—');
+    if ((newVal || '') !== (raw || '')) {
+      const res = await fetch(API + `/api/admin/warehouse/items/${id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+        body: JSON.stringify({ [field]: newVal })
+      });
+      const data = await res.json();
+      if (data.success) loadWarehouse();
+      else { alert(data.error || '修改失敗'); loadWarehouse(); }
+    }
+  }
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { input.blur(); } });
 }
 
 function renderWhVehiclesList() {
