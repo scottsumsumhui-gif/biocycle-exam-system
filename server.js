@@ -1104,6 +1104,160 @@ app.get('/api/topics', async (req, res) => {
   res.json({ success: true, topics });
 });
 
+// ===== WAREHOUSE ROUTES (employee + admin) =====
+const WH_ITEMS = 'warehouse_items.json';
+const WH_TX = 'warehouse_transactions.json';
+
+// Compute current stock balance per item (in - out)
+async function computeStock() {
+  const items = await loadJSON(WH_ITEMS, []);
+  const tx = await loadJSON(WH_TX, []);
+  return items.map(it => {
+    let bal = 0;
+    for (const t of tx) {
+      if (t.item_id !== it.id) continue;
+      bal += (t.type === 'in' ? 1 : -1) * t.qty;
+    }
+    return { ...it, balance: bal };
+  });
+}
+
+// Employee: list catalog
+app.get('/api/warehouse/items', authRequired('employee'), async (req, res) => {
+  res.json(await loadJSON(WH_ITEMS, []));
+});
+
+// Employee: add new item (fixed catalog + can add new)
+app.post('/api/warehouse/items', authRequired('employee'), async (req, res) => {
+  try {
+    const { name, unit, category } = req.body || {};
+    if (!name || !name.trim()) return res.status(400).json({ error: '請填寫物資名稱' });
+    const cleanName = name.trim();
+    const items = await loadJSON(WH_ITEMS, []);
+    const dup = items.find(i => i.name === cleanName);
+    if (dup) return res.status(400).json({ error: '物資已存在', item: dup });
+    const employees = await loadJSON('employees.json', []);
+    const emp = employees.find(e => e.id === req.session.user_id);
+    const nextId = items.length ? Math.max(...items.map(i => i.id)) + 1 : 1;
+    const item = {
+      id: nextId,
+      name: cleanName,
+      unit: (unit || '').trim() || '個',
+      category: (category || '').trim() || '其他',
+      created_by: emp ? emp.name : 'unknown',
+      created_at: nowStr()
+    };
+    items.push(item);
+    await saveJSON(WH_ITEMS, items);
+    res.json({ success: true, item });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '新增物資失敗' });
+  }
+});
+
+// Employee: list own transactions
+app.get('/api/warehouse/transactions', authRequired('employee'), async (req, res) => {
+  const tx = await loadJSON(WH_TX, []);
+  const employees = await loadJSON('employees.json', []);
+  const emp = employees.find(e => e.id === req.session.user_id);
+  const mine = tx.filter(t => t.emp_id === emp.id).sort((a, b) => b.id - a.id);
+  res.json(mine);
+});
+
+// Employee: current stock
+app.get('/api/warehouse/stock', authRequired('employee'), async (req, res) => {
+  res.json(await computeStock());
+});
+
+// Employee: record in/out transaction
+app.post('/api/warehouse/transactions', authRequired('employee'), async (req, res) => {
+  try {
+    const { item_id, type, qty, remark } = req.body || {};
+    if (!['in', 'out'].includes(type)) return res.status(400).json({ error: 'type 必須為 in 或 out' });
+    const q = Number(qty);
+    if (!q || q <= 0) return res.status(400).json({ error: '數量必須大於 0' });
+    const items = await loadJSON(WH_ITEMS, []);
+    const item = items.find(i => i.id === Number(item_id));
+    if (!item) return res.status(400).json({ error: '物資不存在，請先新增或選擇正確物資' });
+    const employees = await loadJSON('employees.json', []);
+    const emp = employees.find(e => e.id === req.session.user_id);
+    if (!emp) return res.status(401).json({ error: '員工資料不存在' });
+    if (type === 'out') {
+      const stock = await computeStock();
+      const cur = stock.find(s => s.id === item.id);
+      if (cur && cur.balance < q) {
+        return res.status(400).json({ error: `庫存不足：現有 ${cur.balance} ${item.unit}，不足 ${q}` });
+      }
+    }
+    const tx = await loadJSON(WH_TX, []);
+    const nextId = tx.length ? Math.max(...tx.map(t => t.id)) + 1 : 1;
+    const record = {
+      id: nextId,
+      item_id: item.id,
+      item_name: item.name,
+      type,
+      qty: q,
+      emp_id: emp.id,
+      emp_name: emp.name,
+      remark: (remark || '').trim(),
+      created_at: nowStr()
+    };
+    tx.push(record);
+    await saveJSON(WH_TX, tx);
+    res.json({ success: true, record });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '記錄失敗' });
+  }
+});
+
+// ===== ADMIN WAREHOUSE ROUTES =====
+app.get('/api/admin/warehouse/items', authRequired('admin'), async (req, res) => {
+  res.json(await loadJSON(WH_ITEMS, []));
+});
+
+app.delete('/api/admin/warehouse/items/:id', authRequired('admin'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const items = await loadJSON(WH_ITEMS, []);
+    await saveJSON(WH_ITEMS, items.filter(i => i.id !== id));
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '刪除失敗' });
+  }
+});
+
+app.get('/api/admin/warehouse/transactions', authRequired('admin'), async (req, res) => {
+  res.json((await loadJSON(WH_TX, [])).sort((a, b) => b.id - a.id));
+});
+
+app.get('/api/admin/warehouse/stock', authRequired('admin'), async (req, res) => {
+  res.json(await computeStock());
+});
+
+app.get('/api/admin/warehouse/export', authRequired('admin'), async (req, res) => {
+  try {
+    const tx = await loadJSON(WH_TX, []);
+    const items = await loadJSON(WH_ITEMS, []);
+    const itemMap = {}; items.forEach(i => itemMap[i.id] = i);
+    const stock = await computeStock();
+    const balMap = {}; stock.forEach(s => balMap[s.id] = s.balance);
+    const header = '交易編號,物資名稱,類型,數量,單位,技術員,備註,現有存量,日期';
+    const rows = tx.slice().sort((a, b) => b.id - a.id).map(t => {
+      const it = itemMap[t.item_id] || {};
+      const type = t.type === 'in' ? '入倉' : '出倉';
+      const bal = balMap[t.item_id] != null ? balMap[t.item_id] + ' ' + (it.unit || '') : '';
+      return [t.id, t.item_name, type, t.qty, it.unit || '', t.emp_name, t.remark, bal, t.created_at]
+        .map(v => '"' + (v == null ? '' : v).toString().replace(/"/g, '""') + '"').join(',');
+    });
+    const csv = '﻿' + [header, ...rows].join('\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="warehouse_transactions.csv"');
+    res.send(csv);
+  } catch (e) {
+    res.status(500).json({ success: false, error: '匯出失敗' });
+  }
+});
+
 // Serve frontend pages
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/exam', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));

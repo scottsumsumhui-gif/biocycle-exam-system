@@ -47,6 +47,25 @@ body {
   box-shadow: var(--shadow);
 }
 
+.module-card {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: 200px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+.module-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+}
+.module-icon { font-size: 44px; margin-bottom: 10px; }
+.module-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.module-desc { font-size: 13px; color: var(--text-light); }
+
 .logo {
   font-size: 48px;
   margin-bottom: 8px;

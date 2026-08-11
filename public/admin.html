@@ -48,6 +48,7 @@
     <button class="nav-btn" onclick="showTab('results')" id="tabResults">&#128203; 成績查看</button>
     <button class="nav-btn" onclick="showTab('grading')" id="tabGrading">&#128221; 問答評分</button>
     <button class="nav-btn" onclick="showTab('questionBank')" id="tabQuestionBank">&#128218; 題庫管理</button>
+    <button class="nav-btn" onclick="showTab('warehouse')" id="tabWarehouse">&#128230; 倉存管理</button>
   </nav>
   
   <main class="admin-body" id="adminBody"></main>
@@ -104,7 +105,7 @@ async function adminLogout() {
 
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank' };
+  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse' };
   const tabEl = document.getElementById(tabIdMap[tab]);
   if (tabEl) tabEl.classList.add('active');
   
@@ -116,7 +117,67 @@ function showTab(tab) {
     case 'results': loadResults(); break;
     case 'grading': loadGrading(); break;
     case 'questionBank': loadQuestionBank(); break;
+    case 'warehouse': loadWarehouse(); break;
   }
+}
+
+// ===== WAREHOUSE ADMIN =====
+async function loadWarehouse() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = '<div class="loading">載入中...</div>';
+  try {
+    const [stockRes, txRes, itemsRes] = await Promise.all([
+      fetch(API + '/api/admin/warehouse/stock', { credentials: 'include' }),
+      fetch(API + '/api/admin/warehouse/transactions', { credentials: 'include' }),
+      fetch(API + '/api/admin/warehouse/items', { credentials: 'include' })
+    ]);
+    const stock = await stockRes.json();
+    const tx = await txRes.json();
+    const items = await itemsRes.json();
+
+    let html = '<h2>&#128230; 物資倉存管理</h2>';
+    html += '<div style="margin:12px 0"><button class="btn btn-sm btn-primary" onclick="exportWarehouseCSV()">&#128229; 匯出交易記錄 CSV</button></div>';
+
+    html += '<h3>即時庫存</h3>';
+    if (!stock.length) html += '<p>暫無物資</p>';
+    else {
+      html += '<table class="data-table"><thead><tr><th>ID</th><th>物資</th><th>分類</th><th>單位</th><th>現有存量</th><th>操作</th></tr></thead><tbody>';
+      for (const s of stock) {
+        const low = s.balance <= 0 ? ' style="color:#e74c3c;font-weight:bold"' : '';
+        html += `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.category}</td><td>${s.unit}</td><td${low}>${s.balance}</td><td><button class="btn btn-sm btn-outline" onclick="deleteWarehouseItem(${s.id})">刪除</button></td></tr>`;
+      }
+      html += '</tbody></table>';
+    }
+
+    html += '<h3 style="margin-top:20px">所有交易記錄</h3>';
+    if (!tx.length) html += '<p>暫無交易</p>';
+    else {
+      html += '<table class="data-table"><thead><tr><th>日期</th><th>類型</th><th>物資</th><th>數量</th><th>技術員</th><th>備註</th></tr></thead><tbody>';
+      for (const t of tx) {
+        const typeLabel = t.type === 'in' ? '<span style="color:#27ae60">入倉</span>' : '<span style="color:#e67e22">出倉</span>';
+        html += `<tr><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.qty}</td><td>${t.emp_name}</td><td>${t.remark || ''}</td></tr>`;
+      }
+      html += '</tbody></table>';
+    }
+
+    body.innerHTML = html;
+  } catch (e) {
+    body.innerHTML = '<p>載入失敗</p>';
+  }
+}
+
+async function deleteWarehouseItem(id) {
+  if (!confirm('確定刪除該物資？相關交易記錄會保留但不再關聯此項目。')) return;
+  const res = await fetch(API + `/api/admin/warehouse/items/${id}`, { method: 'DELETE', credentials: 'include' });
+  const handled = await handleApiError(res, '刪除失敗');
+  if (!handled) return;
+  const data = await handled.json();
+  if (data.success) loadWarehouse();
+  else alert(data.error || '刪除失敗');
+}
+
+function exportWarehouseCSV() {
+  window.open(API + '/api/admin/warehouse/export', '_blank');
 }
 
 // ===== DASHBOARD =====
