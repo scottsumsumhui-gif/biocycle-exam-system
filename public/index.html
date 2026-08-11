@@ -129,6 +129,10 @@
     <p id="whEmpInfo" style="color:#666"></p>
 
     <h3 style="margin-top:18px">即時庫存</h3>
+    <div style="margin-bottom:8px">
+      <label>分類篩選：</label>
+      <select id="whStockCatFilter" onchange="renderWhStock(this.value)"><option value="">全部</option></select>
+    </div>
     <div id="whStockTable" style="overflow-x:auto"></div>
 
     <h3 style="margin-top:18px">記錄出入倉</h3>
@@ -138,13 +142,17 @@
         <select id="whItemSelect" style="min-width:180px"></select>
       </div>
       <div class="form-group" style="margin:0">
-        <label><input type="radio" name="whType" value="in" checked> 入倉</label>
+        <label><input type="radio" name="whType" value="in" checked onchange="onWhTypeChange()"> 入倉</label>
         &nbsp;&nbsp;
-        <label><input type="radio" name="whType" value="out"> 出倉</label>
+        <label><input type="radio" name="whType" value="out" onchange="onWhTypeChange()"> 出倉</label>
       </div>
       <div class="form-group" style="margin:0">
         <label>數量</label>
         <input type="number" id="whQty" min="1" value="1" style="width:90px">
+      </div>
+      <div class="form-group" id="whCarBox" style="margin:0; display:none">
+        <label>車號（出倉用）</label>
+        <select id="whCarNo" style="width:120px"></select>
       </div>
       <div class="form-group" style="margin:0">
         <label>備註（如工程/地點）</label>
@@ -159,7 +167,8 @@
       <strong>新增物資：</strong>
       <input type="text" id="whNewName" placeholder="物資名稱">
       <input type="text" id="whNewUnit" placeholder="單位（如 支/盒/公斤）" style="width:130px">
-      <input type="text" id="whNewCat" placeholder="分類（選填）" style="width:120px">
+      <input type="text" id="whNewCat" list="whCatList" placeholder="分類（選填，可即場新增）" style="width:160px">
+      <datalist id="whCatList"></datalist>
       <button class="btn btn-sm btn-outline" onclick="addWarehouseItem()">新增</button>
     </div>
     <div id="whMsg" style="margin-top:10px"></div>
@@ -280,10 +289,28 @@ function toggleWhAddNew() {
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
 }
 
+function onWhTypeChange() {
+  const type = document.querySelector('input[name="whType"]:checked').value;
+  document.getElementById('whCarBox').style.display = type === 'out' ? 'flex' : 'none';
+  if (type === 'out') fillCarOptions();
+}
+function fillCarOptions() {
+  const sel = document.getElementById('whCarNo');
+  if (sel.options.length) return;
+  let html = '<option value="">— 不填 —</option>';
+  for (let i = 1; i <= 12; i++) html += `<option value="CAR ${i}">CAR ${i}</option>`;
+  sel.innerHTML = html;
+}
+
 async function loadWarehouseItems() {
   const res = await fetch(API + '/api/warehouse/items', { credentials: 'include' });
   const items = await res.json();
   const sel = document.getElementById('whItemSelect');
+  const catList = document.getElementById('whCatList');
+  if (catList) {
+    const cats = [...new Set(items.map(i => i.category).filter(Boolean))];
+    catList.innerHTML = cats.map(c => `<option value="${c}">`).join('');
+  }
   if (!items.length) {
     sel.innerHTML = '<option value="">（暫無物資，請先新增）</option>';
     return;
@@ -313,10 +340,22 @@ async function addWarehouseItem() {
   }
 }
 
+let whStockData = [];
 async function loadWarehouseStock() {
   const res = await fetch(API + '/api/warehouse/stock', { credentials: 'include' });
-  const stock = await res.json();
+  whStockData = await res.json();
+  renderWhStockFilter();
+  renderWhStock('');
+}
+function renderWhStockFilter() {
+  const sel = document.getElementById('whStockCatFilter');
+  if (!sel) return;
+  const cats = [...new Set(whStockData.map(s => s.category).filter(Boolean))];
+  sel.innerHTML = '<option value="">全部</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+function renderWhStock(filterCat) {
   const tbl = document.getElementById('whStockTable');
+  const stock = filterCat ? whStockData.filter(s => s.category === filterCat) : whStockData;
   if (!stock.length) {
     tbl.innerHTML = '<p style="color:#888">暫無物資記錄</p>';
     return;
@@ -336,11 +375,12 @@ async function submitWarehouseTx() {
   const type = document.querySelector('input[name="whType"]:checked').value;
   const qty = document.getElementById('whQty').value;
   const remark = document.getElementById('whRemark').value.trim();
+  const carNo = type === 'out' ? document.getElementById('whCarNo').value : '';
   const msg = document.getElementById('whMsg');
   try {
     const res = await fetch(API + '/api/warehouse/transactions', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-      body: JSON.stringify({ item_id: Number(itemId), type, qty: Number(qty), remark })
+      body: JSON.stringify({ item_id: Number(itemId), type, qty: Number(qty), remark, car_no: carNo })
     });
     const data = await res.json();
     if (data.success) {
@@ -367,10 +407,10 @@ async function loadWarehouseHistory() {
     tbl.innerHTML = '<p style="color:#888">你暫無記錄</p>';
     return;
   }
-  let html = '<table class="data-table"><thead><tr><th>日期</th><th>類型</th><th>物資</th><th>數量</th><th>備註</th></tr></thead><tbody>';
+  let html = '<table class="data-table"><thead><tr><th>日期</th><th>類型</th><th>物資</th><th>分類</th><th>數量</th><th>同事</th><th>車號</th><th>備註</th></tr></thead><tbody>';
   for (const t of tx) {
     const typeLabel = t.type === 'in' ? '<span style="color:#27ae60">入倉</span>' : '<span style="color:#e67e22">出倉</span>';
-    html += `<tr><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.qty}</td><td>${t.remark || ''}</td></tr>`;
+    html += `<tr><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.category || '—'}</td><td>${t.qty}</td><td>${t.emp_name}</td><td>${t.car_no || '—'}</td><td>${t.remark || ''}</td></tr>`;
   }
   html += '</tbody></table>';
   tbl.innerHTML = html;

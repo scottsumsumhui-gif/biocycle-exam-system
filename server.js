@@ -1172,7 +1172,7 @@ app.get('/api/warehouse/stock', authRequired('employee'), async (req, res) => {
 // Employee: record in/out transaction
 app.post('/api/warehouse/transactions', authRequired('employee'), async (req, res) => {
   try {
-    const { item_id, type, qty, remark } = req.body || {};
+    const { item_id, type, qty, remark, car_no } = req.body || {};
     if (!['in', 'out'].includes(type)) return res.status(400).json({ error: 'type 必須為 in 或 out' });
     const q = Number(qty);
     if (!q || q <= 0) return res.status(400).json({ error: '數量必須大於 0' });
@@ -1195,10 +1195,12 @@ app.post('/api/warehouse/transactions', authRequired('employee'), async (req, re
       id: nextId,
       item_id: item.id,
       item_name: item.name,
+      category: item.category,
       type,
       qty: q,
       emp_id: emp.id,
       emp_name: emp.name,
+      car_no: type === 'out' ? (car_no || '').trim() : '',
       remark: (remark || '').trim(),
       created_at: nowStr()
     };
@@ -1241,12 +1243,12 @@ app.get('/api/admin/warehouse/export', authRequired('admin'), async (req, res) =
     const itemMap = {}; items.forEach(i => itemMap[i.id] = i);
     const stock = await computeStock();
     const balMap = {}; stock.forEach(s => balMap[s.id] = s.balance);
-    const header = '交易編號,物資名稱,類型,數量,單位,技術員,備註,現有存量,日期';
+    const header = '交易編號,物資名稱,分類,類型,數量,單位,技術員,車號,備註,現有存量,日期';
     const rows = tx.slice().sort((a, b) => b.id - a.id).map(t => {
       const it = itemMap[t.item_id] || {};
       const type = t.type === 'in' ? '入倉' : '出倉';
       const bal = balMap[t.item_id] != null ? balMap[t.item_id] + ' ' + (it.unit || '') : '';
-      return [t.id, t.item_name, type, t.qty, it.unit || '', t.emp_name, t.remark, bal, t.created_at]
+      return [t.id, t.item_name, t.category || '', type, t.qty, it.unit || '', t.emp_name, t.car_no || '', t.remark, bal, t.created_at]
         .map(v => '"' + (v == null ? '' : v).toString().replace(/"/g, '""') + '"').join(',');
     });
     const csv = '﻿' + [header, ...rows].join('\n');

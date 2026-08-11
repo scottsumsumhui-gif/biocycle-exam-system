@@ -122,6 +122,8 @@ function showTab(tab) {
 }
 
 // ===== WAREHOUSE ADMIN =====
+let whCache = { stock: [], tx: [], items: [], categories: [] };
+
 async function loadWarehouse() {
   const body = document.getElementById('adminBody');
   body.innerHTML = '<div class="loading">載入中...</div>';
@@ -134,36 +136,49 @@ async function loadWarehouse() {
     const stock = await stockRes.json();
     const tx = await txRes.json();
     const items = await itemsRes.json();
-
-    let html = '<h2>&#128230; 物資倉存管理</h2>';
-    html += '<div style="margin:12px 0"><button class="btn btn-sm btn-primary" onclick="exportWarehouseCSV()">&#128229; 匯出交易記錄 CSV</button></div>';
-
-    html += '<h3>即時庫存</h3>';
-    if (!stock.length) html += '<p>暫無物資</p>';
-    else {
-      html += '<table class="data-table"><thead><tr><th>ID</th><th>物資</th><th>分類</th><th>單位</th><th>現有存量</th><th>操作</th></tr></thead><tbody>';
-      for (const s of stock) {
-        const low = s.balance <= 0 ? ' style="color:#e74c3c;font-weight:bold"' : '';
-        html += `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.category}</td><td>${s.unit}</td><td${low}>${s.balance}</td><td><button class="btn btn-sm btn-outline" onclick="deleteWarehouseItem(${s.id})">刪除</button></td></tr>`;
-      }
-      html += '</tbody></table>';
-    }
-
-    html += '<h3 style="margin-top:20px">所有交易記錄</h3>';
-    if (!tx.length) html += '<p>暫無交易</p>';
-    else {
-      html += '<table class="data-table"><thead><tr><th>日期</th><th>類型</th><th>物資</th><th>數量</th><th>技術員</th><th>備註</th></tr></thead><tbody>';
-      for (const t of tx) {
-        const typeLabel = t.type === 'in' ? '<span style="color:#27ae60">入倉</span>' : '<span style="color:#e67e22">出倉</span>';
-        html += `<tr><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.qty}</td><td>${t.emp_name}</td><td>${t.remark || ''}</td></tr>`;
-      }
-      html += '</tbody></table>';
-    }
-
-    body.innerHTML = html;
+    whCache = { stock, tx, items, categories: [...new Set(items.map(i => i.category).filter(Boolean))] };
+    renderWarehouse('');
   } catch (e) {
     body.innerHTML = '<p>載入失敗</p>';
   }
+}
+
+function renderWarehouse(filterCat) {
+  const { stock, tx } = whCache;
+  let html = '<h2>&#128230; 物資倉存管理</h2>';
+  let opts = '<option value="">全部分類</option>';
+  for (const c of whCache.categories) opts += `<option value="${c}" ${filterCat === c ? 'selected' : ''}>${c}</option>`;
+  html += `<div style="margin:12px 0; display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+    <label>分類篩選：</label>
+    <select id="whCatFilter" onchange="renderWarehouse(this.value)">${opts}</select>
+    <button class="btn btn-sm btn-primary" onclick="exportWarehouseCSV()">&#128229; 匯出交易記錄 CSV</button>
+  </div>`;
+
+  html += '<h3>即時庫存</h3>';
+  const stockFiltered = filterCat ? stock.filter(s => s.category === filterCat) : stock;
+  if (!stockFiltered.length) html += '<p>暫無物資</p>';
+  else {
+    html += '<table class="data-table"><thead><tr><th>ID</th><th>物資</th><th>分類</th><th>單位</th><th>現有存量</th><th>操作</th></tr></thead><tbody>';
+    for (const s of stockFiltered) {
+      const low = s.balance <= 0 ? ' style="color:#e74c3c;font-weight:bold"' : '';
+      html += `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.category}</td><td>${s.unit}</td><td${low}>${s.balance}</td><td><button class="btn btn-sm btn-outline" onclick="deleteWarehouseItem(${s.id})">刪除</button></td></tr>`;
+    }
+    html += '</tbody></table>';
+  }
+
+  html += '<h3 style="margin-top:20px">所有交易記錄</h3>';
+  const txFiltered = filterCat ? tx.filter(t => t.category === filterCat) : tx;
+  if (!txFiltered.length) html += '<p>暫無交易</p>';
+  else {
+    html += '<table class="data-table"><thead><tr><th>日期</th><th>類型</th><th>物資</th><th>分類</th><th>數量</th><th>技術員</th><th>車號</th><th>備註</th></tr></thead><tbody>';
+    for (const t of txFiltered) {
+      const typeLabel = t.type === 'in' ? '<span style="color:#27ae60">入倉</span>' : '<span style="color:#e67e22">出倉</span>';
+      html += `<tr><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.category || '—'}</td><td>${t.qty}</td><td>${t.emp_name}</td><td>${t.car_no || '—'}</td><td>${t.remark || ''}</td></tr>`;
+    }
+    html += '</tbody></table>';
+  }
+
+  document.getElementById('adminBody').innerHTML = html;
 }
 
 async function deleteWarehouseItem(id) {
