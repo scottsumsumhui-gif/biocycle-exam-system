@@ -1107,6 +1107,18 @@ app.get('/api/topics', async (req, res) => {
 // ===== WAREHOUSE ROUTES (employee + admin) =====
 const WH_ITEMS = 'warehouse_items.json';
 const WH_TX = 'warehouse_transactions.json';
+const WH_VEHICLES = 'warehouse_vehicles.json';
+
+// Seed default vehicle list (CAR 1-12) on first run if file missing/empty
+async function ensureDefaultVehicles() {
+  let vehicles = await loadJSON(WH_VEHICLES, null);
+  if (!Array.isArray(vehicles) || !vehicles.length) {
+    vehicles = [];
+    for (let i = 1; i <= 12; i++) vehicles.push({ id: i, code: `CAR ${i}` });
+    await saveJSON(WH_VEHICLES, vehicles);
+  }
+  return vehicles;
+}
 
 // Compute current stock balance per item (in - out)
 async function computeStock() {
@@ -1217,11 +1229,148 @@ app.get('/api/admin/warehouse/items', authRequired('admin'), async (req, res) =>
   res.json(await loadJSON(WH_ITEMS, []));
 });
 
+// Admin: add item with optional initial stock (auto in-transaction)
+app.post('/api/admin/warehouse/items', authRequired('admin'), async (req, res) => {
+  try {
+    const { name, unit, category, initial_qty } = req.body || {};
+    if (!name || !name.trim()) return res.status(400).json({ error: '請填寫物資名稱' });
+    const cleanName = name.trim();
+    const items = await loadJSON(WH_ITEMS, []);
+    const dup = items.find(i => i.name === cleanName);
+    if (dup) return res.status(400).json({ error: '物資已存在', item: dup });
+    const admins = await loadJSON('admins.json', []);
+    const admin = admins.find(a => a.id === req.session.user_id);
+    const nextId = items.length ? Math.max(...items.map(i => i.id)) + 1 : 1;
+    const item = {
+      id: nextId,
+      name: cleanName,
+      unit: (unit || '').trim() || '個',
+      category: (category || '').trim() || '其他',
+      created_by: admin ? admin.username : 'admin',
+      created_at: nowStr()
+    };
+    items.push(item);
+    await saveJSON(WH_ITEMS, items);
+
+    // optional initial stock
+    const init = Number(initial_qty);
+    if (init && init > 0) {
+      const tx = await loadJSON(WH_TX, []);
+      const nextTxId = tx.length ? Math.max(...tx.map(t => t.id)) + 1 : 1;
+      const record = {
+        id: nextTxId,
+        item_id: item.id,
+        item_name: item.name,
+        category: item.category,
+        type: 'in',
+        qty: init,
+        emp_id: req.session.user_id,
+        emp_name: admin ? admin.username : 'admin',
+        car_no: '',
+        remark: '初始庫存',
+        created_at: nowStr()
+      };
+      tx.push(record);
+      await saveJSON(WH_TX, tx);
+    }
+    res.json({ success: true, item });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '新增物資失敗' });
+  }
+});
+
+// Admin: edit item (name/unit/category), sync existing transactions
+app.put('/api/admin/warehouse/items/:id', authRequired('admin'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { name, unit, category } = req.body || {};
+    const items = await loadJSON(WH_ITEMS, []);
+    const item = items.find(i => i.id === id);
+    if (!item) return res.status(404).json({ error: '物資不存在' });
+    if (name && name.trim()) item.name = name.trim();
+    if (unit !== undefined) item.unit = (unit || '').trim() || '個';
+    if (category !== undefined) item.category = (category || '').trim() || '其他';
+    await saveJSON(WH_ITEMS, items);
+
+    // sync item_name & category in transactions
+    const tx = await loadJSON(WH_TX, []);
+    let changed = false;
+    for (const t of tx) {
+      if (t.item_id === id) {
+        t.item_name = item.name;
+        t.category = item.category;
+        changed = true;
+      }
+    }
+    if (changed) await saveJSON(WH_TX, tx);
+    res.json({ success: true, item });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '修改失敗' });
+  }
+});
+
 app.delete('/api/admin/warehouse/items/:id', authRequired('admin'), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const items = await loadJSON(WH_ITEMS, []);
     await saveJSON(WH_ITEMS, items.filter(i => i.id !== id));
+    // also drop related transactions
+    const tx = await loadJSON(WH_TX, []);
+    await saveJSON(WH_TX, tx.filter(t => t.item_id !== id));
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '刪除失敗' });
+  }
+});
+
+// Admin: directly set stock -> auto in/out adjust transaction
+app.post('/api/admin/warehouse/adjust', authRequired('admin'), async (req, res) => {
+  try {
+    const { item_id, new_balance } = req.body || {};
+    const item = (await loadJSON(WH_ITEMS, [])).find(i => i.id === Number(item_id));
+    if (!item) return res.status(404).json({ error: '物資不存在' });
+    const nb = Number(new_balance);
+    if (!Number.isFinite(nb) || nb < 0) return res.status(400).json({ error: '目標庫存必須為非負數' });
+    const stock = await computeStock();
+    const cur = stock.find(s => s.id === item.id);
+    const current = cur ? cur.balance : 0;
+    const diff = nb - current;
+    if (diff === 0) return res.json({ success: true, adjusted: false, record: null });
+
+    const admins = await loadJSON('admins.json', []);
+    const admin = admins.find(a => a.id === req.session.user_id);
+    const tx = await loadJSON(WH_TX, []);
+    const nextTxId = tx.length ? Math.max(...tx.map(t => t.id)) + 1 : 1;
+    const type = diff > 0 ? 'in' : 'out';
+    const record = {
+      id: nextTxId,
+      item_id: item.id,
+      item_name: item.name,
+      category: item.category,
+      type,
+      qty: Math.abs(diff),
+      emp_id: req.session.user_id,
+      emp_name: admin ? admin.username : 'admin',
+      car_no: '',
+      remark: `庫存調整：由 ${current} → ${nb}`,
+      created_at: nowStr()
+    };
+    tx.push(record);
+    await saveJSON(WH_TX, tx);
+    res.json({ success: true, adjusted: true, record });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '調整失敗' });
+  }
+});
+
+// Admin: delete a single transaction (stock recomputes automatically)
+app.delete('/api/admin/warehouse/transactions/:id', authRequired('admin'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const tx = await loadJSON(WH_TX, []);
+    const filtered = tx.filter(t => t.id !== id);
+    if (filtered.length === tx.length) return res.status(404).json({ error: '交易不存在' });
+    await saveJSON(WH_TX, filtered);
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, error: '刪除失敗' });
@@ -1257,6 +1406,65 @@ app.get('/api/admin/warehouse/export', authRequired('admin'), async (req, res) =
     res.send(csv);
   } catch (e) {
     res.status(500).json({ success: false, error: '匯出失敗' });
+  }
+});
+
+// ===== VEHICLE (車號) ROUTES =====
+// Employee: read vehicle list for out-transaction picker
+app.get('/api/warehouse/vehicles', authRequired('employee'), async (req, res) => {
+  res.json(await ensureDefaultVehicles());
+});
+
+// Admin: list vehicles
+app.get('/api/admin/warehouse/vehicles', authRequired('admin'), async (req, res) => {
+  res.json(await ensureDefaultVehicles());
+});
+
+// Admin: add vehicle
+app.post('/api/admin/warehouse/vehicles', authRequired('admin'), async (req, res) => {
+  try {
+    const { code } = req.body || {};
+    if (!code || !code.trim()) return res.status(400).json({ error: '請填寫車號' });
+    const clean = code.trim();
+    const vehicles = await ensureDefaultVehicles();
+    if (vehicles.find(v => v.code === clean)) return res.status(400).json({ error: '車號已存在' });
+    const nextId = vehicles.length ? Math.max(...vehicles.map(v => v.id)) + 1 : 1;
+    vehicles.push({ id: nextId, code: clean });
+    await saveJSON(WH_VEHICLES, vehicles);
+    res.json({ success: true, vehicle: { id: nextId, code: clean } });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '新增車號失敗' });
+  }
+});
+
+// Admin: rename vehicle
+app.put('/api/admin/warehouse/vehicles/:id', authRequired('admin'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { code } = req.body || {};
+    if (!code || !code.trim()) return res.status(400).json({ error: '請填寫車號' });
+    const clean = code.trim();
+    const vehicles = await ensureDefaultVehicles();
+    const v = vehicles.find(x => x.id === id);
+    if (!v) return res.status(404).json({ error: '車號不存在' });
+    if (vehicles.find(x => x.code === clean && x.id !== id)) return res.status(400).json({ error: '車號已存在' });
+    v.code = clean;
+    await saveJSON(WH_VEHICLES, vehicles);
+    res.json({ success: true, vehicle: v });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '修改失敗' });
+  }
+});
+
+// Admin: delete vehicle
+app.delete('/api/admin/warehouse/vehicles/:id', authRequired('admin'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const vehicles = await ensureDefaultVehicles();
+    await saveJSON(WH_VEHICLES, vehicles.filter(v => v.id !== id));
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '刪除失敗' });
   }
 });
 

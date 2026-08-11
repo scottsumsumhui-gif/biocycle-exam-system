@@ -122,21 +122,23 @@ function showTab(tab) {
 }
 
 // ===== WAREHOUSE ADMIN =====
-let whCache = { stock: [], tx: [], items: [], categories: [] };
+let whCache = { stock: [], tx: [], items: [], categories: [], vehicles: [] };
 
 async function loadWarehouse() {
   const body = document.getElementById('adminBody');
   body.innerHTML = '<div class="loading">載入中...</div>';
   try {
-    const [stockRes, txRes, itemsRes] = await Promise.all([
+    const [stockRes, txRes, itemsRes, vehRes] = await Promise.all([
       fetch(API + '/api/admin/warehouse/stock', { credentials: 'include' }),
       fetch(API + '/api/admin/warehouse/transactions', { credentials: 'include' }),
-      fetch(API + '/api/admin/warehouse/items', { credentials: 'include' })
+      fetch(API + '/api/admin/warehouse/items', { credentials: 'include' }),
+      fetch(API + '/api/admin/warehouse/vehicles', { credentials: 'include' })
     ]);
     const stock = await stockRes.json();
     const tx = await txRes.json();
     const items = await itemsRes.json();
-    whCache = { stock, tx, items, categories: [...new Set(items.map(i => i.category).filter(Boolean))] };
+    const vehicles = await vehRes.json();
+    whCache = { stock, tx, items, categories: [...new Set(items.map(i => i.category).filter(Boolean))], vehicles };
     renderWarehouse('');
   } catch (e) {
     body.innerHTML = '<p>載入失敗</p>';
@@ -144,16 +146,29 @@ async function loadWarehouse() {
 }
 
 function renderWarehouse(filterCat) {
-  const { stock, tx } = whCache;
+  const { stock, tx, vehicles } = whCache;
   let html = '<h2>&#128230; 物資倉存管理</h2>';
+
+  // --- Add item form ---
+  let catOpts = whCache.categories.map(c => `<option value="${c}">`).join('');
+  html += `<div style="margin:12px 0; padding:12px; border:1px solid #ddd; border-radius:8px; display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap">
+    <div class="form-group" style="margin:0"><label>新增物資</label><input id="whAddName" placeholder="物資名稱"></div>
+    <div class="form-group" style="margin:0"><label>單位</label><input id="whAddUnit" placeholder="支/盒" style="width:80px"></div>
+    <div class="form-group" style="margin:0"><label>分類</label><input id="whAddCat" list="whAddCatList" placeholder="選或填" style="width:110px"><datalist id="whAddCatList">${catOpts}</datalist></div>
+    <div class="form-group" style="margin:0"><label>初始庫存</label><input id="whAddInit" type="number" min="0" value="0" style="width:80px"></div>
+    <button class="btn btn-sm btn-primary" onclick="adminAddWarehouseItem()">新增</button>
+  </div>`;
+
   let opts = '<option value="">全部分類</option>';
   for (const c of whCache.categories) opts += `<option value="${c}" ${filterCat === c ? 'selected' : ''}>${c}</option>`;
   html += `<div style="margin:12px 0; display:flex; gap:10px; align-items:center; flex-wrap:wrap">
     <label>分類篩選：</label>
     <select id="whCatFilter" onchange="renderWarehouse(this.value)">${opts}</select>
     <button class="btn btn-sm btn-primary" onclick="exportWarehouseCSV()">&#128229; 匯出交易記錄 CSV</button>
+    <button class="btn btn-sm btn-outline" onclick="toggleWhVehicles()">🚚 車號管理 (${vehicles.length})</button>
   </div>`;
 
+  // --- Stock table ---
   html += '<h3>即時庫存</h3>';
   const stockFiltered = filterCat ? stock.filter(s => s.category === filterCat) : stock;
   if (!stockFiltered.length) html += '<p>暫無物資</p>';
@@ -161,32 +176,161 @@ function renderWarehouse(filterCat) {
     html += '<table class="data-table"><thead><tr><th>ID</th><th>物資</th><th>分類</th><th>單位</th><th>現有存量</th><th>操作</th></tr></thead><tbody>';
     for (const s of stockFiltered) {
       const low = s.balance <= 0 ? ' style="color:#e74c3c;font-weight:bold"' : '';
-      html += `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.category}</td><td>${s.unit}</td><td${low}>${s.balance}</td><td><button class="btn btn-sm btn-outline" onclick="deleteWarehouseItem(${s.id})">刪除</button></td></tr>`;
+      html += `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.category || '—'}</td><td>${s.unit}</td><td${low}>${s.balance}</td>
+        <td>
+          <button class="btn btn-sm btn-outline" onclick="editWarehouseItem(${s.id})">修改</button>
+          <button class="btn btn-sm btn-outline" onclick="adjustWarehouseStock(${s.id})">改庫存</button>
+          <button class="btn btn-sm btn-outline" onclick="deleteWarehouseItem(${s.id})">刪除</button>
+        </td></tr>`;
     }
     html += '</tbody></table>';
   }
 
+  // --- Transactions table ---
   html += '<h3 style="margin-top:20px">所有交易記錄</h3>';
   const txFiltered = filterCat ? tx.filter(t => t.category === filterCat) : tx;
   if (!txFiltered.length) html += '<p>暫無交易</p>';
   else {
-    html += '<table class="data-table"><thead><tr><th>日期</th><th>類型</th><th>物資</th><th>分類</th><th>數量</th><th>技術員</th><th>車號</th><th>備註</th></tr></thead><tbody>';
+    html += '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>類型</th><th>物資</th><th>分類</th><th>數量</th><th>技術員</th><th>車號</th><th>備註</th><th>操作</th></tr></thead><tbody>';
     for (const t of txFiltered) {
       const typeLabel = t.type === 'in' ? '<span style="color:#27ae60">入倉</span>' : '<span style="color:#e67e22">出倉</span>';
-      html += `<tr><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.category || '—'}</td><td>${t.qty}</td><td>${t.emp_name}</td><td>${t.car_no || '—'}</td><td>${t.remark || ''}</td></tr>`;
+      html += `<tr><td>${t.id}</td><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.category || '—'}</td><td>${t.qty}</td><td>${t.emp_name}</td><td>${t.car_no || '—'}</td><td>${t.remark || ''}</td><td><button class="btn btn-sm btn-outline" onclick="deleteWarehouseTx(${t.id})">刪除</button></td></tr>`;
     }
     html += '</tbody></table>';
   }
 
+  // --- Vehicle management (hidden by default) ---
+  html += `<div id="whVehiclesBox" style="display:none; margin-top:20px; padding:12px; border:1px dashed #aaa; border-radius:8px">
+    <h3 style="margin-top:0">🚚 車號名單管理</h3>
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px">
+      <input id="whNewVehicle" placeholder="新增車號，如 CAR 13 / Van 1">
+      <button class="btn btn-sm btn-primary" onclick="addWarehouseVehicle()">新增車號</button>
+    </div>
+    <div id="whVehiclesList"></div>
+  </div>`;
+
   document.getElementById('adminBody').innerHTML = html;
+  renderWhVehiclesList();
+}
+
+function renderWhVehiclesList() {
+  const box = document.getElementById('whVehiclesList');
+  if (!box) return;
+  const vehicles = whCache.vehicles || [];
+  if (!vehicles.length) { box.innerHTML = '<p>暫無車號</p>'; return; }
+  let html = '<table class="data-table"><thead><tr><th>ID</th><th>車號</th><th>操作</th></tr></thead><tbody>';
+  for (const v of vehicles) {
+    html += `<tr><td>${v.id}</td><td>${v.code}</td>
+      <td><button class="btn btn-sm btn-outline" onclick="renameWarehouseVehicle(${v.id})">改名</button>
+      <button class="btn btn-sm btn-outline" onclick="deleteWarehouseVehicle(${v.id})">刪除</button></td></tr>`;
+  }
+  html += '</tbody></table>';
+  box.innerHTML = html;
+}
+
+function toggleWhVehicles() {
+  const box = document.getElementById('whVehiclesBox');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+async function adminAddWarehouseItem() {
+  const name = document.getElementById('whAddName').value.trim();
+  const unit = document.getElementById('whAddUnit').value.trim();
+  const category = document.getElementById('whAddCat').value.trim();
+  const initial_qty = Number(document.getElementById('whAddInit').value) || 0;
+  if (!name) { alert('請填寫物資名稱'); return; }
+  const res = await fetch(API + '/api/admin/warehouse/items', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+    body: JSON.stringify({ name, unit, category, initial_qty })
+  });
+  const data = await res.json();
+  if (data.success) { loadWarehouse(); }
+  else alert(data.error || '新增失敗');
+}
+
+async function editWarehouseItem(id) {
+  const item = whCache.items.find(i => i.id === id) || whCache.stock.find(s => s.id === id);
+  const curName = item ? item.name : '';
+  const curUnit = item ? item.unit : '';
+  const curCat = item ? (item.category || '') : '';
+  const name = prompt('修改物資名稱：', curName);
+  if (name === null) return;
+  const unit = prompt('修改單位：', curUnit);
+  if (unit === null) return;
+  const category = prompt('修改分類：', curCat);
+  if (category === null) return;
+  const res = await fetch(API + `/api/admin/warehouse/items/${id}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+    body: JSON.stringify({ name: name.trim(), unit: unit.trim(), category: category.trim() })
+  });
+  const data = await res.json();
+  if (data.success) loadWarehouse();
+  else alert(data.error || '修改失敗');
+}
+
+async function adjustWarehouseStock(id) {
+  const cur = whCache.stock.find(s => s.id === id);
+  const current = cur ? cur.balance : 0;
+  const nb = prompt(`修改「${cur ? cur.name : id}」現有庫存（當前：${current}）：`, current);
+  if (nb === null) return;
+  const newBalance = Number(nb);
+  if (!Number.isFinite(newBalance) || newBalance < 0) { alert('請輸入非負數字'); return; }
+  const res = await fetch(API + '/api/admin/warehouse/adjust', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+    body: JSON.stringify({ item_id: id, new_balance: newBalance })
+  });
+  const data = await res.json();
+  if (data.success) { alert('已更新，系統已自動記錄一筆調整交易。'); loadWarehouse(); }
+  else alert(data.error || '調整失敗');
 }
 
 async function deleteWarehouseItem(id) {
-  if (!confirm('確定刪除該物資？相關交易記錄會保留但不再關聯此項目。')) return;
+  if (!confirm('確定刪除該物資？相關交易記錄會一併刪除。')) return;
   const res = await fetch(API + `/api/admin/warehouse/items/${id}`, { method: 'DELETE', credentials: 'include' });
   const handled = await handleApiError(res, '刪除失敗');
   if (!handled) return;
   const data = await handled.json();
+  if (data.success) loadWarehouse();
+  else alert(data.error || '刪除失敗');
+}
+
+async function deleteWarehouseTx(id) {
+  if (!confirm('確定刪除該筆交易？庫存會自動重新計算。')) return;
+  const res = await fetch(API + `/api/admin/warehouse/transactions/${id}`, { method: 'DELETE', credentials: 'include' });
+  const data = await res.json();
+  if (data.success) loadWarehouse();
+  else alert(data.error || '刪除失敗');
+}
+
+async function addWarehouseVehicle() {
+  const code = document.getElementById('whNewVehicle').value.trim();
+  if (!code) { alert('請填寫車號'); return; }
+  const res = await fetch(API + '/api/admin/warehouse/vehicles', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+    body: JSON.stringify({ code })
+  });
+  const data = await res.json();
+  if (data.success) { document.getElementById('whNewVehicle').value = ''; loadWarehouse(); }
+  else alert(data.error || '新增失敗');
+}
+
+async function renameWarehouseVehicle(id) {
+  const v = whCache.vehicles.find(x => x.id === id);
+  const code = prompt('修改車號：', v ? v.code : '');
+  if (code === null) return;
+  const res = await fetch(API + `/api/admin/warehouse/vehicles/${id}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+    body: JSON.stringify({ code: code.trim() })
+  });
+  const data = await res.json();
+  if (data.success) loadWarehouse();
+  else alert(data.error || '修改失敗');
+}
+
+async function deleteWarehouseVehicle(id) {
+  if (!confirm('確定刪除該車號？')) return;
+  const res = await fetch(API + `/api/admin/warehouse/vehicles/${id}`, { method: 'DELETE', credentials: 'include' });
+  const data = await res.json();
   if (data.success) loadWarehouse();
   else alert(data.error || '刪除失敗');
 }

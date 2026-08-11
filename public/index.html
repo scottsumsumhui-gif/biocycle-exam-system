@@ -301,11 +301,23 @@ function onWhTypeChange() {
   document.getElementById('whCarBox').style.display = type === 'out' ? 'flex' : 'none';
   if (type === 'out') fillCarOptions();
 }
-function fillCarOptions() {
+async function fillCarOptions() {
   const sel = document.getElementById('whCarNo');
-  if (sel.options.length) return;
+  if (sel.dataset.loaded) return;
   let html = '<option value="">— 不填 —</option>';
+  try {
+    const res = await fetch(API + '/api/warehouse/vehicles', { credentials: 'include' });
+    const vehicles = await res.json();
+    if (Array.isArray(vehicles) && vehicles.length) {
+      for (const v of vehicles) html += `<option value="${v.code}">${v.code}</option>`;
+      sel.dataset.loaded = '1';
+      sel.innerHTML = html;
+      return;
+    }
+  } catch (e) {}
+  // fallback default CAR 1-12
   for (let i = 1; i <= 12; i++) html += `<option value="CAR ${i}">CAR ${i}</option>`;
+  sel.dataset.loaded = '1';
   sel.innerHTML = html;
 }
 
