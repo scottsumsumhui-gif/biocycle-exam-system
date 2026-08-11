@@ -361,7 +361,10 @@ async function loadWarehouseItems() {
     sel.innerHTML = '<option value="">（暫無物資，請先新增）</option>';
     return;
   }
-  sel.innerHTML = items.map(i => `<option value="${i.id}">${i.name} (${i.unit})</option>`).join('');
+  const sorted = items.slice().sort((a, b) =>
+    (a.category || '').localeCompare(b.category || '') || a.name.localeCompare(b.name)
+  );
+  sel.innerHTML = sorted.map(i => `<option value="${i.id}">[${i.category || '其他'}] ${i.name} (${i.unit})</option>`).join('');
 }
 
 async function addWarehouseItem() {
