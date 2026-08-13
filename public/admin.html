@@ -169,8 +169,30 @@ function renderWarehouse(filterCat) {
     <button class="btn btn-sm btn-outline" onclick="reindexWarehouseItems()" title="將物資 ID 重新排列為 1,2,3... 並同步更新交易記錄">🔢 重新整理 ID</button>
   </div>`;
 
-  // --- Stock table ---
-  html += '<h3>即時庫存（點擊名稱/分類/單位可直接修改）</h3>';
+  // --- Transactions table (first) ---
+  html += `<h3 style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+    <span>所有交易記錄</span>
+    <button class="btn btn-sm btn-outline" id="whTxToggle" onclick="toggleWhSection('tx')">收起</button>
+  </h3>`;
+  html += '<div id="whTxPanel">';
+  const txFiltered = filterCat ? tx.filter(t => t.category === filterCat) : tx;
+  if (!txFiltered.length) html += '<p>暫無交易</p>';
+  else {
+    html += '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>類型</th><th>物資</th><th>分類</th><th>數量</th><th>技術員</th><th>車號</th><th>備註</th><th>操作</th></tr></thead><tbody>';
+    for (const t of txFiltered) {
+      const typeLabel = t.type === 'in' ? '<span style="color:#27ae60">入倉</span>' : '<span style="color:#e67e22">出倉</span>';
+      html += `<tr><td>${t.id}</td><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.category || '—'}</td><td>${t.qty}</td><td>${t.emp_name}</td><td>${t.car_no || '—'}</td><td>${t.remark || ''}</td><td><button class="btn btn-sm btn-outline" onclick="deleteWarehouseTx(${t.id})">刪除</button></td></tr>`;
+    }
+    html += '</tbody></table>';
+  }
+  html += '</div>';
+
+  // --- Stock table (below) ---
+  html += `<h3 style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+    <span>即時庫存（點擊名稱/分類/單位可直接修改）</span>
+    <button class="btn btn-sm btn-outline" id="whStockToggle" onclick="toggleWhSection('stock')">收起</button>
+  </h3>`;
+  html += '<div id="whStockPanel">';
   const stockFiltered = filterCat ? stock.filter(s => s.category === filterCat) : stock;
   if (!stockFiltered.length) html += '<p>暫無物資</p>';
   else {
@@ -193,19 +215,7 @@ function renderWarehouse(filterCat) {
     html += '</tbody></table>';
     html += `<datalist id="whInlineCatList">${catOpts}</datalist>`;
   }
-
-  // --- Transactions table ---
-  html += '<h3 style="margin-top:20px">所有交易記錄</h3>';
-  const txFiltered = filterCat ? tx.filter(t => t.category === filterCat) : tx;
-  if (!txFiltered.length) html += '<p>暫無交易</p>';
-  else {
-    html += '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>類型</th><th>物資</th><th>分類</th><th>數量</th><th>技術員</th><th>車號</th><th>備註</th><th>操作</th></tr></thead><tbody>';
-    for (const t of txFiltered) {
-      const typeLabel = t.type === 'in' ? '<span style="color:#27ae60">入倉</span>' : '<span style="color:#e67e22">出倉</span>';
-      html += `<tr><td>${t.id}</td><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.category || '—'}</td><td>${t.qty}</td><td>${t.emp_name}</td><td>${t.car_no || '—'}</td><td>${t.remark || ''}</td><td><button class="btn btn-sm btn-outline" onclick="deleteWarehouseTx(${t.id})">刪除</button></td></tr>`;
-    }
-    html += '</tbody></table>';
-  }
+  html += '</div>';
 
   // --- Vehicle management (hidden by default) ---
   html += `<div id="whVehiclesBox" style="display:none; margin-top:20px; padding:12px; border:1px dashed #aaa; border-radius:8px">
@@ -274,6 +284,19 @@ function renderWhVehiclesList() {
 function toggleWhVehicles() {
   const box = document.getElementById('whVehiclesBox');
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleWhSection(type) {
+  const panel = document.getElementById(type === 'tx' ? 'whTxPanel' : 'whStockPanel');
+  const btn = document.getElementById(type === 'tx' ? 'whTxToggle' : 'whStockToggle');
+  if (!panel || !btn) return;
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    btn.textContent = '收起';
+  } else {
+    panel.style.display = 'none';
+    btn.textContent = '展開';
+  }
 }
 
 async function adminAddWarehouseItem() {
