@@ -492,13 +492,30 @@ async function loadWarehouseHistory() {
     tbl.innerHTML = '<p style="color:#888">你暫無記錄</p>';
     return;
   }
-  let html = '<table class="data-table"><thead><tr><th>日期</th><th>類型</th><th>物資</th><th>分類</th><th>數量</th><th>同事</th><th>車號</th><th>備註</th></tr></thead><tbody>';
+  let html = '<table class="data-table"><thead><tr><th>日期</th><th>類型</th><th>物資</th><th>分類</th><th>數量</th><th>同事</th><th>車號</th><th>備註</th><th>操作</th></tr></thead><tbody>';
   for (const t of tx) {
     const typeLabel = t.type === 'in' ? '<span style="color:#27ae60">入倉</span>' : '<span style="color:#e67e22">出倉</span>';
-    html += `<tr><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.category || '—'}</td><td>${t.qty}</td><td>${t.emp_name}</td><td>${t.car_no || '—'}</td><td>${t.remark || ''}</td></tr>`;
+    html += `<tr><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.category || '—'}</td><td>${t.qty}</td><td>${t.emp_name}</td><td>${t.car_no || '—'}</td><td>${t.remark || ''}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyWarehouseTx(${t.id})">刪除</button></td></tr>`;
   }
   html += '</tbody></table>';
   tbl.innerHTML = html;
+}
+
+async function deleteMyWarehouseTx(id) {
+  if (!confirm('確定刪除呢筆記錄？刪除後庫存會自動更新。')) return;
+  try {
+    const res = await fetch(API + `/api/warehouse/transactions/${id}`, { method: 'DELETE', credentials: 'include' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      alert(data.error || '刪除失敗');
+      return;
+    }
+    await loadWarehouseHistory();
+    await loadWarehouseStock();
+    document.getElementById('whMsg').innerHTML = '<span style="color:#27ae60">✅ 記錄已刪除</span>';
+  } catch (e) {
+    alert('刪除失敗，請稍後再試');
+  }
 }
 
 async function startExam() {

@@ -1248,6 +1248,27 @@ app.post('/api/warehouse/transactions', authRequired('employee'), async (req, re
   }
 });
 
+// Employee: delete own transaction (e.g. typo on out record)
+app.delete('/api/warehouse/transactions/:id', authRequired('employee'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const employees = await loadJSON('employees.json', []);
+    const emp = employees.find(e => e.id === req.session.user_id);
+    if (!emp) return res.status(401).json({ error: '員工資料不存在' });
+
+    const tx = await loadJSON(WH_TX, []);
+    const idx = tx.findIndex(t => t.id === id);
+    if (idx < 0) return res.status(404).json({ success: false, error: '交易不存在' });
+    if (tx[idx].emp_id !== emp.id) return res.status(403).json({ success: false, error: '只可以刪除自己的記錄' });
+
+    tx.splice(idx, 1);
+    await saveJSON(WH_TX, tx);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '刪除失敗' });
+  }
+});
+
 // ===== ADMIN WAREHOUSE ROUTES =====
 app.get('/api/admin/warehouse/items', authRequired('admin'), async (req, res) => {
   res.json(await loadJSON(WH_ITEMS, []));
