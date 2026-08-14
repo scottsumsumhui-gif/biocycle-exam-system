@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
+const XLSX = require('xlsx');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1465,18 +1466,34 @@ app.get('/api/admin/warehouse/export', authRequired('admin'), async (req, res) =
     const itemMap = {}; items.forEach(i => itemMap[i.id] = i);
     const stock = await computeStock();
     const balMap = {}; stock.forEach(s => balMap[s.id] = s.balance);
-    const header = '交易編號,物資名稱,分類,類型,數量,單位,技術員,車號,備註,現有存量,日期';
-    const rows = tx.slice().sort((a, b) => b.id - a.id).map(t => {
+    const header = ['交易編號','物資名稱','分類','類型','數量','單位','技術員','車號','備註','現有存量','日期'];
+    const buildRows = (data) => data.slice().sort((a, b) => b.id - a.id).map(t => {
       const it = itemMap[t.item_id] || {};
       const type = t.type === 'in' ? '入倉' : '出倉';
       const bal = balMap[t.item_id] != null ? balMap[t.item_id] + ' ' + (it.unit || '') : '';
-      return [t.id, t.item_name, t.category || '', type, t.qty, it.unit || '', t.emp_name, t.car_no || '', t.remark, bal, t.created_at]
-        .map(v => '"' + (v == null ? '' : v).toString().replace(/"/g, '""') + '"').join(',');
+      return [t.id, t.item_name, t.category || '', type, t.qty, it.unit || '', t.emp_name, t.car_no || '', t.remark, bal, t.created_at];
     });
-    const csv = '﻿' + [header, ...rows].join('\n');
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', 'attachment; filename="warehouse_transactions.csv"');
-    res.send(csv);
+
+    const wb = XLSX.utils.book_new();
+
+    // All transactions
+    const allRows = buildRows(tx);
+    const allWs = XLSX.utils.aoa_to_sheet([header, ...allRows]);
+    XLSX.utils.book_append_sheet(wb, allWs, '全部');
+
+    // One sheet per category
+    const cats = [...new Set(tx.map(t => t.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    for (const cat of cats) {
+      const catRows = buildRows(tx.filter(t => t.category === cat));
+      const ws = XLSX.utils.aoa_to_sheet([header, ...catRows]);
+      const safeName = cat.replace(/[\\/*?:[\]]/g, '_').substring(0, 31);
+      XLSX.utils.book_append_sheet(wb, ws, safeName);
+    }
+
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="warehouse_transactions.xlsx"');
+    res.send(buf);
   } catch (e) {
     res.status(500).json({ success: false, error: '匯出失敗' });
   }

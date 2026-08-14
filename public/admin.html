@@ -164,7 +164,7 @@ function renderWarehouse(filterCat) {
   html += `<div style="margin:12px 0; display:flex; gap:10px; align-items:center; flex-wrap:wrap">
     <label>分類篩選：</label>
     <select id="whCatFilter" onchange="renderWarehouse(this.value)">${opts}</select>
-    <button class="btn btn-sm btn-primary" onclick="exportWarehouseCSV()">&#128229; 匯出交易記錄 CSV</button>
+    <button class="btn btn-sm btn-primary" onclick="exportWarehouseExcel()">&#128229; 匯出交易記錄 Excel</button>
     <button class="btn btn-sm btn-outline" onclick="toggleWhVehicles()">🚚 車號管理 (${vehicles.length})</button>
     <button class="btn btn-sm btn-outline" onclick="reindexWarehouseItems()" title="將物資 ID 重新排列為 1,2,3... 並同步更新交易記錄">🔢 重新整理 ID</button>
   </div>`;
@@ -401,7 +401,7 @@ async function deleteWarehouseVehicle(id) {
   else alert(data.error || '刪除失敗');
 }
 
-function exportWarehouseCSV() {
+function exportWarehouseExcel() {
   window.open(API + '/api/admin/warehouse/export', '_blank');
 }
 
