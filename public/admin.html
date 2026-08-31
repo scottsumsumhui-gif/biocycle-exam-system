@@ -49,6 +49,7 @@
     <button class="nav-btn" onclick="showTab('grading')" id="tabGrading">&#128221; 問答評分</button>
     <button class="nav-btn" onclick="showTab('questionBank')" id="tabQuestionBank">&#128218; 題庫管理</button>
     <button class="nav-btn" onclick="showTab('warehouse')" id="tabWarehouse">&#128230; 倉存管理</button>
+    <button class="nav-btn" onclick="showTab('commission')" id="tabCommission">&#128176; 佣金管理</button>
   </nav>
   
   <main class="admin-body" id="adminBody"></main>
@@ -105,7 +106,7 @@ async function adminLogout() {
 
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse' };
+  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission' };
   const tabEl = document.getElementById(tabIdMap[tab]);
   if (tabEl) tabEl.classList.add('active');
   
@@ -118,6 +119,7 @@ function showTab(tab) {
     case 'grading': loadGrading(); break;
     case 'questionBank': loadQuestionBank(); break;
     case 'warehouse': loadWarehouse(); break;
+    case 'commission': loadCommissionAdmin(); break;
   }
 }
 
@@ -415,6 +417,97 @@ async function reindexWarehouseItems() {
   } catch (e) {
     alert('重整失敗：' + e.message);
   }
+}
+
+// ===== COMMISSION ADMIN =====
+let commAdminCache = { records: [], report: null };
+
+function loadCommissionAdmin() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = `
+    <h2>&#128176; 銷售佣金管理</h2>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px">
+      <label>月份篩選：</label>
+      <select id="commMonthFilter" onchange="loadCommissionData()">
+        <option value="">全部</option>
+        ${[...Array(12)].map((_, i) => `<option value="${i + 1}">${i + 1} 月</option>`).join('')}
+      </select>
+      <label>年份：</label>
+      <select id="commYearFilter" onchange="loadCommissionData()">
+        <option value="2026">2026</option>
+        <option value="2025">2025</option>
+      </select>
+      <button class="btn btn-sm btn-primary" onclick="exportCommissionExcel()">&#128229; 匯出 Excel</button>
+    </div>
+    <div id="commReportBox"></div>
+    <h3>所有記錄</h3>
+    <div id="commRecordsBox"></div>
+  `;
+  loadCommissionData();
+}
+
+async function loadCommissionData() {
+  const m = document.getElementById('commMonthFilter').value;
+  const y = document.getElementById('commYearFilter').value;
+  const q = `?year=${y}${m ? '&month=' + m : ''}`;
+  try {
+    const [recRes, repRes] = await Promise.all([
+      fetch(API + '/api/admin/commission/records' + q, { credentials: 'include' }),
+      fetch(API + '/api/admin/commission/report' + q, { credentials: 'include' })
+    ]);
+    commAdminCache.records = await recRes.json();
+    commAdminCache.report = await repRes.json();
+    renderCommissionAdmin();
+  } catch (e) {
+    document.getElementById('adminBody').innerHTML = '<p>載入失敗</p>';
+  }
+}
+
+function renderCommissionAdmin() {
+  const { records, report } = commAdminCache;
+  let repHtml = '<div class="section-card"><h3>月度報表（每人累計佣金）</h3>';
+  if (report && report.rows.length) {
+    repHtml += `<table class="data-table"><thead><tr><th>隊員</th><th>總銷售件數</th><th>總安裝件數</th><th>總小計</th><th>累計應得佣金</th></tr></thead><tbody>`;
+    for (const r of report.rows) {
+      repHtml += `<tr><td>${r.emp_name}</td><td>${r.sales}</td><td>${r.installs}</td><td>$${r.subtotal}</td><td style="color:#27ae60;font-weight:bold">$${r.commission}</td></tr>`;
+    }
+    const t = report.team;
+    repHtml += `<tr style="background:#f5f5f5"><td><b>全隊合計</b></td><td>${t.sales}</td><td>${t.installs}</td><td>$${t.subtotal}</td><td><b>$${t.commission}</b></td></tr>`;
+    repHtml += '</tbody></table>';
+  } else {
+    repHtml += '<p>暫無數據</p>';
+  }
+  repHtml += '</div>';
+  document.getElementById('commReportBox').innerHTML = repHtml;
+
+  let recHtml = '';
+  if (!records.length) recHtml = '<p>暫無記錄</p>';
+  else {
+    recHtml = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>入數人</th><th>隊員</th><th>全隊總額</th><th>全隊總佣金</th><th>每人應得</th><th>操作</th></tr></thead><tbody>';
+    for (const r of records) {
+      const names = r.members.map(mm => mm.emp_name).join('、');
+      recHtml += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${r.created_by_emp_name}</td><td>${names}</td><td>$${r.total_amount}</td><td>$${r.total_commission}</td><td>$${r.per_person_commission}</td><td><button class="btn btn-xs btn-outline" onclick="deleteCommissionRecord(${r.id})">刪除</button></td></tr>`;
+    }
+    recHtml += '</tbody></table>';
+  }
+  document.getElementById('commRecordsBox').innerHTML = recHtml;
+}
+
+async function deleteCommissionRecord(id) {
+  if (!confirm('確定刪除呢筆佣金記錄？')) return;
+  try {
+    const res = await fetch(API + `/api/admin/commission/records/${id}`, { method: 'DELETE', credentials: 'include' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || '刪除失敗'); return; }
+    loadCommissionData();
+  } catch (e) { alert('刪除失敗'); }
+}
+
+function exportCommissionExcel() {
+  const m = document.getElementById('commMonthFilter').value;
+  const y = document.getElementById('commYearFilter').value;
+  const q = `?year=${y}${m ? '&month=' + m : ''}`;
+  window.open(API + '/api/admin/commission/export' + q, '_blank');
 }
 
 // ===== DASHBOARD =====

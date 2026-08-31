@@ -1499,6 +1499,207 @@ app.get('/api/admin/warehouse/export', authRequired('admin'), async (req, res) =
   }
 });
 
+// ===== COMMISSION (銷售佣金) ROUTES =====
+const COMM_FILE = 'commission_records.json';
+const COMM_SALE_RATE = 25;      // 銷售一件 $25
+const COMM_INSTALL_RATE = 20;   // 安裝一件額外 $20
+const COMM_PCT = 0.30;          // 佣金 = 全隊總額 30%
+
+// Employee: list all employees (for team-member picker)
+app.get('/api/commission/employees', authRequired('employee'), async (req, res) => {
+  const employees = await loadJSON('employees.json', []);
+  const list = employees
+    .map(e => ({ id: e.id, name: e.name, emp_number: e.emp_number, group_name: e.group_name || '' }))
+    .sort((a, b) => String(a.emp_number).localeCompare(String(b.emp_number)));
+  res.json(list);
+});
+
+// Compute commission breakdown on the server (never trust client totals)
+function computeCommission(members) {
+  const subtotals = members.map(m => {
+    const sales = Math.max(0, parseInt(m.sales) || 0);
+    const installs = Math.max(0, parseInt(m.installs) || 0);
+    return {
+      emp_id: m.emp_id,
+      emp_name: m.emp_name,
+      sales,
+      installs,
+      subtotal: sales * COMM_SALE_RATE + installs * COMM_INSTALL_RATE
+    };
+  });
+  const total_amount = subtotals.reduce((s, x) => s + x.subtotal, 0);
+  const total_commission = Math.round(total_amount * COMM_PCT * 100) / 100;
+  const per_person = subtotals.length ? Math.round((total_commission / subtotals.length) * 100) / 100 : 0;
+  return { subtotals, total_amount, total_commission, per_person };
+}
+
+// Employee: create a team sales record
+app.post('/api/commission/records', authRequired('employee'), async (req, res) => {
+  try {
+    const { record_date, members } = req.body || {};
+    if (!record_date || !/^\d{4}-\d{2}-\d{2}$/.test(record_date)) return res.status(400).json({ error: '請選擇有效日期' });
+    if (!Array.isArray(members) || members.length < 2 || members.length > 3) return res.status(400).json({ error: '隊員必須 2 至 3 人' });
+    const employees = await loadJSON('employees.json', []);
+    const seen = new Set();
+    const resolved = [];
+    for (const m of members) {
+      const emp = employees.find(e => e.id === Number(m.emp_id));
+      if (!emp) return res.status(400).json({ error: '隊員不存在' });
+      if (seen.has(emp.id)) return res.status(400).json({ error: '隊員不可重複' });
+      seen.add(emp.id);
+      resolved.push({ emp_id: emp.id, emp_name: emp.name, sales: Math.max(0, parseInt(m.sales) || 0), installs: Math.max(0, parseInt(m.installs) || 0) });
+    }
+    const me = employees.find(e => e.id === req.session.user_id);
+    const calc = computeCommission(resolved);
+    const records = await loadJSON(COMM_FILE, []);
+    const nextId = records.length ? Math.max(...records.map(r => r.id)) + 1 : 1;
+    const record = {
+      id: nextId,
+      record_date,
+      created_by_emp_id: me ? me.id : null,
+      created_by_emp_name: me ? me.name : 'unknown',
+      rate_sale: COMM_SALE_RATE,
+      rate_install: COMM_INSTALL_RATE,
+      commission_pct: COMM_PCT,
+      members: calc.subtotals,
+      total_amount: calc.total_amount,
+      total_commission: calc.total_commission,
+      per_person_commission: calc.per_person,
+      created_at: nowStr()
+    };
+    records.push(record);
+    await saveJSON(COMM_FILE, records);
+    res.json({ success: true, record });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '記錄失敗' });
+  }
+});
+
+// Employee: list own records (where I am a member)
+app.get('/api/commission/records', authRequired('employee'), async (req, res) => {
+  const records = await loadJSON(COMM_FILE, []);
+  const myId = req.session.user_id;
+  const mine = records.filter(r => (r.members || []).some(m => m.emp_id === myId)).sort((a, b) => b.id - a.id);
+  res.json(mine);
+});
+
+// Employee: delete own record within 24h
+app.delete('/api/commission/records/:id', authRequired('employee'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const employees = await loadJSON('employees.json', []);
+    const emp = employees.find(e => e.id === req.session.user_id);
+    if (!emp) return res.status(401).json({ error: '員工資料不存在' });
+    const records = await loadJSON(COMM_FILE, []);
+    const idx = records.findIndex(r => r.id === id);
+    if (idx < 0) return res.status(404).json({ success: false, error: '記錄不存在' });
+    if (records[idx].created_by_emp_id !== emp.id) return res.status(403).json({ success: false, error: '只可以刪除自己記錄的單' });
+    const created = new Date((records[idx].created_at || '').replace(' ', 'T') + '+08:00');
+    if (isNaN(created.getTime()) || Date.now() - created.getTime() > 24 * 3600 * 1000) {
+      return res.status(403).json({ success: false, error: '超過 24 小時，不可刪除，請聯絡管理員' });
+    }
+    records.splice(idx, 1);
+    await saveJSON(COMM_FILE, records);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '刪除失敗' });
+  }
+});
+
+// ===== ADMIN COMMISSION ROUTES =====
+app.get('/api/admin/commission/records', authRequired('admin'), async (req, res) => {
+  const { month, year } = req.query;
+  let records = await loadJSON(COMM_FILE, []);
+  if (month) records = records.filter(r => (r.record_date || '').startsWith(`${year || new Date().getFullYear()}-${String(month).padStart(2, '0')}`));
+  else if (year) records = records.filter(r => (r.record_date || '').startsWith(String(year)));
+  res.json(records.sort((a, b) => b.id - a.id));
+});
+
+app.delete('/api/admin/commission/records/:id', authRequired('admin'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const records = await loadJSON(COMM_FILE, []);
+    const idx = records.findIndex(r => r.id === id);
+    if (idx < 0) return res.status(404).json({ success: false, error: '記錄不存在' });
+    records.splice(idx, 1);
+    await saveJSON(COMM_FILE, records);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '刪除失敗' });
+  }
+});
+
+// Monthly report: per-employee accumulated commission
+app.get('/api/admin/commission/report', authRequired('admin'), async (req, res) => {
+  const { month, year } = req.query;
+  const y = year ? parseInt(year) : new Date().getFullYear();
+  const m = month ? String(month).padStart(2, '0') : null;
+  let records = await loadJSON(COMM_FILE, []);
+  if (m) records = records.filter(r => (r.record_date || '').startsWith(`${y}-${m}`));
+  else records = records.filter(r => (r.record_date || '').startsWith(String(y)));
+
+  const perEmp = {};
+  let teamSales = 0, teamInstalls = 0, teamSubtotal = 0, teamCommission = 0;
+  for (const r of records) {
+    teamSales += r.members.reduce((s, x) => s + x.sales, 0);
+    teamInstalls += r.members.reduce((s, x) => s + x.installs, 0);
+    teamSubtotal += r.total_amount;
+    teamCommission += r.total_commission;
+    for (const mem of r.members) {
+      if (!perEmp[mem.emp_id]) perEmp[mem.emp_id] = { emp_id: mem.emp_id, emp_name: mem.emp_name, sales: 0, installs: 0, subtotal: 0, commission: 0 };
+      perEmp[mem.emp_id].sales += mem.sales;
+      perEmp[mem.emp_id].installs += mem.installs;
+      perEmp[mem.emp_id].subtotal += mem.subtotal;
+      perEmp[mem.emp_id].commission += r.per_person_commission;
+    }
+  }
+  const rows = Object.values(perEmp).map(e => ({ ...e, commission: Math.round(e.commission * 100) / 100 }))
+    .sort((a, b) => b.commission - a.commission);
+  res.json({ rows, team: { sales: teamSales, installs: teamInstalls, subtotal: Math.round(teamSubtotal * 100) / 100, commission: Math.round(teamCommission * 100) / 100 } });
+});
+
+// Export to Excel
+app.get('/api/admin/commission/export', authRequired('admin'), async (req, res) => {
+  try {
+    const { month, year } = req.query;
+    const y = year ? parseInt(year) : new Date().getFullYear();
+    const m = month ? String(month).padStart(2, '0') : null;
+    let records = await loadJSON(COMM_FILE, []);
+    if (m) records = records.filter(r => (r.record_date || '').startsWith(`${y}-${m}`));
+    else records = records.filter(r => (r.record_date || '').startsWith(String(y)));
+    records.sort((a, b) => b.id - a.id);
+
+    const wb = XLSX.utils.book_new();
+    const header = ['記錄編號', '日期', '入數人', '隊員', '銷售件數', '安裝件數', '小計', '每人應得佣金', '全隊總額', '全隊總佣金'];
+    const rows = [];
+    for (const r of records) {
+      for (const mem of r.members) {
+        rows.push([r.id, r.record_date, r.created_by_emp_name, mem.emp_name, mem.sales, mem.installs, mem.subtotal, r.per_person_commission, r.total_amount, r.total_commission]);
+      }
+    }
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...rows]), '所有記錄');
+
+    const perEmp = {};
+    for (const r of records) for (const mem of r.members) {
+      if (!perEmp[mem.emp_id]) perEmp[mem.emp_id] = { emp_name: mem.emp_name, sales: 0, installs: 0, subtotal: 0, commission: 0 };
+      perEmp[mem.emp_id].sales += mem.sales;
+      perEmp[mem.emp_id].installs += mem.installs;
+      perEmp[mem.emp_id].subtotal += mem.subtotal;
+      perEmp[mem.emp_id].commission += r.per_person_commission;
+    }
+    const sumRows = Object.values(perEmp).map(e => ({ ...e, commission: Math.round(e.commission * 100) / 100 })).sort((a, b) => b.commission - a.commission)
+      .map(e => [e.emp_name, e.sales, e.installs, e.subtotal, e.commission]);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['隊員', '總銷售件數', '總安裝件數', '總小計', '累計應得佣金'], ...sumRows]), '每人匯總');
+
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="commission_report_${y}${m ? ('_' + m) : ''}.xlsx"`);
+    res.send(buf);
+  } catch (e) {
+    res.status(500).json({ success: false, error: '匯出失敗' });
+  }
+});
+
 // ===== VEHICLE (車號) ROUTES =====
 // Employee: read vehicle list for out-transaction picker
 app.get('/api/warehouse/vehicles', authRequired('employee'), async (req, res) => {

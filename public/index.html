@@ -41,6 +41,11 @@
         <div class="module-title">物資倉存記錄</div>
         <div class="module-desc">出入倉 / 即時庫存</div>
       </div>
+      <div class="module-card" onclick="showCommission()">
+        <div class="module-icon">💰</div>
+        <div class="module-title">銷售佣金記錄</div>
+        <div class="module-desc">技術員銷售 / 安裝佣金</div>
+      </div>
     </div>
     <div style="display:flex; gap:12px; justify-content:center">
       <button class="btn btn-outline btn-sm" onclick="showChangePw()">修改密碼</button>
@@ -107,6 +112,36 @@
     <button class="btn btn-primary btn-block" onclick="changePassword()">確認修改 Confirm</button>
     <button class="btn btn-outline btn-block" onclick="showHome()">返回主板面 Back</button>
     <div id="changePwError" class="error-msg" style="display:none"></div>
+  </div>
+</div>
+
+<!-- COMMISSION -->
+<div id="commissionScreen" class="screen" style="display:none">
+  <div class="wide-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+      <h2>💰 銷售佣金記錄</h2>
+      <button class="btn btn-outline btn-sm" onclick="showHome()">← 返回主板面</button>
+    </div>
+    <p id="commEmpInfo" style="color:#666"></p>
+
+    <div style="margin:12px 0; padding:12px; border:1px solid #ddd; border-radius:8px">
+      <h3 style="margin-top:0">新增團隊銷售記錄</h3>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px">
+        <label>日期：</label>
+        <input type="date" id="commDate">
+        <span style="color:#666; font-size:13px">佣金：銷售每件 $25，安裝每件額外 $20，全隊總額 30% 為總佣金，由 <b id="commMemberCount">2</b> 名隊員平均分配</span>
+      </div>
+      <div id="commMembers"></div>
+      <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
+        <button class="btn btn-sm btn-outline" id="commAddMemberBtn" onclick="addCommMemberRow()">+ 加多一名隊員</button>
+        <button class="btn btn-sm btn-primary" onclick="submitCommission()">提交記錄</button>
+      </div>
+      <div id="commPreview" style="margin-top:12px"></div>
+      <div id="commMsg" style="margin-top:8px"></div>
+    </div>
+
+    <h3>我的記錄</h3>
+    <div id="commHistory"></div>
   </div>
 </div>
 
@@ -283,6 +318,139 @@ function showHome() {
     `<p>職級: ${levelNames[empData.level] || empData.level} | 組別: ${empData.group || '未分配'}</p>` +
     `<p style="color:#666">請選擇要進入的功能：</p>`;
   showScreen('homeScreen');
+}
+
+// ===== COMMISSION MODULE =====
+let commEmployees = [];
+let commMemberSeq = 0;
+
+function commMemberRowHtml() {
+  commMemberSeq++;
+  const seq = commMemberSeq;
+  let opts = '<option value="">— 選擇隊員 —</option>';
+  for (const e of commEmployees) opts += `<option value="${e.id}">${e.emp_number} ${e.name}${e.group_name ? ' (' + e.group_name + ')' : ''}</option>`;
+  return `<div class="comm-member-row" data-seq="${seq}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px">
+    <select class="comm-emp" onchange="recalcCommission()">${opts}</select>
+    <label>銷售件數 <input type="number" min="0" class="comm-sales" value="0" style="width:70px" oninput="recalcCommission()"></label>
+    <label>安裝件數 <input type="number" min="0" class="comm-installs" value="0" style="width:70px" oninput="recalcCommission()"></label>
+    <button class="btn btn-xs btn-outline" onclick="removeCommMemberRow(this)">移除</button>
+  </div>`;
+}
+
+function addCommMemberRow() {
+  const box = document.getElementById('commMembers');
+  if (box.querySelectorAll('.comm-member-row').length >= 3) return;
+  box.insertAdjacentHTML('beforeend', commMemberRowHtml());
+  updateCommAddBtn();
+  recalcCommission();
+}
+
+function removeCommMemberRow(btn) {
+  btn.closest('.comm-member-row').remove();
+  updateCommAddBtn();
+  recalcCommission();
+}
+
+function updateCommAddBtn() {
+  const n = document.getElementById('commMembers').querySelectorAll('.comm-member-row').length;
+  const btn = document.getElementById('commAddMemberBtn');
+  if (btn) { btn.style.display = n >= 3 ? 'none' : 'inline-block'; document.getElementById('commMemberCount').textContent = n; }
+}
+
+function recalcCommission() {
+  const rows = [...document.querySelectorAll('#commMembers .comm-member-row')];
+  let total = 0; let lines = '';
+  for (const r of rows) {
+    const sel = r.querySelector('.comm-emp');
+    const emp = commEmployees.find(e => e.id === Number(sel.value));
+    const sales = Math.max(0, parseInt(r.querySelector('.comm-sales').value) || 0);
+    const installs = Math.max(0, parseInt(r.querySelector('.comm-installs').value) || 0);
+    const sub = sales * 25 + installs * 20;
+    total += sub;
+    const name = emp ? emp.name : '（未選隊員）';
+    lines += `<div>${name}：銷售 ${sales} × $25 + 安裝 ${installs} × $20 = <b>$${sub}</b></div>`;
+  }
+  const commission = Math.round(total * 0.30 * 100) / 100;
+  const per = rows.length ? Math.round((commission / rows.length) * 100) / 100 : 0;
+  document.getElementById('commPreview').innerHTML =
+    lines + `<hr><div>全隊總額：<b>$${total}</b></div><div>全隊總佣金 (30%)：<b>$${commission}</b></div><div>每人應得（${rows.length} 人平均）：<b>$${per}</b></div>`;
+}
+
+async function showCommission() {
+  const hb = await pingHeartbeat();
+  if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  showScreen('commissionScreen');
+  document.getElementById('commEmpInfo').textContent = `${empData.name} | ${levelNames[empData.level] || empData.level}`;
+  const today = new Date(Date.now() + 8 * 3600000).toISOString().substring(0, 10);
+  document.getElementById('commDate').value = today;
+  try {
+    const res = await fetch(API + '/api/commission/employees', { credentials: 'include' });
+    commEmployees = await res.json();
+  } catch (e) { commEmployees = []; }
+  commMemberSeq = 0;
+  document.getElementById('commMembers').innerHTML = commMemberRowHtml() + commMemberRowHtml();
+  updateCommAddBtn();
+  recalcCommission();
+  await loadCommissionHistory();
+}
+
+async function submitCommission() {
+  const date = document.getElementById('commDate').value;
+  if (!date) { alert('請選擇日期'); return; }
+  const rows = [...document.querySelectorAll('#commMembers .comm-member-row')];
+  if (rows.length < 2) { alert('至少需要 2 名隊員'); return; }
+  const members = [];
+  const seen = new Set();
+  for (const r of rows) {
+    const id = Number(r.querySelector('.comm-emp').value);
+    if (!id) { alert('請為每位隊員選擇員工'); return; }
+    if (seen.has(id)) { alert('隊員不可重複'); return; }
+    seen.add(id);
+    members.push({ emp_id: id, sales: Math.max(0, parseInt(r.querySelector('.comm-sales').value) || 0), installs: Math.max(0, parseInt(r.querySelector('.comm-installs').value) || 0) });
+  }
+  const hb = await pingHeartbeat();
+  if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  try {
+    const res = await fetch(API + '/api/commission/records', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ record_date: date, members }) });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('commMsg').innerHTML = '<span style="color:#27ae60">✅ 已提交！每人應得佣金 $' + data.record.per_person_commission + '（全隊總佣金 $' + data.record.total_commission + '）</span>';
+      await loadCommissionHistory();
+      commMemberSeq = 0;
+      document.getElementById('commMembers').innerHTML = commMemberRowHtml() + commMemberRowHtml();
+      updateCommAddBtn();
+      recalcCommission();
+    } else {
+      alert(data.error || '提交失敗');
+    }
+  } catch (e) { alert('提交失敗，請重試'); }
+}
+
+async function loadCommissionHistory() {
+  const tbl = document.getElementById('commHistory');
+  try {
+    const res = await fetch(API + '/api/commission/records', { credentials: 'include' });
+    const records = await res.json();
+    if (!records.length) { tbl.innerHTML = '<p style="color:#888">你暫無記錄</p>'; return; }
+    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>隊員</th><th>全隊總額</th><th>全隊總佣金</th><th>每人應得</th><th>操作</th></tr></thead><tbody>';
+    for (const r of records) {
+      const names = r.members.map(m => m.emp_name).join('、');
+      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${names}</td><td>$${r.total_amount}</td><td>$${r.total_commission}</td><td>$${r.per_person_commission}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyCommission(${r.id})">刪除</button></td></tr>`;
+    }
+    html += '</tbody></table>';
+    tbl.innerHTML = html;
+  } catch (e) { tbl.innerHTML = '<p>載入失敗</p>'; }
+}
+
+async function deleteMyCommission(id) {
+  if (!confirm('確定刪除呢筆記錄？（24 小時內可刪）')) return;
+  try {
+    const res = await fetch(API + `/api/commission/records/${id}`, { method: 'DELETE', credentials: 'include' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || '刪除失敗'); return; }
+    await loadCommissionHistory();
+    document.getElementById('commMsg').innerHTML = '<span style="color:#27ae60">✅ 記錄已刪除</span>';
+  } catch (e) { alert('刪除失敗'); }
 }
 
 // ===== WAREHOUSE MODULE =====
