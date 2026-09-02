@@ -65,6 +65,9 @@ body {
 .module-icon { font-size: 44px; margin-bottom: 10px; }
 .module-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
 .module-desc { font-size: 13px; color: var(--text-light); }
+.lead-chip { display: inline-block; padding: 4px 10px; margin: 2px 4px 2px 0; border: 1px solid #ccc; border-radius: 16px; cursor: pointer; background: #f8f9fa; font-size: 14px; }
+.lead-chip input { margin-right: 4px; vertical-align: middle; }
+.lead-chip:has(input:checked) { background: #d6eaf8; border-color: #2980b9; }
 
 .logo {
   font-size: 48px;

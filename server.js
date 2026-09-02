@@ -1505,6 +1505,128 @@ const COMM_SALE_RATE = 25;      // 銷售一件 $25
 const COMM_INSTALL_RATE = 20;   // 安裝一件額外 $20
 const COMM_PCT = 0.30;          // 佣金 = 全隊總額 30%
 
+// ===== TECH LEAD (技術員銷售佣金) ROUTES =====
+const LEAD_FILE = 'tech_leads.json';
+const LEAD_SERVICES = ['滅蟲', '白蟻', '老鼠', '消毒', '洗冷氣'];
+
+// Employee: create a tech-lead record (sales referral by technician)
+app.post('/api/tech-leads/records', authRequired('employee'), async (req, res) => {
+  try {
+    const { record_date, customer_name, customer_phone, customer_address, services, custom_service, notes } = req.body || {};
+    if (!record_date || !/^\d{4}-\d{2}-\d{2}$/.test(record_date)) return res.status(400).json({ error: '請選擇有效日期' });
+    const custName = (customer_name == null ? '' : String(customer_name)).trim();
+    if (!custName) return res.status(400).json({ error: '請填寫客戶姓名' });
+    // 服務 chip 至少 1 個
+    const svcArr = Array.isArray(services) ? services.filter(s => LEAD_SERVICES.includes(s)) : [];
+    const custom = (custom_service == null ? '' : String(custom_service)).trim();
+    if (svcArr.length === 0 && !custom) return res.status(400).json({ error: '請選擇至少一項服務' });
+    const employees = await loadJSON('employees.json', []);
+    const me = employees.find(e => e.id === req.session.user_id);
+    const records = await loadJSON(LEAD_FILE, []);
+    const nextId = records.length ? Math.max(...records.map(r => r.id)) + 1 : 1;
+    const record = {
+      id: nextId,
+      record_date,
+      customer_name: custName,
+      customer_phone: (customer_phone == null ? '' : String(customer_phone)).trim(),
+      customer_address: (customer_address == null ? '' : String(customer_address)).trim(),
+      services: svcArr,
+      custom_service: custom,
+      notes: (notes == null ? '' : String(notes)).trim(),
+      created_by_emp_id: me ? me.id : null,
+      created_by_emp_name: me ? me.name : 'unknown',
+      created_at: nowStr()
+    };
+    records.push(record);
+    await saveJSON(LEAD_FILE, records);
+    res.json({ success: true, record });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '記錄失敗' });
+  }
+});
+
+// Employee: list own lead records
+app.get('/api/tech-leads/records', authRequired('employee'), async (req, res) => {
+  const records = await loadJSON(LEAD_FILE, []);
+  const myId = req.session.user_id;
+  const mine = records.filter(r => r.created_by_emp_id === myId).sort((a, b) => b.id - a.id);
+  res.json(mine);
+});
+
+// Employee: delete own lead within 24h
+app.delete('/api/tech-leads/records/:id', authRequired('employee'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const employees = await loadJSON('employees.json', []);
+    const emp = employees.find(e => e.id === req.session.user_id);
+    if (!emp) return res.status(401).json({ error: '員工資料不存在' });
+    const records = await loadJSON(LEAD_FILE, []);
+    const idx = records.findIndex(r => r.id === id);
+    if (idx < 0) return res.status(404).json({ success: false, error: '記錄不存在' });
+    if (records[idx].created_by_emp_id !== emp.id) return res.status(403).json({ success: false, error: '只可以刪除自己記錄的單' });
+    const created = new Date((records[idx].created_at || '').replace(' ', 'T') + '+08:00');
+    if (isNaN(created.getTime()) || Date.now() - created.getTime() > 24 * 3600 * 1000) {
+      return res.status(403).json({ success: false, error: '超過 24 小時，不可刪除，請聯絡管理員' });
+    }
+    records.splice(idx, 1);
+    await saveJSON(LEAD_FILE, records);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '刪除失敗' });
+  }
+});
+
+// Admin: list all lead records (with year/month filter)
+app.get('/api/admin/tech-leads/records', authRequired('admin'), async (req, res) => {
+  const { month, year } = req.query;
+  let records = await loadJSON(LEAD_FILE, []);
+  if (month) records = records.filter(r => (r.record_date || '').startsWith(`${year || new Date().getFullYear()}-${String(month).padStart(2, '0')}`));
+  else if (year) records = records.filter(r => (r.record_date || '').startsWith(String(year)));
+  res.json(records.sort((a, b) => b.id - a.id));
+});
+
+// Admin: delete any lead record
+app.delete('/api/admin/tech-leads/records/:id', authRequired('admin'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const records = await loadJSON(LEAD_FILE, []);
+    const idx = records.findIndex(r => r.id === id);
+    if (idx < 0) return res.status(404).json({ success: false, error: '記錄不存在' });
+    records.splice(idx, 1);
+    await saveJSON(LEAD_FILE, records);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '刪除失敗' });
+  }
+});
+
+// Admin: export leads to Excel (single sheet)
+app.get('/api/admin/tech-leads/export', authRequired('admin'), async (req, res) => {
+  try {
+    const { month, year } = req.query;
+    const y = year ? parseInt(year) : new Date().getFullYear();
+    const m = month ? String(month).padStart(2, '0') : null;
+    let records = await loadJSON(LEAD_FILE, []);
+    if (m) records = records.filter(r => (r.record_date || '').startsWith(`${y}-${m}`));
+    else records = records.filter(r => (r.record_date || '').startsWith(String(y)));
+    records.sort((a, b) => b.id - a.id);
+    const wb = XLSX.utils.book_new();
+    const header = ['記錄編號', '日期', '技術員', '客戶姓名', '客戶電話', '客戶地址', '服務類型', '備註'];
+    const rows = records.map(r => {
+      const svc = (r.services || []).join('、');
+      const svcAll = r.custom_service ? (svc ? svc + '、' + r.custom_service : r.custom_service) : (svc || '—');
+      return [r.id, r.record_date, r.created_by_emp_name, r.customer_name, r.customer_phone, r.customer_address, svcAll, r.notes];
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...rows]), '技術員銷售記錄');
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="tech_leads_${y}${m ? ('_' + m) : ''}.xlsx"`);
+    res.send(buf);
+  } catch (e) {
+    res.status(500).json({ success: false, error: '匯出失敗' });
+  }
+});
+
 // Employee: list all employees (for team-member picker)
 app.get('/api/commission/employees', authRequired('employee'), async (req, res) => {
   const employees = await loadJSON('employees.json', []);

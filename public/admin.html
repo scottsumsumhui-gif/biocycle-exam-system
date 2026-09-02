@@ -49,7 +49,7 @@
     <button class="nav-btn" onclick="showTab('grading')" id="tabGrading">&#128221; 問答評分</button>
     <button class="nav-btn" onclick="showTab('questionBank')" id="tabQuestionBank">&#128218; 題庫管理</button>
     <button class="nav-btn" onclick="showTab('warehouse')" id="tabWarehouse">&#128230; 倉存管理</button>
-    <button class="nav-btn" onclick="showTab('commission')" id="tabCommission">&#128176; 渠網佣金管理</button>
+    <button class="nav-btn" onclick="showTab('commission')" id="tabCommission">&#128176; 技術員銷售佣金</button>
   </nav>
   
   <main class="admin-body" id="adminBody"></main>
@@ -422,28 +422,113 @@ async function reindexWarehouseItems() {
 // ===== COMMISSION ADMIN =====
 let commAdminCache = { records: [], report: null };
 
-function loadCommissionAdmin() {
+function loadCommissionHubAdmin() {
   const body = document.getElementById('adminBody');
   body.innerHTML = `
-    <h2>&#128176; 渠網銷售佣金管理</h2>
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px">
-      <label>月份篩選：</label>
-      <select id="commMonthFilter" onchange="loadCommissionData()">
-        <option value="">全部</option>
-        ${[...Array(12)].map((_, i) => `<option value="${i + 1}">${i + 1} 月</option>`).join('')}
-      </select>
-      <label>年份：</label>
-      <select id="commYearFilter" onchange="loadCommissionData()">
-        <option value="2026">2026</option>
-        <option value="2025">2025</option>
-      </select>
-      <button class="btn btn-sm btn-primary" onclick="exportCommissionExcel()">&#128229; 匯出 Excel</button>
+    <h2>&#128176; 技術員銷售佣金管理</h2>
+    <div style="display:flex; gap:6px; margin:10px 0; border-bottom:1px solid #ddd">
+      <button class="btn btn-sm btn-outline" id="commHubAdminTabChannel" onclick="switchAdminCommHub('channel')" style="border-radius:6px 6px 0 0">渠網佣金</button>
+      <button class="btn btn-sm btn-outline" id="commHubAdminTabTech" onclick="switchAdminCommHub('tech')" style="border-radius:6px 6px 0 0">技術員銷售</button>
     </div>
-    <div id="commReportBox"></div>
-    <h3>所有記錄</h3>
-    <div id="commRecordsBox"></div>
+    <div id="commHubAdminChannel"></div>
+    <div id="commHubAdminTech"></div>
   `;
-  loadCommissionData();
+  switchAdminCommHub('channel');
+}
+
+function switchAdminCommHub(which) {
+  const btnC = document.getElementById('commHubAdminTabChannel');
+  const btnT = document.getElementById('commHubAdminTabTech');
+  if (which === 'channel') {
+    btnC.classList.add('btn-primary'); btnC.classList.remove('btn-outline');
+    btnT.classList.add('btn-outline'); btnT.classList.remove('btn-primary');
+    document.getElementById('commHubAdminChannel').style.display = 'block';
+    document.getElementById('commHubAdminTech').style.display = 'none';
+    document.getElementById('commHubAdminChannel').innerHTML = `
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px">
+        <label>月份篩選：</label>
+        <select id="commMonthFilter" onchange="loadCommissionData()">
+          <option value="">全部</option>
+          ${[...Array(12)].map((_, i) => `<option value="${i + 1}">${i + 1} 月</option>`).join('')}
+        </select>
+        <label>年份：</label>
+        <select id="commYearFilter" onchange="loadCommissionData()">
+          <option value="2026">2026</option>
+          <option value="2025">2025</option>
+        </select>
+        <button class="btn btn-sm btn-primary" onclick="exportCommissionExcel()">&#128229; 匯出 Excel</button>
+      </div>
+      <div id="commReportBox"></div>
+      <h3>所有記錄</h3>
+      <div id="commRecordsBox"></div>
+    `;
+    loadCommissionData();
+  } else {
+    btnT.classList.add('btn-primary'); btnT.classList.remove('btn-outline');
+    btnC.classList.add('btn-outline'); btnC.classList.remove('btn-primary');
+    document.getElementById('commHubAdminChannel').style.display = 'none';
+    document.getElementById('commHubAdminTech').style.display = 'block';
+    document.getElementById('commHubAdminTech').innerHTML = `
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px">
+        <label>月份篩選：</label>
+        <select id="leadMonthFilter" onchange="loadLeadAdminData()">
+          <option value="">全部</option>
+          ${[...Array(12)].map((_, i) => `<option value="${i + 1}">${i + 1} 月</option>`).join('')}
+        </select>
+        <label>年份：</label>
+        <select id="leadYearFilter" onchange="loadLeadAdminData()">
+          <option value="2026">2026</option>
+          <option value="2025">2025</option>
+        </select>
+        <button class="btn btn-sm btn-primary" onclick="exportLeadExcel()">&#128229; 匯出 Excel</button>
+      </div>
+      <div id="leadRecordsBox"></div>
+    `;
+    loadLeadAdminData();
+  }
+}
+
+async function loadLeadAdminData() {
+  const m = document.getElementById('leadMonthFilter').value;
+  const y = document.getElementById('leadYearFilter').value;
+  const q = `?year=${y}${m ? '&month=' + m : ''}`;
+  const box = document.getElementById('leadRecordsBox');
+  try {
+    const res = await fetch(API + '/api/admin/tech-leads/records' + q, { credentials: 'include' });
+    const records = await res.json();
+    if (!records.length) { box.innerHTML = '<p>暫無記錄</p>'; return; }
+    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>技術員</th><th>客戶姓名</th><th>電話</th><th>地址</th><th>服務類型</th><th>備註</th><th>操作</th></tr></thead><tbody>';
+    for (const r of records) {
+      const svc = (r.services || []).join('、');
+      const svcAll = r.custom_service ? (svc ? svc + '、' + r.custom_service : r.custom_service) : (svc || '—');
+      const notesShort = (r.notes || '').length > 40 ? r.notes.substring(0, 40) + '…' : (r.notes || '—');
+      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${r.created_by_emp_name}</td><td>${r.customer_name || '—'}</td><td>${r.customer_phone || '—'}</td><td>${r.customer_address || '—'}</td><td>${svcAll}</td><td title="${(r.notes || '').replace(/"/g,'&quot;')}">${notesShort}</td><td><button class="btn btn-xs btn-outline" onclick="deleteLeadRecord(${r.id})">刪除</button></td></tr>`;
+    }
+    html += '</tbody></table>';
+    box.innerHTML = html;
+  } catch (e) { box.innerHTML = '<p>載入失敗</p>'; }
+}
+
+async function deleteLeadRecord(id) {
+  if (!confirm('確定刪除呢筆技術員銷售記錄？')) return;
+  try {
+    const res = await fetch(API + `/api/admin/tech-leads/records/${id}`, { method: 'DELETE', credentials: 'include' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || '刪除失敗'); return; }
+    loadLeadAdminData();
+  } catch (e) { alert('刪除失敗'); }
+}
+
+function exportLeadExcel() {
+  const m = document.getElementById('leadMonthFilter').value;
+  const y = document.getElementById('leadYearFilter').value;
+  const q = `?year=${y}${m ? '&month=' + m : ''}`;
+  window.open(API + '/api/admin/tech-leads/export' + q, '_blank');
+}
+
+// backward compat alias (existing nav-button may call old name)
+function loadCommissionAdmin() {
+  return loadCommissionHubAdmin();
 }
 
 async function loadCommissionData() {

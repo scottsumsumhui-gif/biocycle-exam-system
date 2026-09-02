@@ -41,10 +41,10 @@
         <div class="module-title">物資倉存記錄</div>
         <div class="module-desc">出入倉 / 即時庫存</div>
       </div>
-      <div class="module-card" onclick="showCommission()">
+      <div class="module-card" onclick="showCommissionHub()">
         <div class="module-icon">💰</div>
-        <div class="module-title">渠網銷售佣金</div>
-        <div class="module-desc">技術員銷售 / 安裝佣金</div>
+        <div class="module-title">技術員銷售佣金</div>
+        <div class="module-desc">渠網 / 技術員銷售</div>
       </div>
     </div>
     <div style="display:flex; gap:12px; justify-content:center">
@@ -115,35 +115,74 @@
   </div>
 </div>
 
-<!-- COMMISSION -->
-<div id="commissionScreen" class="screen" style="display:none">
+<!-- COMMISSION HUB -->
+<div id="commissionHubScreen" class="screen" style="display:none">
   <div class="wide-card">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-      <h2>💰 渠網銷售佣金</h2>
+      <h2>💰 技術員銷售佣金</h2>
       <button class="btn btn-outline btn-sm" onclick="showHome()">← 返回主板面</button>
     </div>
-    <p id="commEmpInfo" style="color:#666"></p>
-
-    <div style="margin:12px 0; padding:12px; border:1px solid #ddd; border-radius:8px">
-      <h3 style="margin-top:0">新增團隊銷售記錄</h3>
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap margin-bottom:10px">
-        <label>日期：</label>
-        <input type="date" id="commDate">
-        <label style="margin-left:6px">客戶編號：</label>
-        <input type="text" id="commCustomerCode" placeholder="#85947" style="width:120px" maxlength="20">
-        <span style="color:#666; font-size:13px">佣金：銷售每件 $25，安裝每件額外 $20，全隊總額 30% 為總佣金，由 <b id="commMemberCount">2</b> 名隊員平均分配</span>
-      </div>
-      <div id="commMembers"></div>
-      <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
-        <button class="btn btn-sm btn-outline" id="commAddMemberBtn" onclick="addCommMemberRow()">+ 加多一名隊員</button>
-        <button class="btn btn-sm btn-primary" onclick="submitCommission()">提交記錄</button>
-      </div>
-      <div id="commPreview" style="margin-top:12px"></div>
-      <div id="commMsg" style="margin-top:8px"></div>
+    <p id="commHubEmpInfo" style="color:#666"></p>
+    <div style="display:flex; gap:6px; margin:10px 0; border-bottom:1px solid #ddd">
+      <button class="btn btn-sm btn-outline" id="commHubTabChannel" onclick="switchCommHubTab('channel')" style="border-radius:6px 6px 0 0">渠網銷售佣金</button>
+      <button class="btn btn-sm btn-outline" id="commHubTechTab" onclick="switchCommHubTab('tech')" style="border-radius:6px 6px 0 0">技術員銷售佣金</button>
     </div>
 
-    <h3>我的記錄</h3>
-    <div id="commHistory"></div>
+    <!-- SUB-PAGE: 渠網 -->
+    <div id="commChannelSub" class="comm-hub-sub">
+      <div style="margin:12px 0; padding:12px; border:1px solid #ddd; border-radius:8px">
+        <h3 style="margin-top:0">新增團隊銷售記錄</h3>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px">
+          <label>日期：</label>
+          <input type="date" id="commDate">
+          <label style="margin-left:6px">客戶編號：</label>
+          <input type="text" id="commCustomerCode" placeholder="#85947" style="width:120px" maxlength="20">
+          <span style="color:#666; font-size:13px">佣金：銷售每件 $25，安裝每件額外 $20，全隊總額 30% 為總佣金，由 <b id="commMemberCount">2</b> 名隊員平均分配</span>
+        </div>
+        <div id="commMembers"></div>
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn btn-sm btn-outline" id="commAddMemberBtn" onclick="addCommMemberRow()">+ 加多一名隊員</button>
+          <button class="btn btn-sm btn-primary" onclick="submitCommission()">提交記錄</button>
+        </div>
+        <div id="commPreview" style="margin-top:12px"></div>
+        <div id="commMsg" style="margin-top:8px"></div>
+      </div>
+      <h3>我的記錄</h3>
+      <div id="commHistory"></div>
+    </div>
+
+    <!-- SUB-PAGE: 技術員銷售佣金 -->
+    <div id="commTechSub" class="comm-hub-sub" style="display:none">
+      <div style="margin:12px 0; padding:12px; border:1px solid #ddd; border-radius:8px">
+        <h3 style="margin-top:0">新增技術員銷售記錄</h3>
+        <p style="color:#666; font-size:13px; margin:0 0 10px">記錄客戶資料同服務類型，等 admin 知你介紹咗咩客人。系統唔計金額。</p>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px">
+          <label>日期：</label>
+          <input type="date" id="leadDate">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px">
+          <div><label>客戶姓名：</label><input type="text" id="leadCustomerName" style="width:100%" maxlength="40" placeholder="例：陳先生"></div>
+          <div><label>客戶電話：</label><input type="text" id="leadCustomerPhone" style="width:100%" maxlength="30" placeholder="例：91234567"></div>
+        </div>
+        <div style="margin-bottom:10px"><label>客戶地址：</label><input type="text" id="leadCustomerAddress" style="width:100%" maxlength="100" placeholder="例：九龍區 ..."></div>
+        <div style="margin-bottom:10px">
+          <label style="display:block; margin-bottom:6px">服務類型（可揀多個）：</label>
+          <label class="lead-chip"><input type="checkbox" value="滅蟲" class="lead-svc"> 滅蟲</label>
+          <label class="lead-chip"><input type="checkbox" value="白蟻" class="lead-svc"> 白蟻</label>
+          <label class="lead-chip"><input type="checkbox" value="老鼠" class="lead-svc"> 老鼠</label>
+          <label class="lead-chip"><input type="checkbox" value="消毒" class="lead-svc"> 消毒</label>
+          <label class="lead-chip"><input type="checkbox" value="洗冷氣" class="lead-svc"> 洗冷氣</label>
+          <input type="text" id="leadCustomService" placeholder="其他（自填）" style="margin-left:6px; width:140px" maxlength="30">
+        </div>
+        <div style="margin-bottom:10px"><label>備註（介紹咗咩/推銷咗咩服務）：</label><textarea id="leadNotes" style="width:100%; min-height:60px" maxlength="500" placeholder="例：客人原本查滅蟲，主動向佢推銷咗年約 ..."></textarea></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn btn-sm btn-primary" onclick="submitTechLead()">提交記錄</button>
+        </div>
+        <div id="leadMsg" style="margin-top:8px"></div>
+      </div>
+      <h3>我的記錄</h3>
+      <div id="leadHistory"></div>
+    </div>
   </div>
 </div>
 
@@ -379,21 +418,121 @@ function recalcCommission() {
 }
 
 async function showCommission() {
+  // keep alias for backward compat
+  return showCommissionHub();
+}
+
+async function showCommissionHub() {
   const hb = await pingHeartbeat();
   if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
-  showScreen('commissionScreen');
-  document.getElementById('commEmpInfo').textContent = `${empData.name} | ${levelNames[empData.level] || empData.level}`;
-  const today = new Date(Date.now() + 8 * 3600000).toISOString().substring(0, 10);
-  document.getElementById('commDate').value = today;
+  showScreen('commissionHubScreen');
+  document.getElementById('commHubEmpInfo').textContent = `${empData.name} | ${levelNames[empData.level] || empData.level}`;
+  // load employees list once (used by channel sub member picker)
   try {
     const res = await fetch(API + '/api/commission/employees', { credentials: 'include' });
     commEmployees = await res.json();
   } catch (e) { commEmployees = []; }
-  commMemberSeq = 0;
-  document.getElementById('commMembers').innerHTML = commMemberRowHtml() + commMemberRowHtml();
-  updateCommAddBtn();
-  recalcCommission();
-  await loadCommissionHistory();
+  switchCommHubTab('channel');
+}
+
+function switchCommHubTab(which) {
+  const channelBtn = document.getElementById('commHubTabChannel');
+  const techBtn = document.getElementById('commHubTechTab');
+  const channelSub = document.getElementById('commChannelSub');
+  const techSub = document.getElementById('commTechSub');
+  if (which === 'channel') {
+    channelSub.style.display = 'block';
+    techSub.style.display = 'none';
+    channelBtn.classList.add('btn-primary'); channelBtn.classList.remove('btn-outline');
+    techBtn.classList.add('btn-outline'); techBtn.classList.remove('btn-primary');
+    // ensure channel initialized
+    if (!document.getElementById('commDate').value) {
+      const today = new Date(Date.now() + 8 * 3600000).toISOString().substring(0, 10);
+      document.getElementById('commDate').value = today;
+    }
+    if (document.getElementById('commMembers').children.length < 2) {
+      commMemberSeq = 0;
+      document.getElementById('commMembers').innerHTML = commMemberRowHtml() + commMemberRowHtml();
+      updateCommAddBtn();
+      recalcCommission();
+    }
+    loadCommissionHistory();
+  } else {
+    channelSub.style.display = 'none';
+    techSub.style.display = 'block';
+    techBtn.classList.add('btn-primary'); techBtn.classList.remove('btn-outline');
+    channelBtn.classList.add('btn-outline'); channelBtn.classList.remove('btn-primary');
+    if (!document.getElementById('leadDate').value) {
+      const today = new Date(Date.now() + 8 * 3600000).toISOString().substring(0, 10);
+      document.getElementById('leadDate').value = today;
+    }
+    loadLeadHistory();
+  }
+}
+
+async function submitTechLead() {
+  const date = document.getElementById('leadDate').value;
+  if (!date) { alert('請選擇日期'); return; }
+  const customer_name = document.getElementById('leadCustomerName').value.trim();
+  if (!customer_name) { alert('請填寫客戶姓名'); return; }
+  const customer_phone = document.getElementById('leadCustomerPhone').value.trim();
+  const customer_address = document.getElementById('leadCustomerAddress').value.trim();
+  const services = [...document.querySelectorAll('.lead-svc:checked')].map(c => c.value);
+  const custom_service = document.getElementById('leadCustomService').value.trim();
+  const notes = document.getElementById('leadNotes').value.trim();
+  if (services.length === 0 && !custom_service) { alert('請選擇至少一項服務類型'); return; }
+  const hb = await pingHeartbeat();
+  if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  try {
+    const res = await fetch(API + '/api/tech-leads/records', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+      body: JSON.stringify({ record_date: date, customer_name, customer_phone, customer_address, services, custom_service, notes })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('leadMsg').innerHTML = '<span style="color:#27ae60">✅ 已提交！記錄編號 #' + data.record.id + '</span>';
+      // 清空表單
+      document.getElementById('leadCustomerName').value = '';
+      document.getElementById('leadCustomerPhone').value = '';
+      document.getElementById('leadCustomerAddress').value = '';
+      document.querySelectorAll('.lead-svc').forEach(c => c.checked = false);
+      document.getElementById('leadCustomService').value = '';
+      document.getElementById('leadNotes').value = '';
+      await loadLeadHistory();
+    } else {
+      alert(data.error || '提交失敗');
+    }
+  } catch (e) { alert('提交失敗，請重試'); }
+}
+
+async function loadLeadHistory() {
+  const tbl = document.getElementById('leadHistory');
+  try {
+    const res = await fetch(API + '/api/tech-leads/records', { credentials: 'include' });
+    const records = await res.json();
+    if (!records.length) { tbl.innerHTML = '<p style="color:#888">你暫無記錄</p>'; return; }
+    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶姓名</th><th>電話</th><th>服務類型</th><th>備註</th><th>操作</th></tr></thead><tbody>';
+    for (const r of records) {
+      const svc = (r.services || []).join('、');
+      const svcAll = r.custom_service ? (svc ? svc + '、' + r.custom_service : r.custom_service) : (svc || '—');
+      const custShort = (r.customer_name || '') + ' / ' + (r.customer_phone || '—');
+      const notesShort = (r.notes || '').length > 30 ? r.notes.substring(0, 30) + '…' : (r.notes || '—');
+      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${custShort}</td><td>${svcAll}</td><td title="${(r.notes || '').replace(/"/g,'&quot;')}">${notesShort}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyLead(${r.id})">刪除</button></td></tr>`;
+    }
+    html += '</tbody></table>';
+    tbl.innerHTML = html;
+  } catch (e) { tbl.innerHTML = '<p>載入失敗</p>'; }
+}
+
+async function deleteMyLead(id) {
+  if (!confirm('確定刪除呢筆技術員銷售記錄？（24 小時內可刪）')) return;
+  try {
+    const res = await fetch(API + `/api/tech-leads/records/${id}`, { method: 'DELETE', credentials: 'include' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || '刪除失敗'); return; }
+    await loadLeadHistory();
+    document.getElementById('leadMsg').innerHTML = '<span style="color:#27ae60">✅ 記錄已刪除</span>';
+  } catch (e) { alert('刪除失敗'); }
 }
 
 async function submitCommission() {
