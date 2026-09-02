@@ -656,7 +656,7 @@ async function loadDashboard() {
       html += `<div class="section-card"><h3>&#128203; 最近成績</h3>`;
       html += `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>職級</th><th>組別</th><th>主題</th><th>MC分數</th><th>合格</th><th>時間</th></tr></thead><tbody>`;
       for (const r of data.recentResults) {
-        html += `<tr><td>${r.emp_number}</td><td>${r.emp_name}</td><td>${levelNames[r.level]}</td><td>${r.group_name}</td><td>${r.topic_name}</td><td>${r.mc_score}%</td>`;
+        html += `<tr><td>${r.emp_number}</td><td>${r.emp_name}</td><td>${r.level_label || levelNames[r.level] || r.level}</td><td>${r.group_name}</td><td>${r.topic_name}</td><td>${r.mc_score}%</td>`;
         html += `<td style="color:${r.passed?'#27ae60':'#e74c3c'}">${r.passed?'合格':'不合格'}</td><td>${r.submitted_at}</td></tr>`;
       }
       html += `</tbody></table></div>`;
@@ -709,7 +709,7 @@ async function loadEmployees() {
     
     html += `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>職級</th><th>組別</th><th>操作</th></tr></thead><tbody>`;
     for (const e of data.employees) {
-      html += `<tr><td>${e.emp_number}</td><td>${e.name}</td><td>${levelNames[e.level]}</td><td>${e.group_name || '-'}</td>`;
+      html += `<tr><td>${e.emp_number}</td><td>${e.name}</td><td>${e.level_label || e.level || '-'}</td><td>${e.group_name || '-'}</td>`;
       html += `<td><button class="btn btn-xs btn-outline" onclick="editEmployee(${e.id})">編輯</button>`;
       html += `<button class="btn btn-xs btn-outline" onclick="resetPassword(${e.id},'${e.emp_number}')">重置密碼</button>`;
       html += `<button class="btn btn-xs btn-danger" onclick="deleteEmployee(${e.id},'${e.name}')">刪除</button></td></tr>`;
@@ -1230,10 +1230,15 @@ async function loadResults() {
   body.innerHTML = '<div class="loading">載入中...</div>';
   try {
     const now = new Date();
+    if (!currentJobLevels || currentJobLevels.length === 0) await loadJobLevels();
     let html = `<div class="section-card">`;
     html += `<h3>&#128203; 成績查看 Results</h3>`;
     html += `<div class="filter-bar">`;
-    html += `<select id="filterLevel"><option value="">所有職級</option><option value="junior">初級技術員</option><option value="senior">高級技術員</option><option value="supervisor">技術員主管</option></select>`;
+    html += `<select id="filterLevel"><option value="">所有職級</option>`;
+    for (const l of currentJobLevels) {
+      html += `<option value="${l.key}">${l.label}</option>`;
+    }
+    html += `</select>`;
     html += `<input id="filterMonth" type="number" value="${now.getMonth()+1}" min="1" max="12" placeholder="月份">`;
     html += `<input id="filterYear" type="number" value="${now.getFullYear()}" placeholder="年份">`;
     html += `<button class="btn btn-sm btn-primary" onclick="filterResults()">篩選</button>`;
@@ -1270,7 +1275,7 @@ async function filterResults() {
     
     let html = `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>職級</th><th>組別</th><th>主題</th><th>MC分數</th><th>MC正確</th><th>問答分數</th><th>總分</th><th>合格</th><th>問答評分</th><th>時間</th><th>操作</th></tr></thead><tbody>`;
     for (const r of data.results) {
-      html += `<tr><td>${r.emp_number}</td><td>${r.emp_name}</td><td>${levelNames[r.level]}</td><td>${r.group_name}</td><td>${r.topic_name}</td>`;
+      html += `<tr><td>${r.emp_number}</td><td>${r.emp_name}</td><td>${r.level_label || levelNames[r.level] || r.level}</td><td>${r.group_name}</td><td>${r.topic_name}</td>`;
       html += `<td>${r.mc_score}%</td><td>${r.mc_correct}/${r.mc_total}</td>`;
       html += `<td>${r.essay_score}%</td><td>${r.total_score}%</td>`;
       html += `<td style="color:${r.passed?'#27ae60':'#e74c3c'}">${r.passed?'合格':'不合格'}</td>`;

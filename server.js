@@ -1058,6 +1058,7 @@ app.get('/api/admin/results', authRequired('admin'), requirePermission('results'
   let results = await loadJSON('exam_results.json', []);
   const employees = await loadJSON('employees.json', []);
   const topics = await loadJSON('topics.json', []);
+  const jobLevels = await getJobLevels();
 
   if (month) results = results.filter(r => r.month === parseInt(month));
   if (year) results = results.filter(r => r.year === parseInt(year));
@@ -1067,7 +1068,8 @@ app.get('/api/admin/results', authRequired('admin'), requirePermission('results'
     .map(r => {
       const e = employees.find(em => em.id === r.employee_id);
       const t = topics.find(tp => tp.id === r.topic_id);
-      return { ...r, emp_name: e?.name || '', emp_number: e?.emp_number || '', level: e?.level || '', group_name: e?.group_name || '', topic_name: t?.name || '', topic_name_en: t?.name_en || '' };
+      const empLevel = e?.level || '';
+      return { ...r, emp_name: e?.name || '', emp_number: e?.emp_number || '', level: empLevel, level_label: levelLabelFromList(jobLevels, empLevel), group_name: e?.group_name || '', topic_name: t?.name || '', topic_name_en: t?.name_en || '' };
     })
     .filter(r => !level || r.level === level)
     .sort((a, b) => b.submitted_at.localeCompare(a.submitted_at));
