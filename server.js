@@ -1536,9 +1536,11 @@ function computeCommission(members) {
 // Employee: create a team sales record
 app.post('/api/commission/records', authRequired('employee'), async (req, res) => {
   try {
-    const { record_date, members } = req.body || {};
+    const { record_date, customer_code, members } = req.body || {};
     if (!record_date || !/^\d{4}-\d{2}-\d{2}$/.test(record_date)) return res.status(400).json({ error: '請選擇有效日期' });
     if (!Array.isArray(members) || members.length < 2 || members.length > 3) return res.status(400).json({ error: '隊員必須 2 至 3 人' });
+    // 客戶編號可選,自動 trim 及去掉開頭 # / 空白
+    const custCode = (customer_code == null ? '' : String(customer_code)).trim().replace(/^#+/, '').trim();
     const employees = await loadJSON('employees.json', []);
     const seen = new Set();
     const resolved = [];
@@ -1556,6 +1558,7 @@ app.post('/api/commission/records', authRequired('employee'), async (req, res) =
     const record = {
       id: nextId,
       record_date,
+      customer_code: custCode,
       created_by_emp_id: me ? me.id : null,
       created_by_emp_name: me ? me.name : 'unknown',
       rate_sale: COMM_SALE_RATE,
@@ -1670,11 +1673,11 @@ app.get('/api/admin/commission/export', authRequired('admin'), async (req, res) 
     records.sort((a, b) => b.id - a.id);
 
     const wb = XLSX.utils.book_new();
-    const header = ['記錄編號', '日期', '入數人', '隊員', '銷售件數', '安裝件數', '小計', '每人應得佣金', '全隊總額', '全隊總佣金'];
+    const header = ['記錄編號', '日期', '客戶編號', '入數人', '隊員', '銷售件數', '安裝件數', '小計', '每人應得佣金', '全隊總額', '全隊總佣金'];
     const rows = [];
     for (const r of records) {
       for (const mem of r.members) {
-        rows.push([r.id, r.record_date, r.created_by_emp_name, mem.emp_name, mem.sales, mem.installs, mem.subtotal, r.per_person_commission, r.total_amount, r.total_commission]);
+        rows.push([r.id, r.record_date, r.customer_code ? '#' + r.customer_code : '', r.created_by_emp_name, mem.emp_name, mem.sales, mem.installs, mem.subtotal, r.per_person_commission, r.total_amount, r.total_commission]);
       }
     }
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...rows]), '所有記錄');

@@ -483,10 +483,11 @@ function renderCommissionAdmin() {
   let recHtml = '';
   if (!records.length) recHtml = '<p>暫無記錄</p>';
   else {
-    recHtml = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>入數人</th><th>隊員</th><th>全隊總額</th><th>全隊總佣金</th><th>每人應得</th><th>操作</th></tr></thead><tbody>';
+    recHtml = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶編號</th><th>入數人</th><th>隊員</th><th>全隊總額</th><th>全隊總佣金</th><th>每人應得</th><th>操作</th></tr></thead><tbody>';
     for (const r of records) {
       const names = r.members.map(mm => mm.emp_name).join('、');
-      recHtml += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${r.created_by_emp_name}</td><td>${names}</td><td>$${r.total_amount}</td><td>$${r.total_commission}</td><td>$${r.per_person_commission}</td><td><button class="btn btn-xs btn-outline" onclick="deleteCommissionRecord(${r.id})">刪除</button></td></tr>`;
+      const cust = r.customer_code ? ('#' + r.customer_code) : '—';
+      recHtml += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${cust}</td><td>${r.created_by_emp_name}</td><td>${names}</td><td>$${r.total_amount}</td><td>$${r.total_commission}</td><td>$${r.per_person_commission}</td><td><button class="btn btn-xs btn-outline" onclick="deleteCommissionRecord(${r.id})">刪除</button></td></tr>`;
     }
     recHtml += '</tbody></table>';
   }

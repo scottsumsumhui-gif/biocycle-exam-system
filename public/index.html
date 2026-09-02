@@ -126,9 +126,11 @@
 
     <div style="margin:12px 0; padding:12px; border:1px solid #ddd; border-radius:8px">
       <h3 style="margin-top:0">新增團隊銷售記錄</h3>
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px">
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap margin-bottom:10px">
         <label>日期：</label>
         <input type="date" id="commDate">
+        <label style="margin-left:6px">客戶編號：</label>
+        <input type="text" id="commCustomerCode" placeholder="#85947" style="width:120px" maxlength="20">
         <span style="color:#666; font-size:13px">佣金：銷售每件 $25，安裝每件額外 $20，全隊總額 30% 為總佣金，由 <b id="commMemberCount">2</b> 名隊員平均分配</span>
       </div>
       <div id="commMembers"></div>
@@ -397,6 +399,7 @@ async function showCommission() {
 async function submitCommission() {
   const date = document.getElementById('commDate').value;
   if (!date) { alert('請選擇日期'); return; }
+  const customer_code = document.getElementById('commCustomerCode').value.trim();
   const rows = [...document.querySelectorAll('#commMembers .comm-member-row')];
   if (rows.length < 2) { alert('至少需要 2 名隊員'); return; }
   const members = [];
@@ -411,7 +414,7 @@ async function submitCommission() {
   const hb = await pingHeartbeat();
   if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
   try {
-    const res = await fetch(API + '/api/commission/records', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ record_date: date, members }) });
+    const res = await fetch(API + '/api/commission/records', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ record_date: date, customer_code, members }) });
     const data = await res.json();
     if (data.success) {
       document.getElementById('commMsg').innerHTML = '<span style="color:#27ae60">✅ 已提交！每人應得佣金 $' + data.record.per_person_commission + '（全隊總佣金 $' + data.record.total_commission + '）</span>';
@@ -420,6 +423,7 @@ async function submitCommission() {
       document.getElementById('commMembers').innerHTML = commMemberRowHtml() + commMemberRowHtml();
       updateCommAddBtn();
       recalcCommission();
+      document.getElementById('commCustomerCode').value = '';
     } else {
       alert(data.error || '提交失敗');
     }
@@ -432,10 +436,11 @@ async function loadCommissionHistory() {
     const res = await fetch(API + '/api/commission/records', { credentials: 'include' });
     const records = await res.json();
     if (!records.length) { tbl.innerHTML = '<p style="color:#888">你暫無記錄</p>'; return; }
-    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>隊員</th><th>全隊總額</th><th>全隊總佣金</th><th>每人應得</th><th>操作</th></tr></thead><tbody>';
+    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶編號</th><th>隊員</th><th>全隊總額</th><th>全隊總佣金</th><th>每人應得</th><th>操作</th></tr></thead><tbody>';
     for (const r of records) {
       const names = r.members.map(m => m.emp_name).join('、');
-      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${names}</td><td>$${r.total_amount}</td><td>$${r.total_commission}</td><td>$${r.per_person_commission}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyCommission(${r.id})">刪除</button></td></tr>`;
+      const cust = r.customer_code ? ('#' + r.customer_code) : '—';
+      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${cust}</td><td>${names}</td><td>$${r.total_amount}</td><td>$${r.total_commission}</td><td>$${r.per_person_commission}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyCommission(${r.id})">刪除</button></td></tr>`;
     }
     html += '</tbody></table>';
     tbl.innerHTML = html;
