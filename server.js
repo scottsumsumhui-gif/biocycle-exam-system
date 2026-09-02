@@ -22,6 +22,57 @@ const isVercel = !!process.env.VERCEL;
 let redis = null;
 let redisPing = 'unknown'; // unknown | ok | failed
 
+// Admin RBAC permissions. Each key maps to a feature area. is_super admins automatically have all.
+// When editing/adding admin features, just add a new key here and wrap endpoints with requirePermission().
+const ADMIN_PERMISSIONS = {
+  dashboard:   '看板 Dashboard',
+  employees:   '員工管理 Employees',
+  admin_mgmt:  '管理員權限 Admin Management',
+  exam_config: '考試配置 Exam Config',
+  results:     '成績查看 Results',
+  grading:     '問答評分 Essay Grading',
+  questions:   '題庫管理 Question Bank',
+  warehouse:   '倉存管理 Warehouse',
+  commission:  '渠網銷售佣金 Channel Commission',
+  leads:       '技術員銷售 Technician Leads'
+};
+const ALL_PERMISSION_KEYS = Object.keys(ADMIN_PERMISSIONS);
+
+// Migration: when an existing non-super admin has no `permissions` field, grant them all (so they aren't locked out).
+// 'admin_mgmt' is intentionally NOT included — only super admin manages permissions by default.
+async function migrateAdminPermissions() {
+  const admins = await loadJSON('admins.json', []);
+  let dirty = false;
+  for (const a of admins) {
+    if (a.is_super) continue;
+    if (!Array.isArray(a.permissions)) {
+      a.permissions = ALL_PERMISSION_KEYS.filter(k => k !== 'admin_mgmt');
+      dirty = true;
+    } else if (a.permissions.includes('admin_mgmt')) {
+      // Existing admins that somehow have admin_mgmt should not — strip it.
+      a.permissions = a.permissions.filter(p => p !== 'admin_mgmt');
+      dirty = true;
+    }
+  }
+  if (dirty) await saveJSON('admins.json', admins);
+}
+
+// Check if the logged-in admin has the given permission. Super admin always returns true.
+async function adminHasPermission(adminId, permKey) {
+  const admins = await loadJSON('admins.json', []);
+  const me = admins.find(a => a.id === adminId);
+  if (!me) return false;
+  if (me.is_super) return true;
+  return Array.isArray(me.permissions) && me.permissions.includes(permKey);
+}
+
+// Compute the effective permission list for an admin (super = all).
+function effectivePermissions(admin) {
+  if (!admin) return [];
+  if (admin.is_super) return ALL_PERMISSION_KEYS.slice();
+  return Array.isArray(admin.permissions) ? admin.permissions : [];
+}
+
 // Try to connect to Upstash Redis if env vars are set (works on Vercel, Railway, etc.)
 if (process.env.UPSTASH_REDIS_REST_URL) {
   try {
@@ -184,6 +235,23 @@ function authRequired(userType) {
   };
 }
 
+// Permission gate: use after authRequired('admin'). 403 if missing.
+function requirePermission(permKey) {
+  return async (req, res, next) => {
+    try {
+      const admins = await loadJSON('admins.json', []);
+      const me = admins.find(a => a.id === req.session.user_id);
+      if (!me) return res.status(401).json({ success: false, error: 'Session invalid' });
+      if (me.is_super) return next();
+      const perms = Array.isArray(me.permissions) ? me.permissions : [];
+      if (!perms.includes(permKey)) return res.status(403).json({ success: false, error: '權限不足: ' + (ADMIN_PERMISSIONS[permKey] || permKey) });
+      next();
+    } catch (e) {
+      res.status(500).json({ success: false, error: '權限檢查失敗' });
+    }
+  };
+}
+
 // ===== AUTH ROUTES =====
 
 app.post('/api/auth/employee-login', async (req, res) => {
@@ -232,7 +300,16 @@ app.post('/api/auth/admin-login', async (req, res) => {
   await saveJSON('sessions.json', sessions);
 
   res.cookie('session_id', sessionId, { maxAge: ADMIN_SESSION_TTL_MS, httpOnly: true });
-  res.json({ success: true, admin: { id: admin.id, username: admin.username, displayName: admin.display_name, isSuper: admin.is_super } });
+  res.json({
+    success: true,
+    admin: {
+      id: admin.id,
+      username: admin.username,
+      displayName: admin.display_name,
+      isSuper: admin.is_super,
+      permissions: effectivePermissions(admin)
+    }
+  });
 });
 
 app.post('/api/auth/change-password', authRequired('employee'), async (req, res) => {
@@ -290,7 +367,7 @@ app.get('/api/auth/check', async (req, res) => {
   } else {
     const admins = await loadJSON('admins.json', []);
     const adm = admins.find(a => a.id === session.user_id);
-    if (adm) userInfo = { username: adm.username, displayName: adm.display_name, isSuper: adm.is_super };
+    if (adm) userInfo = { username: adm.username, displayName: adm.display_name, isSuper: adm.is_super, permissions: effectivePermissions(adm) };
   }
 
   res.json({ authenticated: true, userType: session.user_type, user: userInfo });
@@ -637,13 +714,13 @@ app.get('/api/admin/dashboard', authRequired('admin'), async (req, res) => {
   });
 });
 
-app.get('/api/admin/employees', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/employees', authRequired('admin'), requirePermission('employees'), async (req, res) => {
   const employees = await loadJSON('employees.json', []);
   employees.sort((a, b) => a.emp_number.localeCompare(b.emp_number));
   res.json({ success: true, employees });
 });
 
-app.post('/api/admin/employees', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/employees', authRequired('admin'), requirePermission('employees'), async (req, res) => {
   const { empNumber, name, level, group, password } = req.body;
   if (!empNumber || !name) return res.json({ success: false, error: '員工編號及姓名必填' });
 
@@ -664,7 +741,7 @@ app.post('/api/admin/employees', authRequired('admin'), async (req, res) => {
   res.json({ success: true });
 });
 
-app.put('/api/admin/employees/:id', authRequired('admin'), async (req, res) => {
+app.put('/api/admin/employees/:id', authRequired('admin'), requirePermission('employees'), async (req, res) => {
   const { empNumber, name, level, group, password } = req.body;
   const eid = parseInt(req.params.id);
   const employees = await loadJSON('employees.json', []);
@@ -682,7 +759,7 @@ app.put('/api/admin/employees/:id', authRequired('admin'), async (req, res) => {
   res.json({ success: true });
 });
 
-app.delete('/api/admin/employees/:id', authRequired('admin'), async (req, res) => {
+app.delete('/api/admin/employees/:id', authRequired('admin'), requirePermission('employees'), async (req, res) => {
   const eid = parseInt(req.params.id);
   let employees = await loadJSON('employees.json', []);
   employees = employees.filter(e => e.id !== eid);
@@ -690,7 +767,7 @@ app.delete('/api/admin/employees/:id', authRequired('admin'), async (req, res) =
   res.json({ success: true });
 });
 
-app.post('/api/admin/reset-password/:id', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/reset-password/:id', authRequired('admin'), requirePermission('employees'), async (req, res) => {
   const { newPassword } = req.body;
   const eid = parseInt(req.params.id);
   const employees = await loadJSON('employees.json', []);
@@ -702,28 +779,39 @@ app.post('/api/admin/reset-password/:id', authRequired('admin'), async (req, res
   res.json({ success: true });
 });
 
-app.get('/api/admin/admins', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/admins', authRequired('admin'), requirePermission('admin_mgmt'), async (req, res) => {
   const admins = await loadJSON('admins.json', []);
-  res.json({ success: true, admins: admins.map(({ password_hash: _, ...rest }) => rest) });
+  const list = admins.map(a => ({
+    id: a.id, username: a.username, display_name: a.display_name,
+    is_super: a.is_super, created_at: a.created_at,
+    permissions: effectivePermissions(a)
+  }));
+  res.json({ success: true, admins: list, allPermissions: ADMIN_PERMISSIONS });
 });
 
-app.post('/api/admin/admins', authRequired('admin'), async (req, res) => {
-  const { username, password, displayName } = req.body;
+app.post('/api/admin/admins', authRequired('admin'), requirePermission('admin_mgmt'), async (req, res) => {
+  const { username, password, displayName, permissions } = req.body;
   if (!username || !password) return res.json({ success: false, error: '用戶名及密碼必填' });
 
   const admins = await loadJSON('admins.json', []);
   if (admins.find(a => a.username === username)) return res.json({ success: false, error: '用戶名已存在' });
 
   const nextId = admins.length > 0 ? Math.max(...admins.map(a => a.id)) + 1 : 1;
+  // Filter out admin_mgmt — only super admin manages permissions by default.
+  const grantedPerms = Array.isArray(permissions)
+    ? permissions.filter(p => ALL_PERMISSION_KEYS.includes(p) && p !== 'admin_mgmt')
+    : [];
   admins.push({
     id: nextId, username, password_hash: bcrypt.hashSync(password, 10),
-    display_name: displayName || username, is_super: 0, created_at: nowStr()
+    display_name: displayName || username, is_super: 0,
+    permissions: grantedPerms,
+    created_at: nowStr()
   });
   await saveJSON('admins.json', admins);
-  res.json({ success: true });
+  res.json({ success: true, id: nextId, admin: { id: nextId, username, displayName: displayName || username, is_super: 0, permissions: grantedPerms } });
 });
 
-app.delete('/api/admin/admins/:id', authRequired('admin'), async (req, res) => {
+app.delete('/api/admin/admins/:id', authRequired('admin'), requirePermission('admin_mgmt'), async (req, res) => {
   const aid = parseInt(req.params.id);
   const admins = await loadJSON('admins.json', []);
   const admin = admins.find(a => a.id === aid);
@@ -731,6 +819,23 @@ app.delete('/api/admin/admins/:id', authRequired('admin'), async (req, res) => {
 
   await saveJSON('admins.json', admins.filter(a => a.id !== aid));
   res.json({ success: true });
+});
+
+app.put('/api/admin/admins/:id/permissions', authRequired('admin'), requirePermission('admin_mgmt'), async (req, res) => {
+  try {
+    const aid = parseInt(req.params.id);
+    const { permissions } = req.body || {};
+    if (!Array.isArray(permissions)) return res.json({ success: false, error: 'permissions 必須為陣列' });
+    const admins = await loadJSON('admins.json', []);
+    const idx = admins.findIndex(a => a.id === aid);
+    if (idx < 0) return res.json({ success: false, error: '管理員不存在' });
+    if (admins[idx].is_super) return res.json({ success: false, error: '超級管理員權限不可修改' });
+    admins[idx].permissions = permissions.filter(p => ALL_PERMISSION_KEYS.includes(p) && p !== 'admin_mgmt');
+    await saveJSON('admins.json', admins);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '修改失敗' });
+  }
 });
 
 app.put('/api/admin/admins/:id/password', authRequired('admin'), async (req, res) => {
@@ -742,7 +847,13 @@ app.put('/api/admin/admins/:id/password', authRequired('admin'), async (req, res
     const admins = await loadJSON('admins.json', []);
     const me = admins.find(a => a.id === current);
     if (!me) return res.status(401).json({ success: false, error: 'Session invalid' });
-    if (aid !== current && !me.is_super) return res.json({ success: false, error: '只有超級管理員可以更改他人密碼' });
+    if (aid !== current) {
+      // Need admin_mgmt permission to change others' passwords (super bypasses via is_super)
+      if (!me.is_super) {
+        const perms = Array.isArray(me.permissions) ? me.permissions : [];
+        if (!perms.includes('admin_mgmt')) return res.json({ success: false, error: '權限不足: 管理員權限' });
+      }
+    }
     const idx = admins.findIndex(a => a.id === aid);
     if (idx < 0) return res.json({ success: false, error: '管理員不存在' });
     admins[idx].password_hash = bcrypt.hashSync(newPassword, 10);
@@ -753,7 +864,7 @@ app.put('/api/admin/admins/:id/password', authRequired('admin'), async (req, res
   }
 });
 
-app.get('/api/admin/exam-config', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/exam-config', authRequired('admin'), requirePermission('exam_config'), async (req, res) => {
   const configs = await loadJSON('exam_config.json', []);
   const topics = await loadJSON('topics.json', []);
 
@@ -765,7 +876,7 @@ app.get('/api/admin/exam-config', authRequired('admin'), async (req, res) => {
   res.json({ success: true, configs: enriched });
 });
 
-app.post('/api/admin/exam-config', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/exam-config', authRequired('admin'), requirePermission('exam_config'), async (req, res) => {
   const topicId = parseInt(req.body.topicId);
   const month = parseInt(req.body.month);
   const year = parseInt(req.body.year);
@@ -784,7 +895,7 @@ app.post('/api/admin/exam-config', authRequired('admin'), async (req, res) => {
   res.json({ success: true });
 });
 
-app.put('/api/admin/exam-config/:id', authRequired('admin'), async (req, res) => {
+app.put('/api/admin/exam-config/:id', authRequired('admin'), requirePermission('exam_config'), async (req, res) => {
   const { isActive, startDate, endDate, groups } = req.body;
   const cid = parseInt(req.params.id);
   const configs = await loadJSON('exam_config.json', []);
@@ -799,7 +910,7 @@ app.put('/api/admin/exam-config/:id', authRequired('admin'), async (req, res) =>
   res.json({ success: true });
 });
 
-app.delete('/api/admin/exam-config/:id', authRequired('admin'), async (req, res) => {
+app.delete('/api/admin/exam-config/:id', authRequired('admin'), requirePermission('exam_config'), async (req, res) => {
   const cid = parseInt(req.params.id);
   if (isNaN(cid)) return res.status(400).json({ success: false, error: '無效的配置ID' });
 
@@ -825,7 +936,7 @@ app.delete('/api/admin/exam-config/:id', authRequired('admin'), async (req, res)
   });
 });
 
-app.get('/api/admin/results', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/results', authRequired('admin'), requirePermission('results'), async (req, res) => {
   const { month, year, level, topicId } = req.query;
 
   let results = await loadJSON('exam_results.json', []);
@@ -848,7 +959,7 @@ app.get('/api/admin/results', authRequired('admin'), async (req, res) => {
   res.json({ success: true, results });
 });
 
-app.get('/api/admin/essay-answers/:resultId', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/essay-answers/:resultId', authRequired('admin'), requirePermission('grading'), async (req, res) => {
   const rid = parseInt(req.params.resultId);
   const answers = (await loadJSON('essay_answers.json', [])).filter(a => a.result_id === rid);
   const results = await loadJSON('exam_results.json', []);
@@ -863,7 +974,7 @@ app.get('/api/admin/essay-answers/:resultId', authRequired('admin'), async (req,
   res.json({ success: true, result, answers });
 });
 
-app.post('/api/admin/grade-essay/:resultId', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/grade-essay/:resultId', authRequired('admin'), requirePermission('grading'), async (req, res) => {
   const { scores } = req.body;
   const rid = parseInt(req.params.resultId);
 
@@ -915,7 +1026,7 @@ app.post('/api/admin/grade-essay/:resultId', authRequired('admin'), async (req, 
   res.json({ success: true, totalPassed, totalScore, essayScore: Math.round(essayPassPercent), mcPassed });
 });
 
-app.delete('/api/admin/results/:id', authRequired('admin'), async (req, res) => {
+app.delete('/api/admin/results/:id', authRequired('admin'), requirePermission('results'), async (req, res) => {
   const rid = parseInt(req.params.id);
   if (isNaN(rid)) return res.status(400).json({ success:false, error:'無效的記錄ID' });
 
@@ -944,7 +1055,7 @@ app.delete('/api/admin/results/:id', authRequired('admin'), async (req, res) => 
   res.json({ success:true, message:`已刪除 ${empLabel} 嘅成績記錄`, deletedAnswers: beforeAns - answers.length });
 });
 
-app.get('/api/admin/export-csv', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/export-csv', authRequired('admin'), requirePermission('results'), async (req, res) => {
   const { month, year } = req.query;
   const m = month ? parseInt(month) : new Date().getMonth() + 1;
   const y = year ? parseInt(year) : new Date().getFullYear();
@@ -973,7 +1084,7 @@ app.get('/api/admin/export-csv', authRequired('admin'), async (req, res) => {
 
 // ====== QUESTION BANK MANAGEMENT ======
 
-app.get('/api/admin/questions/:topicId', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/questions/:topicId', authRequired('admin'), requirePermission('questions'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   if (isNaN(tid) || tid < 1) return res.status(400).json({ success: false, error: '無效主題 ID' });
 
@@ -989,7 +1100,7 @@ app.get('/api/admin/questions/:topicId', authRequired('admin'), async (req, res)
 });
 
 // Re-seed question bank from local files into Redis (or overwrite file storage)
-app.post('/api/admin/questions/reseed', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/questions/reseed', authRequired('admin'), requirePermission('questions'), async (req, res) => {
   try {
     const results = [];
     for (const tid of [1, 2, 3, 4, 5, 7, 8]) {
@@ -1008,7 +1119,7 @@ app.post('/api/admin/questions/reseed', authRequired('admin'), async (req, res) 
   }
 });
 
-app.post('/api/admin/questions/mc/:topicId', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/questions/mc/:topicId', authRequired('admin'), requirePermission('questions'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const { question, options, answer } = req.body;
   
@@ -1030,7 +1141,7 @@ app.post('/api/admin/questions/mc/:topicId', authRequired('admin'), async (req, 
   }
 });
 
-app.put('/api/admin/questions/mc/:topicId/:qIndex', authRequired('admin'), async (req, res) => {
+app.put('/api/admin/questions/mc/:topicId/:qIndex', authRequired('admin'), requirePermission('questions'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const qIdx = parseInt(req.params.qIndex);
   const { question, options, answer } = req.body;
@@ -1049,7 +1160,7 @@ app.put('/api/admin/questions/mc/:topicId/:qIndex', authRequired('admin'), async
   }
 });
 
-app.delete('/api/admin/questions/mc/:topicId/:qIndex', authRequired('admin'), async (req, res) => {
+app.delete('/api/admin/questions/mc/:topicId/:qIndex', authRequired('admin'), requirePermission('questions'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const qIdx = parseInt(req.params.qIndex);
   
@@ -1067,7 +1178,7 @@ app.delete('/api/admin/questions/mc/:topicId/:qIndex', authRequired('admin'), as
   }
 });
 
-app.post('/api/admin/questions/essay/:topicId', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/questions/essay/:topicId', authRequired('admin'), requirePermission('questions'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const { question, maxScore } = req.body;
   
@@ -1086,7 +1197,7 @@ app.post('/api/admin/questions/essay/:topicId', authRequired('admin'), async (re
   }
 });
 
-app.put('/api/admin/questions/essay/:topicId/:qIndex', authRequired('admin'), async (req, res) => {
+app.put('/api/admin/questions/essay/:topicId/:qIndex', authRequired('admin'), requirePermission('questions'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const qIdx = parseInt(req.params.qIndex);
   const { question, maxScore } = req.body;
@@ -1105,7 +1216,7 @@ app.put('/api/admin/questions/essay/:topicId/:qIndex', authRequired('admin'), as
   }
 });
 
-app.delete('/api/admin/questions/essay/:topicId/:qIndex', authRequired('admin'), async (req, res) => {
+app.delete('/api/admin/questions/essay/:topicId/:qIndex', authRequired('admin'), requirePermission('questions'), async (req, res) => {
   const tid = parseInt(req.params.topicId);
   const qIdx = parseInt(req.params.qIndex);
   
@@ -1271,12 +1382,12 @@ app.delete('/api/warehouse/transactions/:id', authRequired('employee'), async (r
 });
 
 // ===== ADMIN WAREHOUSE ROUTES =====
-app.get('/api/admin/warehouse/items', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/warehouse/items', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   res.json(await loadJSON(WH_ITEMS, []));
 });
 
 // Admin: add item with optional initial stock (auto in-transaction)
-app.post('/api/admin/warehouse/items', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/warehouse/items', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   try {
     const { name, unit, category, initial_qty } = req.body || {};
     if (!name || !name.trim()) return res.status(400).json({ error: '請填寫物資名稱' });
@@ -1326,7 +1437,7 @@ app.post('/api/admin/warehouse/items', authRequired('admin'), async (req, res) =
 });
 
 // Admin: edit item (name/unit/category), sync existing transactions
-app.put('/api/admin/warehouse/items/:id', authRequired('admin'), async (req, res) => {
+app.put('/api/admin/warehouse/items/:id', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { name, unit, category } = req.body || {};
@@ -1355,7 +1466,7 @@ app.put('/api/admin/warehouse/items/:id', authRequired('admin'), async (req, res
   }
 });
 
-app.delete('/api/admin/warehouse/items/:id', authRequired('admin'), async (req, res) => {
+app.delete('/api/admin/warehouse/items/:id', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const items = await loadJSON(WH_ITEMS, []);
@@ -1370,7 +1481,7 @@ app.delete('/api/admin/warehouse/items/:id', authRequired('admin'), async (req, 
 });
 
 // Admin: reindex item IDs to be continuous (1,2,3...) and remap related transactions
-app.post('/api/admin/warehouse/reindex', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/warehouse/reindex', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   try {
     const items = await loadJSON(WH_ITEMS, []);
     const sorted = items.slice().sort((a, b) => a.id - b.id);
@@ -1398,7 +1509,7 @@ app.post('/api/admin/warehouse/reindex', authRequired('admin'), async (req, res)
 });
 
 // Admin: directly set stock -> auto in/out adjust transaction
-app.post('/api/admin/warehouse/adjust', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/warehouse/adjust', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   try {
     const { item_id, new_balance } = req.body || {};
     const item = (await loadJSON(WH_ITEMS, [])).find(i => i.id === Number(item_id));
@@ -1438,7 +1549,7 @@ app.post('/api/admin/warehouse/adjust', authRequired('admin'), async (req, res) 
 });
 
 // Admin: delete a single transaction (stock recomputes automatically)
-app.delete('/api/admin/warehouse/transactions/:id', authRequired('admin'), async (req, res) => {
+app.delete('/api/admin/warehouse/transactions/:id', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const tx = await loadJSON(WH_TX, []);
@@ -1451,15 +1562,15 @@ app.delete('/api/admin/warehouse/transactions/:id', authRequired('admin'), async
   }
 });
 
-app.get('/api/admin/warehouse/transactions', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/warehouse/transactions', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   res.json((await loadJSON(WH_TX, [])).sort((a, b) => b.id - a.id));
 });
 
-app.get('/api/admin/warehouse/stock', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/warehouse/stock', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   res.json(await computeStock());
 });
 
-app.get('/api/admin/warehouse/export', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/warehouse/export', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   try {
     const tx = await loadJSON(WH_TX, []);
     const items = await loadJSON(WH_ITEMS, []);
@@ -1592,7 +1703,7 @@ app.delete('/api/tech-leads/records/:id', authRequired('employee'), async (req, 
 });
 
 // Admin: list all lead records (with year/month filter)
-app.get('/api/admin/tech-leads/records', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/tech-leads/records', authRequired('admin'), requirePermission('leads'), async (req, res) => {
   const { month, year } = req.query;
   let records = await loadJSON(LEAD_FILE, []);
   if (month) records = records.filter(r => (r.record_date || '').startsWith(`${year || new Date().getFullYear()}-${String(month).padStart(2, '0')}`));
@@ -1601,7 +1712,7 @@ app.get('/api/admin/tech-leads/records', authRequired('admin'), async (req, res)
 });
 
 // Admin: delete any lead record
-app.delete('/api/admin/tech-leads/records/:id', authRequired('admin'), async (req, res) => {
+app.delete('/api/admin/tech-leads/records/:id', authRequired('admin'), requirePermission('leads'), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const records = await loadJSON(LEAD_FILE, []);
@@ -1616,7 +1727,7 @@ app.delete('/api/admin/tech-leads/records/:id', authRequired('admin'), async (re
 });
 
 // Admin: export leads to Excel (single sheet)
-app.get('/api/admin/tech-leads/export', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/tech-leads/export', authRequired('admin'), requirePermission('leads'), async (req, res) => {
   try {
     const { month, year } = req.query;
     const y = year ? parseInt(year) : new Date().getFullYear();
@@ -1748,7 +1859,7 @@ app.delete('/api/commission/records/:id', authRequired('employee'), async (req, 
 });
 
 // ===== ADMIN COMMISSION ROUTES =====
-app.get('/api/admin/commission/records', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/commission/records', authRequired('admin'), requirePermission('commission'), async (req, res) => {
   const { month, year } = req.query;
   let records = await loadJSON(COMM_FILE, []);
   if (month) records = records.filter(r => (r.record_date || '').startsWith(`${year || new Date().getFullYear()}-${String(month).padStart(2, '0')}`));
@@ -1756,7 +1867,7 @@ app.get('/api/admin/commission/records', authRequired('admin'), async (req, res)
   res.json(records.sort((a, b) => b.id - a.id));
 });
 
-app.delete('/api/admin/commission/records/:id', authRequired('admin'), async (req, res) => {
+app.delete('/api/admin/commission/records/:id', authRequired('admin'), requirePermission('commission'), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const records = await loadJSON(COMM_FILE, []);
@@ -1771,7 +1882,7 @@ app.delete('/api/admin/commission/records/:id', authRequired('admin'), async (re
 });
 
 // Monthly report: per-employee accumulated commission
-app.get('/api/admin/commission/report', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/commission/report', authRequired('admin'), requirePermission('commission'), async (req, res) => {
   const { month, year } = req.query;
   const y = year ? parseInt(year) : new Date().getFullYear();
   const m = month ? String(month).padStart(2, '0') : null;
@@ -1800,7 +1911,7 @@ app.get('/api/admin/commission/report', authRequired('admin'), async (req, res) 
 });
 
 // Export to Excel
-app.get('/api/admin/commission/export', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/commission/export', authRequired('admin'), requirePermission('commission'), async (req, res) => {
   try {
     const { month, year } = req.query;
     const y = year ? parseInt(year) : new Date().getFullYear();
@@ -1848,12 +1959,12 @@ app.get('/api/warehouse/vehicles', authRequired('employee'), async (req, res) =>
 });
 
 // Admin: list vehicles
-app.get('/api/admin/warehouse/vehicles', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/warehouse/vehicles', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   res.json(await ensureDefaultVehicles());
 });
 
 // Admin: add vehicle
-app.post('/api/admin/warehouse/vehicles', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/warehouse/vehicles', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   try {
     const { code } = req.body || {};
     if (!code || !code.trim()) return res.status(400).json({ error: '請填寫車號' });
@@ -1870,7 +1981,7 @@ app.post('/api/admin/warehouse/vehicles', authRequired('admin'), async (req, res
 });
 
 // Admin: rename vehicle
-app.put('/api/admin/warehouse/vehicles/:id', authRequired('admin'), async (req, res) => {
+app.put('/api/admin/warehouse/vehicles/:id', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { code } = req.body || {};
@@ -1889,7 +2000,7 @@ app.put('/api/admin/warehouse/vehicles/:id', authRequired('admin'), async (req, 
 });
 
 // Admin: delete vehicle
-app.delete('/api/admin/warehouse/vehicles/:id', authRequired('admin'), async (req, res) => {
+app.delete('/api/admin/warehouse/vehicles/:id', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const vehicles = await ensureDefaultVehicles();
@@ -1908,10 +2019,15 @@ app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'adm
 // Export for Vercel serverless
 module.exports = app;
 
+// Migration: grant all permissions to existing non-super admins that lack the field.
+(async () => {
+  try { await migrateAdminPermissions(); } catch (e) { console.error('migrateAdminPermissions error:', e.message); }
+})();
+
 // Start server locally only (not on Vercel)
 if (!isVercel) {
   app.listen(PORT, () => {
-    console.log(`BIOYCLE Exam System running on http://localhost:${PORT}`);
+    console.log(`BIOCYCLE Exam System running on http://localhost:${PORT}`);
     console.log(`Admin panel: http://localhost:${PORT}/admin`);
     console.log(`Employee exam: http://localhost:${PORT}`);
   });

@@ -11,9 +11,9 @@
 <!-- ADMIN LOGIN -->
 <div id="adminLogin" class="screen">
   <div class="center-card">
-    <div class="logo"><img src="img/biocycle-logo.png" alt="BIOCYCLE 生機源(香港)有限公司"> Admin</div>
-    <h1>管理員登入</h1>
-    <h2>Admin Login</h2>
+    <div class="logo"><img src="img/biocycle-logo.png" alt="BIOCYCLE 生機源(香港)有限公司"></div>
+    <h1>BIOCYCLE 技術員平台</h1>
+    <h2>BIOCYCLE OPERATION SYSTEM</h2>
     <div class="form-group">
       <label>用戶名 Username</label>
       <input type="text" id="adminUser" placeholder="ST140">
@@ -32,7 +32,7 @@
   <header class="admin-header">
     <div class="header-left">
       <span class="logo-sm"><img src="img/biocycle-logo.png" alt="BIOCYCLE"></span>
-      <span>考試管理系統</span>
+      <span class="header-title-text">BIOCYCLE 技術員平台 / OPERATION SYSTEM</span>
     </div>
     <div class="header-right">
       <span id="adminNameDisplay"></span>
@@ -41,15 +41,15 @@
   </header>
   
   <nav class="admin-nav">
-    <button class="nav-btn active" onclick="showTab('dashboard')" id="tabDashboard">&#128202; Dashboard</button>
-    <button class="nav-btn" onclick="showTab('employees')" id="tabEmployees">&#128101; 員工管理</button>
-    <button class="nav-btn" onclick="showTab('admins')" id="tabAdmins">&#128272; 管理員</button>
-    <button class="nav-btn" onclick="showTab('examConfig')" id="tabExamConfig">&#128197; 考試配置</button>
-    <button class="nav-btn" onclick="showTab('results')" id="tabResults">&#128203; 成績查看</button>
-    <button class="nav-btn" onclick="showTab('grading')" id="tabGrading">&#128221; 問答評分</button>
-    <button class="nav-btn" onclick="showTab('questionBank')" id="tabQuestionBank">&#128218; 題庫管理</button>
-    <button class="nav-btn" onclick="showTab('warehouse')" id="tabWarehouse">&#128230; 倉存管理</button>
-    <button class="nav-btn" onclick="showTab('commission')" id="tabCommission">&#128176; 技術員銷售佣金</button>
+    <button class="nav-btn active" data-tab="dashboard" onclick="showTab('dashboard')" id="tabDashboard">&#128202; Dashboard</button>
+    <button class="nav-btn" data-tab="employees" onclick="showTab('employees')" id="tabEmployees">&#128101; 員工管理</button>
+    <button class="nav-btn" data-tab="admins" onclick="showTab('admins')" id="tabAdmins">&#128272; 管理員</button>
+    <button class="nav-btn" data-tab="examConfig" onclick="showTab('examConfig')" id="tabExamConfig">&#128197; 考試配置</button>
+    <button class="nav-btn" data-tab="results" onclick="showTab('results')" id="tabResults">&#128203; 成績查看</button>
+    <button class="nav-btn" data-tab="grading" onclick="showTab('grading')" id="tabGrading">&#128221; 問答評分</button>
+    <button class="nav-btn" data-tab="questionBank" onclick="showTab('questionBank')" id="tabQuestionBank">&#128218; 題庫管理</button>
+    <button class="nav-btn" data-tab="warehouse" onclick="showTab('warehouse')" id="tabWarehouse">&#128230; 倉存管理</button>
+    <button class="nav-btn" data-tab="commission" onclick="showTab('commission')" id="tabCommission">&#128176; 技術員銷售佣金</button>
   </nav>
   
   <main class="admin-body" id="adminBody"></main>
@@ -90,6 +90,7 @@ async function adminLogin() {
     if (data.success) {
       adminData = data.admin;
       document.getElementById('adminNameDisplay').textContent = adminData.displayName;
+      applyNavPermissions();
       showScreen('adminPanel');
       showTab('dashboard');
     } else {
@@ -102,6 +103,33 @@ async function adminLogout() {
   await fetch(API + '/api/auth/logout', {method:'POST', credentials:'include'});
   adminData = null;
   showScreen('adminLogin');
+}
+
+// Hide nav tabs the current admin has no permission to access.
+// Tabs map to permission keys (same names as ADMIN_PERMISSIONS in server.js).
+const TAB_PERMISSION_MAP = {
+  dashboard: 'dashboard',
+  employees: 'employees',
+  admins: 'admin_mgmt',
+  examConfig: 'exam_config',
+  results: 'results',
+  grading: 'grading',
+  questionBank: 'questions',
+  warehouse: 'warehouse',
+  commission: 'commission'
+};
+function hasPerm(key) {
+  if (!adminData) return false;
+  if (adminData.isSuper) return true;
+  return Array.isArray(adminData.permissions) && adminData.permissions.includes(key);
+}
+function applyNavPermissions() {
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    const tab = b.dataset.tab;
+    const need = TAB_PERMISSION_MAP[tab];
+    if (!need) return;
+    b.style.display = hasPerm(need) ? '' : 'none';
+  });
 }
 
 function showTab(tab) {
@@ -773,28 +801,100 @@ async function deleteEmployee(id, name) {
 // ===== ADMINS =====
 async function loadAdmins() {
   const res = await fetch(API + '/api/admin/admins', {credentials:'include'});
+  if (res.status === 403) {
+    document.getElementById('adminBody').innerHTML = '<div class="error-msg">🔒 你沒有「管理員權限」管理權限，無法查看此頁面。</div>';
+    return;
+  }
   const data = await res.json();
-  
+  const allPerms = data.allPermissions || {};
+  const permKeys = Object.keys(allPerms);
+
   let html = `<div class="section-card">`;
   html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">`;
   html += `<h3>&#128272; 管理員管理</h3>`;
   html += `<button class="btn btn-sm btn-primary" onclick="showAddAdmin()">+ 新增管理員</button>`;
   html += `</div>`;
-  html += `<table class="data-table"><thead><tr><th>用戶名</th><th>顯示名</th><th>類型</th><th>創建時間</th><th>操作</th></tr></thead><tbody>`;
+  html += `<p style="color:#888; font-size:13px; margin-bottom:12px">超級管理員自動有全部權限；其他管理員可由超級管理員逐個啟用/關閉下方權限。</p>`;
+  html += `<table class="data-table"><thead><tr><th>用戶名</th><th>顯示名</th><th>類型</th><th>權限</th><th>創建時間</th><th>操作</th></tr></thead><tbody>`;
   for (const a of data.admins) {
-    const canManage = adminData && (adminData.is_super || adminData.id === a.id);
-    let ops = `<button class="btn btn-xs btn-outline" onclick="showChangeAdminPw(${a.id},'${a.username}')">修改密碼</button>`;
-    if (!a.is_super) ops += ` <button class="btn btn-xs btn-danger" onclick="deleteAdmin(${a.id},'${a.username}')">刪除</button>`;
-    html += `<tr><td>${a.username}</td><td>${a.display_name}</td><td>${a.is_super?'超級管理員':'管理員'}</td><td>${a.created_at}</td>`;
-    html += `<td>${canManage ? ops : '-'}</td></tr>`;
+    const canManage = adminData && adminData.isSuper;
+    let permChips = '';
+    if (a.is_super) {
+      permChips = '<span style="color:#27ae60; font-weight:600">全部權限 (Super)</span>';
+    } else {
+      const ps = Array.isArray(a.permissions) ? a.permissions : [];
+      permChips = ps.length === 0
+        ? '<span style="color:#888">無</span>'
+        : ps.map(p => `<span class="perm-chip">${allPerms[p] || p}</span>`).join(' ');
+    }
+    let ops = '';
+    if (canManage) {
+      if (!a.is_super) ops += `<button class="btn btn-xs btn-primary" onclick="showEditPermissions(${a.id},'${a.username.replace(/'/g, "\\'")}')">權限</button> `;
+      ops += `<button class="btn btn-xs btn-outline" onclick="showChangeAdminPw(${a.id},'${a.username.replace(/'/g, "\\'")}')">修改密碼</button>`;
+      if (!a.is_super) ops += ` <button class="btn btn-xs btn-danger" onclick="deleteAdmin(${a.id},'${a.username.replace(/'/g, "\\'")}')">刪除</button>`;
+    } else {
+      ops = '-';
+    }
+    html += `<tr><td>${a.username}</td><td>${a.display_name}</td><td>${a.is_super?'超級管理員':'管理員'}</td><td>${permChips}</td><td>${a.created_at}</td>`;
+    html += `<td>${ops}</td></tr>`;
   }
   html += `</tbody></table></div>`;
-  
+
   html += `<div id="adminForm" style="display:none"></div>`;
   document.getElementById('adminBody').innerHTML = html;
 }
 
+// Edit permissions for a non-super admin. Super admin only.
+function showEditPermissions(id, username) {
+  const res = fetch(API + '/api/admin/admins', {credentials:'include'})
+    .then(r => r.json()).then(data => {
+      const target = data.admins.find(a => a.id === id);
+      if (!target) { alert('找不到管理員'); return; }
+      const allPerms = data.allPermissions || {};
+      const current = new Set(Array.isArray(target.permissions) ? target.permissions : []);
+      const form = document.getElementById('adminForm');
+      form.style.display = 'block';
+      let checks = '';
+      for (const k of Object.keys(allPerms)) {
+        const isOn = current.has(k);
+        checks += `<label style="display:inline-flex; align-items:center; margin:6px 16px 6px 0; cursor:pointer">
+          <input type="checkbox" data-perm="${k}" ${isOn ? 'checked' : ''} style="margin-right:6px"> ${allPerms[k]}
+        </label>`;
+      }
+      form.innerHTML = `
+        <div class="section-card">
+        <h3>權限設定：${username}</h3>
+        <p style="color:#888; font-size:13px">剔選要授予此管理員嘅權限。</p>
+        <div style="display:flex; flex-wrap:wrap; margin:12px 0">${checks}</div>
+        <div style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="toggleAllPerms(true)">全部啟用</button> <button class="btn btn-outline btn-sm" onclick="toggleAllPerms(false)">全部關閉</button></div>
+        <div style="margin-top:16px"><button class="btn btn-primary" onclick="savePermissions(${id})">儲存</button> <button class="btn btn-outline" onclick="document.getElementById('adminForm').style.display='none'">取消</button></div>
+        </div>`;
+      form.scrollIntoView({ behavior: 'smooth' });
+    });
+}
+
+function toggleAllPerms(on) {
+  document.querySelectorAll('#adminForm input[data-perm]').forEach(cb => cb.checked = on);
+}
+
+async function savePermissions(id) {
+  const perms = [...document.querySelectorAll('#adminForm input[data-perm]:checked')].map(cb => cb.dataset.perm);
+  const res = await fetch(API + `/api/admin/admins/${id}/permissions`, {
+    method:'PUT', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({ permissions: perms })
+  });
+  const data = await res.json();
+  if (data.success) {
+    alert('權限已儲存');
+    document.getElementById('adminForm').style.display = 'none';
+    loadAdmins();
+  } else {
+    alert(data.error || '儲存失敗');
+  }
+}
+
 function showAddAdmin() {
+  if (!adminData || !adminData.isSuper) { alert('只有超級管理員可以新增管理員'); return; }
   const form = document.getElementById('adminForm');
   form.style.display = 'block';
   form.innerHTML = `
@@ -804,6 +904,7 @@ function showAddAdmin() {
       <div class="form-group"><label>密碼</label><input type="password" id="newAdminPw"></div>
       <div class="form-group"><label>顯示名</label><input id="newAdminDisp"></div>
     </div>
+    <p style="color:#888; font-size:13px">新增後可到該管理員嘅「權限」欄位設定可訪問嘅功能。</p>
     <button class="btn btn-primary" onclick="addAdmin()">確認</button>
     <button class="btn btn-outline" onclick="document.getElementById('adminForm').style.display='none'">取消</button>
     </div>`;
@@ -823,12 +924,16 @@ async function addAdmin() {
 }
 
 async function deleteAdmin(id, username) {
+  if (!adminData || !adminData.isSuper) { alert('只有超級管理員可以刪除管理員'); return; }
   if (!confirm(`確定刪除管理員 ${username}?`)) return;
   await fetch(API + `/api/admin/admins/${id}`, {method:'DELETE', credentials:'include'});
   loadAdmins();
 }
 
 function showChangeAdminPw(id, username) {
+  // Self or super only
+  const isSelf = adminData && adminData.id === id;
+  if (!isSelf && !(adminData && adminData.isSuper)) { alert('權限不足'); return; }
   const form = document.getElementById('adminForm');
   form.style.display = 'block';
   form.innerHTML = `
