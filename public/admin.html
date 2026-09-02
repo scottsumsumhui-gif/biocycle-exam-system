@@ -49,7 +49,7 @@
     <button class="nav-btn" data-tab="grading" onclick="showTab('grading')" id="tabGrading">&#128221; 問答評分</button>
     <button class="nav-btn" data-tab="questionBank" onclick="showTab('questionBank')" id="tabQuestionBank">&#128218; 題庫管理</button>
     <button class="nav-btn" data-tab="warehouse" onclick="showTab('warehouse')" id="tabWarehouse">&#128230; 倉存管理</button>
-    <button class="nav-btn" data-tab="commission" onclick="showTab('commission')" id="tabCommission">&#128176; 技術員銷售佣金</button>
+    <button class="nav-btn" data-tab="commission" onclick="showTab('commission')" id="tabCommission">&#128176; 服務銷售佣金</button>
   </nav>
   
   <main class="admin-body" id="adminBody"></main>
@@ -453,10 +453,10 @@ let commAdminCache = { records: [], report: null };
 function loadCommissionHubAdmin() {
   const body = document.getElementById('adminBody');
   body.innerHTML = `
-    <h2>&#128176; 技術員銷售佣金管理</h2>
+    <h2>&#128176; 服務銷售佣金管理</h2>
     <div style="display:flex; gap:6px; margin:10px 0; border-bottom:1px solid #ddd">
       <button class="btn btn-sm btn-outline" id="commHubAdminTabChannel" onclick="switchAdminCommHub('channel')" style="border-radius:6px 6px 0 0">渠網佣金</button>
-      <button class="btn btn-sm btn-outline" id="commHubAdminTabTech" onclick="switchAdminCommHub('tech')" style="border-radius:6px 6px 0 0">技術員銷售</button>
+      <button class="btn btn-sm btn-outline" id="commHubAdminTabTech" onclick="switchAdminCommHub('tech')" style="border-radius:6px 6px 0 0">服務銷售</button>
     </div>
     <div id="commHubAdminChannel"></div>
     <div id="commHubAdminTech"></div>
@@ -539,7 +539,7 @@ async function loadLeadAdminData() {
 }
 
 async function deleteLeadRecord(id) {
-  if (!confirm('確定刪除呢筆技術員銷售記錄？')) return;
+  if (!confirm('確定刪除呢筆服務銷售記錄？')) return;
   try {
     const res = await fetch(API + `/api/admin/tech-leads/records/${id}`, { method: 'DELETE', credentials: 'include' });
     const data = await res.json().catch(() => ({}));
@@ -674,6 +674,24 @@ function statCard(label, value, color) {
 }
 
 // ===== EMPLOYEES =====
+// ===== JOB LEVELS (職級管理) =====
+let currentJobLevels = [];
+
+async function loadJobLevels() {
+  const res = await fetch(API + '/api/admin/job-levels', { credentials: 'include' });
+  const handled = await handleApiError(res, '載入職級失敗');
+  if (!handled) return [];
+  const data = await handled.json();
+  currentJobLevels = (data.jobLevels || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  return currentJobLevels;
+}
+
+function levelOptionsHtml(selectedKey) {
+  return currentJobLevels.map(l =>
+    `<option value="${l.key}" ${l.key === selectedKey ? 'selected' : ''}>${l.label}${l.description ? ' — ' + l.description : ''}</option>`
+  ).join('');
+}
+
 async function loadEmployees() {
   const body = document.getElementById('adminBody');
   body.innerHTML = '<div class="loading">載入中...</div>';
@@ -697,7 +715,32 @@ async function loadEmployees() {
       html += `<button class="btn btn-xs btn-danger" onclick="deleteEmployee(${e.id},'${e.name}')">刪除</button></td></tr>`;
     }
     html += `</tbody></table></div>`;
+
+    // Super admin only — 職級管理 section
+    if (adminData && adminData.isSuper) {
+      html += `<div class="section-card" id="jobLevelsCard" style="margin-top:16px">`;
+      html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">`;
+      html += `<h4 style="margin:0">🎖️ 職級管理 Job Levels</h4>`;
+      html += `<button class="btn btn-sm btn-primary" onclick="showAddJobLevel()">+ 新增職級</button>`;
+      html += `</div>`;
+      html += `<table class="data-table"><thead><tr><th>Key</th><th>名稱</th><th>說明</th><th>排序</th><th>類型</th><th>操作</th></tr></thead><tbody>`;
+      for (const l of currentJobLevels) {
+        html += `<tr>`;
+        html += `<td><code>${l.key}</code></td>`;
+        html += `<td>${l.label}</td>`;
+        html += `<td style="font-size:12px; color:#666">${l.description || '-'}</td>`;
+        html += `<td>${l.order || '-'}</td>`;
+        html += `<td>${l.is_builtin ? '內建' : '自訂'}</td>`;
+        html += `<td>`;
+        html += `<button class="btn btn-xs btn-outline" onclick="showEditJobLevel('${l.key}')">編輯</button> `;
+        html += `<button class="btn btn-xs btn-danger" onclick="deleteJobLevel('${l.key}')">刪除</button>`;
+        html += `</td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+    }
+
     html += `<div id="employeeForm" style="display:none"></div>`;
+    html += `<div id="jobLevelForm" style="display:none"></div>`;
     
     body.innerHTML = html;
   } catch(e) { 
@@ -706,7 +749,8 @@ async function loadEmployees() {
   }
 }
 
-function showAddEmployee() {
+async function showAddEmployee() {
+  if (currentJobLevels.length === 0) await loadJobLevels();
   const form = document.getElementById('employeeForm');
   form.style.display = 'block';
   form.innerHTML = `
@@ -715,7 +759,7 @@ function showAddEmployee() {
       <div class="form-grid">
         <div class="form-group"><label>員工編號</label><input id="newEmpNum" placeholder="EMP001"></div>
         <div class="form-group"><label>姓名</label><input id="newEmpName" placeholder="陳大明"></div>
-        <div class="form-group"><label>職級</label><select id="newEmpLevel"><option value="junior">初級技術員</option><option value="senior">高級技術員</option><option value="supervisor">技術員主管</option></select></div>
+        <div class="form-group"><label>職級</label><select id="newEmpLevel">${levelOptionsHtml('junior')}</select></div>
         <div class="form-group"><label>組別</label><select id="newEmpGroup"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option></select></div>
         <div class="form-group"><label>初始密碼</label><input id="newEmpPw" value="0000"></div>
       </div>
@@ -754,7 +798,7 @@ async function editEmployee(id) {
       <div class="form-grid">
         <div class="form-group"><label>員工編號</label><input id="editEmpNum" value="${emp.emp_number}"></div>
         <div class="form-group"><label>姓名</label><input id="editEmpName" value="${emp.name}"></div>
-        <div class="form-group"><label>職級</label><select id="editEmpLevel"><option value="junior" ${emp.level==='junior'?'selected':''}>初級技術員</option><option value="senior" ${emp.level==='senior'?'selected':''}>高級技術員</option><option value="supervisor" ${emp.level==='supervisor'?'selected':''}>技術員主管</option></select></div>
+        <div class="form-group"><label>職級</label><select id="editEmpLevel">${levelOptionsHtml(emp.level)}</select></div>
         <div class="form-group"><label>組別</label><select id="editEmpGroup"><option value="A" ${emp.group_name==='A'?'selected':''}>A</option><option value="B" ${emp.group_name==='B'?'selected':''}>B</option><option value="C" ${emp.group_name==='C'?'selected':''}>C</option><option value="D" ${emp.group_name==='D'?'selected':''}>D</option><option value="E" ${emp.group_name==='E'?'selected':''}>E</option><option value="F" ${emp.group_name==='F'?'selected':''}>F</option><option value="" ${!emp.group_name?'selected':''}>未分配</option></select></div>
         <div class="form-group"><label>新密碼(留空不改)</label><input id="editEmpPw" placeholder="留空不改密碼"></div>
       </div>
@@ -778,6 +822,97 @@ async function saveEmployee(id) {
   });
   const data = await res.json();
   if (data.success) { loadEmployees(); } else { alert(data.error); }
+}
+
+// ===== Job Level CRUD UI =====
+function showAddJobLevel() {
+  const form = document.getElementById('jobLevelForm');
+  form.style.display = 'block';
+  form.innerHTML = `
+    <div class="section-card">
+      <h3>新增職級 Add Job Level</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>Key (英文，小寫)</label><input id="newJLevelKey" placeholder="e.g. intern"></div>
+        <div class="form-group"><label>顯示名稱</label><input id="newJLevelLabel" placeholder="e.g. 實習生"></div>
+        <div class="form-group"><label>說明 (可選)</label><input id="newJLevelDesc" placeholder="例: 跟車實習"></div>
+        <div class="form-group"><label>排序</label><input id="newJLevelOrder" type="number" value="${currentJobLevels.length + 1}"></div>
+      </div>
+      <button class="btn btn-primary" onclick="submitAddJobLevel()">確認新增</button>
+      <button class="btn btn-outline" onclick="document.getElementById('jobLevelForm').style.display='none'">取消</button>
+    </div>`;
+}
+
+function showEditJobLevel(key) {
+  const lvl = currentJobLevels.find(l => l.key === key);
+  if (!lvl) return alert('找不到職級');
+  const form = document.getElementById('jobLevelForm');
+  form.style.display = 'block';
+  form.innerHTML = `
+    <div class="section-card">
+      <h3>編輯職級 Edit Job Level: <code>${lvl.key}</code></h3>
+      <div class="form-grid">
+        <div class="form-group"><label>Key (不可改)</label><input value="${lvl.key}" disabled></div>
+        <div class="form-group"><label>顯示名稱</label><input id="editJLevelLabel" value="${lvl.label}"></div>
+        <div class="form-group"><label>說明</label><input id="editJLevelDesc" value="${(lvl.description || '').replace(/"/g, '&quot;')}"></div>
+        <div class="form-group"><label>排序</label><input id="editJLevelOrder" type="number" value="${lvl.order || 0}"></div>
+      </div>
+      <button class="btn btn-primary" onclick="submitEditJobLevel('${lvl.key}')">保存</button>
+      <button class="btn btn-outline" onclick="document.getElementById('jobLevelForm').style.display='none'">取消</button>
+    </div>`;
+}
+
+async function submitAddJobLevel() {
+  const body = {
+    key: document.getElementById('newJLevelKey').value.trim(),
+    label: document.getElementById('newJLevelLabel').value.trim(),
+    description: document.getElementById('newJLevelDesc').value.trim(),
+    order: document.getElementById('newJLevelOrder').value
+  };
+  if (!body.key || !body.label) return alert('Key 及名稱必填');
+
+  const res = await fetch(API + '/api/admin/job-levels', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('jobLevelForm').style.display = 'none';
+    loadEmployees();
+  } else {
+    alert(data.error);
+  }
+}
+
+async function submitEditJobLevel(key) {
+  const body = {
+    label: document.getElementById('editJLevelLabel').value.trim(),
+    description: document.getElementById('editJLevelDesc').value.trim(),
+    order: document.getElementById('editJLevelOrder').value
+  };
+  const res = await fetch(API + '/api/admin/job-levels/' + encodeURIComponent(key), {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('jobLevelForm').style.display = 'none';
+    loadEmployees();
+  } else {
+    alert(data.error);
+  }
+}
+
+async function deleteJobLevel(key) {
+  if (!confirm(`確定刪除職級 "${key}"？\n如果仍有員工使用此職級，刪除會被拒絕。`)) return;
+  const res = await fetch(API + '/api/admin/job-levels/' + encodeURIComponent(key), {
+    method: 'DELETE', credentials: 'include'
+  });
+  const data = await res.json();
+  if (data.success) {
+    loadEmployees();
+  } else {
+    alert(data.error);
+  }
 }
 
 async function resetPassword(id, empNum) {

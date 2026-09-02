@@ -43,8 +43,8 @@
       </div>
       <div class="module-card" onclick="showCommissionHub()">
         <div class="module-icon">💰</div>
-        <div class="module-title">技術員銷售佣金</div>
-        <div class="module-desc">渠網 / 技術員銷售</div>
+        <div class="module-title">服務銷售佣金</div>
+        <div class="module-desc">渠網 / 服務銷售</div>
       </div>
     </div>
     <div style="display:flex; gap:12px; justify-content:center">
@@ -119,13 +119,13 @@
 <div id="commissionHubScreen" class="screen" style="display:none">
   <div class="wide-card">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-      <h2>💰 技術員銷售佣金</h2>
+      <h2>💰 服務銷售佣金</h2>
       <button class="btn btn-outline btn-sm" onclick="showHome()">← 返回主板面</button>
     </div>
     <p id="commHubEmpInfo" style="color:#666"></p>
     <div style="display:flex; gap:6px; margin:10px 0; border-bottom:1px solid #ddd">
       <button class="btn btn-sm btn-outline" id="commHubTabChannel" onclick="switchCommHubTab('channel')" style="border-radius:6px 6px 0 0">渠網銷售佣金</button>
-      <button class="btn btn-sm btn-outline" id="commHubTechTab" onclick="switchCommHubTab('tech')" style="border-radius:6px 6px 0 0">技術員銷售佣金</button>
+      <button class="btn btn-sm btn-outline" id="commHubTechTab" onclick="switchCommHubTab('tech')" style="border-radius:6px 6px 0 0">服務銷售佣金</button>
     </div>
 
     <!-- SUB-PAGE: 渠網 -->
@@ -151,10 +151,10 @@
       <div id="commHistory"></div>
     </div>
 
-    <!-- SUB-PAGE: 技術員銷售佣金 -->
+    <!-- SUB-PAGE: 服務銷售佣金 -->
     <div id="commTechSub" class="comm-hub-sub" style="display:none">
       <div style="margin:12px 0; padding:12px; border:1px solid #ddd; border-radius:8px">
-        <h3 style="margin-top:0">新增技術員銷售記錄</h3>
+        <h3 style="margin-top:0">新增服務銷售記錄</h3>
         <p style="color:#666; font-size:13px; margin:0 0 10px">記錄客戶資料同服務類型，等 admin 知你介紹咗咩客人。系統唔計金額。</p>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px">
           <label>日期：</label>
@@ -571,7 +571,7 @@ async function loadLeadHistory() {
 }
 
 async function deleteMyLead(id) {
-  if (!confirm('確定刪除呢筆技術員銷售記錄？（24 小時內可刪）')) return;
+  if (!confirm('確定刪除呢筆服務銷售記錄？（24 小時內可刪）')) return;
   try {
     const res = await fetch(API + `/api/tech-leads/records/${id}`, { method: 'DELETE', credentials: 'include' });
     const data = await res.json().catch(() => ({}));

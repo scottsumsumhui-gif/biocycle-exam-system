@@ -1,0 +1,23 @@
+[
+  {
+    "key": "junior",
+    "label": "初級技術員",
+    "description": "考試：20題選擇題，最多錯4題（80%合格）",
+    "is_builtin": true,
+    "order": 1
+  },
+  {
+    "key": "senior",
+    "label": "高級技術員",
+    "description": "考試：20題選擇題，最多錯2題（90%合格）",
+    "is_builtin": true,
+    "order": 2
+  },
+  {
+    "key": "supervisor",
+    "label": "技術員主管",
+    "description": "考試：20題選擇題+3題問答，最多錯2題（90%合格）",
+    "is_builtin": true,
+    "order": 3
+  }
+]

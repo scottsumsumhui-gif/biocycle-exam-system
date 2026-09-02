@@ -34,9 +34,43 @@ const ADMIN_PERMISSIONS = {
   questions:   '題庫管理 Question Bank',
   warehouse:   '倉存管理 Warehouse',
   commission:  '渠網銷售佣金 Channel Commission',
-  leads:       '技術員銷售 Technician Leads'
+  leads:       '服務銷售 Technician Leads'
 };
 const ALL_PERMISSION_KEYS = Object.keys(ADMIN_PERMISSIONS);
+
+// Built-in defaults for job levels. Used as a fallback if data/job_levels.json is missing
+// (e.g. on Vercel cold start). The file in data/ takes precedence once it exists.
+const BUILTIN_JOB_LEVELS = [
+  { key: 'junior',     label: '初級技術員', description: '考試：20題選擇題，最多錯4題（80%合格）', is_builtin: true, order: 1 },
+  { key: 'senior',     label: '高級技術員', description: '考試：20題選擇題，最多錯2題（90%合格）', is_builtin: true, order: 2 },
+  { key: 'supervisor', label: '技術員主管', description: '考試：20題選擇題+3題問答，最多錯2題（90%合格）', is_builtin: true, order: 3 }
+];
+const JOB_LEVEL_FILE = 'job_levels.json';
+
+// Returns the list of job levels. Always returns an array (never null).
+async function getJobLevels() {
+  let list = await loadJSON(JOB_LEVEL_FILE, null);
+  if (!Array.isArray(list) || list.length === 0) {
+    list = BUILTIN_JOB_LEVELS.slice();
+    // Persist so subsequent reads are consistent.
+    try { await saveJSON(JOB_LEVEL_FILE, list); } catch (_) {}
+  }
+  return list.sort((a, b) => (a.order || 0) - (b.order || 0));
+}
+
+// Resolve a level key to its label. Falls back to the key itself if unknown.
+async function getLevelLabel(levelKey) {
+  if (!levelKey) return '';
+  const list = await getJobLevels();
+  const found = list.find(l => l.key === levelKey);
+  return found ? found.label : levelKey;
+}
+
+// Synchronous variant for endpoints that already have the list loaded.
+function levelLabelFromList(list, key) {
+  const f = list.find(l => l.key === key);
+  return f ? f.label : (key || '');
+}
 
 // Migration: when an existing non-super admin has no `permissions` field, grant them all (so they aren't locked out).
 // 'admin_mgmt' is intentionally NOT included — only super admin manages permissions by default.
@@ -200,6 +234,7 @@ if (!isVercel) {
   for (const f of ['employees.json', 'sessions.json', 'exam_results.json', 'essay_answers.json', 'exam_config.json']) {
     if (!fs.existsSync(path.join(DATA_DIR, f))) saveJSONSync(f, []);
   }
+  if (!fs.existsSync(path.join(DATA_DIR, 'job_levels.json'))) saveJSONSync('job_levels.json', BUILTIN_JOB_LEVELS.slice());
   console.log('JSON database initialized in: ' + DATA_DIR);
 }
 
@@ -714,10 +749,82 @@ app.get('/api/admin/dashboard', authRequired('admin'), async (req, res) => {
   });
 });
 
+// ===== JOB LEVELS (職級管理) ROUTES =====
+app.get('/api/admin/job-levels', authRequired('admin'), requirePermission('employees'), async (req, res) => {
+  const list = await getJobLevels();
+  res.json({ success: true, jobLevels: list });
+});
+
+// Add a new job level. Only super admin can create new levels — this affects
+// the employee dropdown and the exam logic, so it must be tightly controlled.
+app.post('/api/admin/job-levels', authRequired('admin'), requirePermission('employees'), async (req, res) => {
+  const admins = await loadJSON('admins.json', []);
+  const me = admins.find(a => a.id === req.session.user_id);
+  if (!me || !me.is_super) return res.status(403).json({ success: false, error: '只有超級管理員可新增職級' });
+
+  const { key, label, description, order } = req.body || {};
+  if (!key || !label) return res.json({ success: false, error: 'key 及 label 必填' });
+  // Restrict key to lowercase letters / digits / underscore so it is safe in URLs and SQL-ish contexts.
+  if (!/^[a-z][a-z0-9_]{0,29}$/.test(key)) return res.json({ success: false, error: 'key 必須係小寫英文字母開頭，只可包含字母、數字、底線' });
+
+  const list = await getJobLevels();
+  if (list.find(l => l.key === key)) return res.json({ success: false, error: '此 key 已存在' });
+  list.push({
+    key, label, description: description || '',
+    is_builtin: false,
+    order: Number.isFinite(Number(order)) ? Number(order) : (list.length + 1)
+  });
+  await saveJSON(JOB_LEVEL_FILE, list);
+  res.json({ success: true });
+});
+
+// Update an existing job level's label / description / order. The key is immutable
+// because changing it would break employees that already reference it.
+app.put('/api/admin/job-levels/:key', authRequired('admin'), requirePermission('employees'), async (req, res) => {
+  const admins = await loadJSON('admins.json', []);
+  const me = admins.find(a => a.id === req.session.user_id);
+  if (!me || !me.is_super) return res.status(403).json({ success: false, error: '只有超級管理員可修改職級' });
+
+  const targetKey = req.params.key;
+  const { label, description, order } = req.body || {};
+  const list = await getJobLevels();
+  const idx = list.findIndex(l => l.key === targetKey);
+  if (idx < 0) return res.json({ success: false, error: '職級不存在' });
+  if (label !== undefined) list[idx].label = String(label).trim();
+  if (description !== undefined) list[idx].description = String(description);
+  if (order !== undefined && Number.isFinite(Number(order))) list[idx].order = Number(order);
+  await saveJSON(JOB_LEVEL_FILE, list);
+  res.json({ success: true });
+});
+
+// Delete a job level. Blocked if any employee still references it — that prevents
+// orphaned levels and silently broken exam logic.
+app.delete('/api/admin/job-levels/:key', authRequired('admin'), requirePermission('employees'), async (req, res) => {
+  const admins = await loadJSON('admins.json', []);
+  const me = admins.find(a => a.id === req.session.user_id);
+  if (!me || !me.is_super) return res.status(403).json({ success: false, error: '只有超級管理員可刪除職級' });
+
+  const targetKey = req.params.key;
+  const list = await getJobLevels();
+  const idx = list.findIndex(l => l.key === targetKey);
+  if (idx < 0) return res.json({ success: false, error: '職級不存在' });
+
+  const employees = await loadJSON('employees.json', []);
+  const inUse = employees.filter(e => e.level === targetKey).length;
+  if (inUse > 0) {
+    return res.json({ success: false, error: `仍有 ${inUse} 名員工使用此職級，請先改員工職級先刪除` });
+  }
+  list.splice(idx, 1);
+  await saveJSON(JOB_LEVEL_FILE, list);
+  res.json({ success: true });
+});
+
 app.get('/api/admin/employees', authRequired('admin'), requirePermission('employees'), async (req, res) => {
   const employees = await loadJSON('employees.json', []);
+  const jobLevels = await getJobLevels();
   employees.sort((a, b) => a.emp_number.localeCompare(b.emp_number));
-  res.json({ success: true, employees });
+  const enriched = employees.map(e => ({ ...e, level_label: levelLabelFromList(jobLevels, e.level) }));
+  res.json({ success: true, employees: enriched, jobLevels });
 });
 
 app.post('/api/admin/employees', authRequired('admin'), requirePermission('employees'), async (req, res) => {
@@ -727,13 +834,18 @@ app.post('/api/admin/employees', authRequired('admin'), requirePermission('emplo
   const employees = await loadJSON('employees.json', []);
   if (employees.find(e => e.emp_number === empNumber)) return res.json({ success: false, error: '員工編號已存在' });
 
+  // Validate that the requested level exists in the configured list (defaults to 'junior').
+  const finalLevel = level || 'junior';
+  const jobLevels = await getJobLevels();
+  if (!jobLevels.find(l => l.key === finalLevel)) return res.json({ success: false, error: '職級無效: ' + finalLevel });
+
   const nextId = employees.length > 0 ? Math.max(...employees.map(e => e.id)) + 1 : 1;
   employees.push({
     id: nextId,
     emp_number: empNumber,
     name: name,
     password_hash: bcrypt.hashSync(password || '0000', 10),
-    level: level || 'junior',
+    level: finalLevel,
     group_name: group || null,
     created_at: nowStr()
   });
@@ -752,7 +864,11 @@ app.put('/api/admin/employees/:id', authRequired('admin'), requirePermission('em
   if (password) emp.password_hash = bcrypt.hashSync(password, 10);
   if (empNumber !== undefined) emp.emp_number = empNumber;
   if (name !== undefined) emp.name = name;
-  if (level !== undefined) emp.level = level;
+  if (level !== undefined) {
+    const jobLevels = await getJobLevels();
+    if (!jobLevels.find(l => l.key === level)) return res.json({ success: false, error: '職級無效: ' + level });
+    emp.level = level;
+  }
   if (group !== undefined) emp.group_name = group;
 
   await saveJSON('employees.json', employees);
@@ -1616,7 +1732,7 @@ const COMM_SALE_RATE = 25;      // 銷售一件 $25
 const COMM_INSTALL_RATE = 20;   // 安裝一件額外 $20
 const COMM_PCT = 0.30;          // 佣金 = 全隊總額 30%
 
-// ===== TECH LEAD (技術員銷售佣金) ROUTES =====
+// ===== TECH LEAD (服務銷售佣金) ROUTES =====
 const LEAD_FILE = 'tech_leads.json';
 const LEAD_SERVICES = ['滅蟲', '白蟻', '老鼠', '消毒', '洗冷氣'];
 
@@ -1744,7 +1860,7 @@ app.get('/api/admin/tech-leads/export', authRequired('admin'), requirePermission
       const mem = (r.members || []).map(m => m.emp_name).join('、') || '—';
       return [r.id, r.record_date, mem, r.customer_name, r.customer_phone, r.customer_address, svcAll, r.notes];
     });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...rows]), '技術員銷售記錄');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...rows]), '服務銷售記錄');
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="tech_leads_${y}${m ? ('_' + m) : ''}.xlsx"`);
