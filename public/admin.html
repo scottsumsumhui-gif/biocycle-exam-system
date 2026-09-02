@@ -700,7 +700,15 @@ async function loadEmployees() {
     const handled = await handleApiError(res, '載入員工列表失敗');
     if (!handled) return;
     const data = await handled.json();
-    
+    // Sync jobLevels cache so the 職級管理 card + dropdowns below render correctly.
+    // The same response carries both employees and jobLevels (server line 826/827),
+    // so use it directly to avoid an extra round-trip to /api/admin/job-levels.
+    if (Array.isArray(data.jobLevels)) {
+      currentJobLevels = data.jobLevels.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+    } else if (currentJobLevels.length === 0) {
+      await loadJobLevels();
+    }
+
     let html = `<div class="section-card">`;
     html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">`;
     html += `<h3>&#128101; 員工管理 Employee Management</h3>`;
@@ -782,6 +790,9 @@ async function addEmployee() {
 }
 
 async function editEmployee(id) {
+  // Ensure jobLevels are loaded before rendering the dropdown (in case this was
+  // entered directly without going through loadEmployees() first).
+  if (currentJobLevels.length === 0) await loadJobLevels();
   const res = await fetch(API + '/api/admin/employees', {credentials:'include'});
   const emps = await res.json();
   const emp = emps.employees.find(e => e.id === id);
