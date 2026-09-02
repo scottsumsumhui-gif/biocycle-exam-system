@@ -688,7 +688,7 @@ async function loadJobLevels() {
 
 function levelOptionsHtml(selectedKey) {
   return currentJobLevels.map(l =>
-    `<option value="${l.key}" ${l.key === selectedKey ? 'selected' : ''}>${l.label}${l.description ? ' — ' + l.description : ''}</option>`
+    `<option value="${l.key}" ${l.key === selectedKey ? 'selected' : ''}>${l.label}</option>`
   ).join('');
 }
 
@@ -723,14 +723,10 @@ async function loadEmployees() {
       html += `<h4 style="margin:0">🎖️ 職級管理 Job Levels</h4>`;
       html += `<button class="btn btn-sm btn-primary" onclick="showAddJobLevel()">+ 新增職級</button>`;
       html += `</div>`;
-      html += `<table class="data-table"><thead><tr><th>Key</th><th>名稱</th><th>說明</th><th>排序</th><th>類型</th><th>操作</th></tr></thead><tbody>`;
+      html += `<table class="data-table"><thead><tr><th>名稱</th><th>操作</th></tr></thead><tbody>`;
       for (const l of currentJobLevels) {
         html += `<tr>`;
-        html += `<td><code>${l.key}</code></td>`;
-        html += `<td>${l.label}</td>`;
-        html += `<td style="font-size:12px; color:#666">${l.description || '-'}</td>`;
-        html += `<td>${l.order || '-'}</td>`;
-        html += `<td>${l.is_builtin ? '內建' : '自訂'}</td>`;
+        html += `<td>${l.label}${l.is_builtin ? ' <span style="font-size:11px;color:#888">(內建)</span>' : ''}</td>`;
         html += `<td>`;
         html += `<button class="btn btn-xs btn-outline" onclick="showEditJobLevel('${l.key}')">編輯</button> `;
         html += `<button class="btn btn-xs btn-danger" onclick="deleteJobLevel('${l.key}')">刪除</button>`;
@@ -834,8 +830,6 @@ function showAddJobLevel() {
       <div class="form-grid">
         <div class="form-group"><label>Key (英文，小寫)</label><input id="newJLevelKey" placeholder="e.g. intern"></div>
         <div class="form-group"><label>顯示名稱</label><input id="newJLevelLabel" placeholder="e.g. 實習生"></div>
-        <div class="form-group"><label>說明 (可選)</label><input id="newJLevelDesc" placeholder="例: 跟車實習"></div>
-        <div class="form-group"><label>排序</label><input id="newJLevelOrder" type="number" value="${currentJobLevels.length + 1}"></div>
       </div>
       <button class="btn btn-primary" onclick="submitAddJobLevel()">確認新增</button>
       <button class="btn btn-outline" onclick="document.getElementById('jobLevelForm').style.display='none'">取消</button>
@@ -849,12 +843,9 @@ function showEditJobLevel(key) {
   form.style.display = 'block';
   form.innerHTML = `
     <div class="section-card">
-      <h3>編輯職級 Edit Job Level: <code>${lvl.key}</code></h3>
+      <h3>編輯職級 Edit Job Level</h3>
       <div class="form-grid">
-        <div class="form-group"><label>Key (不可改)</label><input value="${lvl.key}" disabled></div>
-        <div class="form-group"><label>顯示名稱</label><input id="editJLevelLabel" value="${lvl.label}"></div>
-        <div class="form-group"><label>說明</label><input id="editJLevelDesc" value="${(lvl.description || '').replace(/"/g, '&quot;')}"></div>
-        <div class="form-group"><label>排序</label><input id="editJLevelOrder" type="number" value="${lvl.order || 0}"></div>
+        <div class="form-group"><label>顯示名稱</label><input id="editJLevelLabel" value="${lvl.label.replace(/"/g, '&quot;')}"></div>
       </div>
       <button class="btn btn-primary" onclick="submitEditJobLevel('${lvl.key}')">保存</button>
       <button class="btn btn-outline" onclick="document.getElementById('jobLevelForm').style.display='none'">取消</button>
@@ -864,9 +855,7 @@ function showEditJobLevel(key) {
 async function submitAddJobLevel() {
   const body = {
     key: document.getElementById('newJLevelKey').value.trim(),
-    label: document.getElementById('newJLevelLabel').value.trim(),
-    description: document.getElementById('newJLevelDesc').value.trim(),
-    order: document.getElementById('newJLevelOrder').value
+    label: document.getElementById('newJLevelLabel').value.trim()
   };
   if (!body.key || !body.label) return alert('Key 及名稱必填');
 
@@ -885,9 +874,7 @@ async function submitAddJobLevel() {
 
 async function submitEditJobLevel(key) {
   const body = {
-    label: document.getElementById('editJLevelLabel').value.trim(),
-    description: document.getElementById('editJLevelDesc').value.trim(),
-    order: document.getElementById('editJLevelOrder').value
+    label: document.getElementById('editJLevelLabel').value.trim()
   };
   const res = await fetch(API + '/api/admin/job-levels/' + encodeURIComponent(key), {
     method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
