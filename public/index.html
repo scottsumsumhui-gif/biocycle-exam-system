@@ -528,16 +528,43 @@ async function submitTechLead() {
   if (!customer_name) { alert('請填寫客戶姓名'); return; }
   const customer_phone = document.getElementById('leadCustomerPhone').value.trim();
   const customer_address = document.getElementById('leadCustomerAddress').value.trim();
-  const services = [...document.querySelectorAll('.lead-svc:checked')].map(c => c.value);
-  const custom_service = document.getElementById('leadCustomService').value.trim();
+  const services = [];
+  for (const c of document.querySelectorAll('.lead-svc:checked')) {
+    const v = c.value;
+    if (v === '蚊燈') {
+      const qty = parseInt(document.getElementById('leadMqlQty').value) || 1;
+      services.push('蚊燈×' + Math.max(1, qty));
+    } else if (v === 'Others') {
+      const txt = document.getElementById('leadCustomService').value.trim();
+      if (txt) services.push('Others: ' + txt);
+      else services.push('Others');
+    } else {
+      services.push(v);
+    }
+  }
+  if (services.length === 0) { alert('請選擇至少一項服務類型'); return; }
+
+  // 隊員 1-3 名，從所有 lead-member-row 收集（去重 + 過濾未選）
+  const memberSelects = [...document.querySelectorAll('#leadMembers .lead-emp')];
+  const members = [];
+  const seenIds = new Set();
+  for (const sel of memberSelects) {
+    const v = sel.value;
+    if (!v) continue;
+    const id = parseInt(v);
+    if (!id || seenIds.has(id)) continue;
+    seenIds.add(id);
+    members.push({ emp_id: id });
+  }
+  if (members.length < 1) { alert('請選擇至少 1 名隊員（自己為第 1 位）'); return; }
+  if (members.length > 3) { alert('隊員最多 3 名'); return; }
   const notes = document.getElementById('leadNotes').value.trim();
-  if (services.length === 0 && !custom_service) { alert('請選擇至少一項服務類型'); return; }
   const hb = await pingHeartbeat();
   if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
   try {
     const res = await fetch(API + '/api/tech-leads/records', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-      body: JSON.stringify({ record_date: date, customer_name, customer_phone, customer_address, services, custom_service, notes })
+      body: JSON.stringify({ record_date: date, customer_name, customer_phone, customer_address, services, notes, members })
     });
     const data = await res.json();
     if (data.success) {
@@ -552,6 +579,9 @@ async function submitTechLead() {
       document.getElementById('leadMqlQty').value = '1';
       document.getElementById('leadMqlQtyBox').style.display = 'none';
       document.getElementById('leadNotes').value = '';
+      // 重置隊員列表，自己重新做第 1 位
+      const memberBox = document.getElementById('leadMembers');
+      if (memberBox) { memberBox.innerHTML = ''; initLeadMembers(); }
       await loadLeadHistory();
     } else {
       alert(data.error || '提交失敗');
