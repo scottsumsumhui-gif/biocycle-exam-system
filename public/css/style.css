@@ -70,13 +70,39 @@ body {
 .lead-chip:has(input:checked) { background: #d6eaf8; border-color: #2980b9; }
 
 .logo {
-  font-size: 48px;
   margin-bottom: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.logo img {
+  max-height: 120px;
+  width: auto;
+  display: block;
 }
 
 .logo-sm {
-  font-size: 24px;
   margin-right: 8px;
+  display: inline-flex;
+  align-items: center;
+}
+.logo-sm img {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+.header-title {
+  font-size: 16px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+}
+.header-title .logo-icon {
+  height: 24px;
+  width: auto;
+  margin-right: 6px;
+  vertical-align: middle;
 }
 
 h1 { font-size: 24px; color: var(--primary); margin-bottom: 4px; }
