@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BIOYCLE 技術員平台</title>
+<title>BIOCYCLE 技術員平台 - BIOCYCLE OPERATION SYSTEM</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -173,6 +173,11 @@
           <label class="lead-chip"><input type="checkbox" value="消毒" class="lead-svc"> 消毒</label>
           <label class="lead-chip"><input type="checkbox" value="洗冷氣" class="lead-svc"> 洗冷氣</label>
           <input type="text" id="leadCustomService" placeholder="其他（自填）" style="margin-left:6px; width:140px" maxlength="30">
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="display:block; margin-bottom:6px">隊員（1-3 名，自己為第 1 位）：</label>
+          <div id="leadMembers"></div>
+          <button class="btn btn-sm btn-outline" id="leadAddMemberBtn" onclick="addLeadMemberRow()" style="margin-top:6px">+ 加多一名隊員</button>
         </div>
         <div style="margin-bottom:10px"><label>備註（介紹咗咩/推銷咗咩服務）：</label><textarea id="leadNotes" style="width:100%; min-height:60px" maxlength="500" placeholder="例：客人原本查滅蟲，主動向佢推銷咗年約 ..."></textarea></div>
         <div style="display:flex; gap:8px; flex-wrap:wrap">
@@ -398,6 +403,46 @@ function updateCommAddBtn() {
   if (btn) { btn.style.display = n >= 3 ? 'none' : 'inline-block'; document.getElementById('commMemberCount').textContent = n; }
 }
 
+// ===== TECH LEAD: 隊員管理 (1-3 名，自己預設為第 1 位) =====
+function leadMemberRowHtml() {
+  let opts = '<option value="">— 選擇隊員 —</option>';
+  for (const e of commEmployees) opts += `<option value="${e.id}">${e.emp_number} ${e.name}${e.group_name ? ' (' + e.group_name + ')' : ''}</option>`;
+  return `<div class="lead-member-row" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px">
+    <select class="lead-emp" style="min-width:200px">${opts}</select>
+    <button class="btn btn-xs btn-outline" onclick="removeLeadMemberRow(this)">移除</button>
+  </div>`;
+}
+
+function addLeadMemberRow() {
+  const box = document.getElementById('leadMembers');
+  if (box.querySelectorAll('.lead-member-row').length >= 3) return;
+  box.insertAdjacentHTML('beforeend', leadMemberRowHtml());
+  updateLeadAddBtn();
+}
+
+function removeLeadMemberRow(btn) {
+  const box = document.getElementById('leadMembers');
+  if (box.querySelectorAll('.lead-member-row').length <= 1) { alert('至少要 1 名隊員'); return; }
+  btn.closest('.lead-member-row').remove();
+  updateLeadAddBtn();
+}
+
+function updateLeadAddBtn() {
+  const n = document.getElementById('leadMembers').querySelectorAll('.lead-member-row').length;
+  const btn = document.getElementById('leadAddMemberBtn');
+  if (btn) btn.style.display = n >= 3 ? 'none' : 'inline-block';
+}
+
+function initLeadMembers() {
+  const box = document.getElementById('leadMembers');
+  if (!box || box.children.length > 0) return; // 已初始化過
+  box.innerHTML = leadMemberRowHtml();
+  // 預設第 1 位 = 自己
+  const firstSel = box.querySelector('.lead-emp');
+  if (firstSel && empData) firstSel.value = String(empData.id);
+  updateLeadAddBtn();
+}
+
 function recalcCommission() {
   const rows = [...document.querySelectorAll('#commMembers .comm-member-row')];
   let total = 0; let lines = '';
@@ -511,13 +556,14 @@ async function loadLeadHistory() {
     const res = await fetch(API + '/api/tech-leads/records', { credentials: 'include' });
     const records = await res.json();
     if (!records.length) { tbl.innerHTML = '<p style="color:#888">你暫無記錄</p>'; return; }
-    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶姓名</th><th>電話</th><th>服務類型</th><th>備註</th><th>操作</th></tr></thead><tbody>';
+    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶</th><th>隊員</th><th>服務類型</th><th>備註</th><th>操作</th></tr></thead><tbody>';
     for (const r of records) {
       const svc = (r.services || []).join('、');
       const svcAll = r.custom_service ? (svc ? svc + '、' + r.custom_service : r.custom_service) : (svc || '—');
       const custShort = (r.customer_name || '') + ' / ' + (r.customer_phone || '—');
       const notesShort = (r.notes || '').length > 30 ? r.notes.substring(0, 30) + '…' : (r.notes || '—');
-      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${custShort}</td><td>${svcAll}</td><td title="${(r.notes || '').replace(/"/g,'&quot;')}">${notesShort}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyLead(${r.id})">刪除</button></td></tr>`;
+      const mem = (r.members || []).map(m => m.emp_name).join('、') || '—';
+      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${custShort}</td><td>${mem}</td><td>${svcAll}</td><td title="${(r.notes || '').replace(/"/g,'&quot;')}">${notesShort}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyLead(${r.id})">刪除</button></td></tr>`;
     }
     html += '</tbody></table>';
     tbl.innerHTML = html;

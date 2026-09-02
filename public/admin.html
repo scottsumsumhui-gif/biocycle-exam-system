@@ -497,12 +497,13 @@ async function loadLeadAdminData() {
     const res = await fetch(API + '/api/admin/tech-leads/records' + q, { credentials: 'include' });
     const records = await res.json();
     if (!records.length) { box.innerHTML = '<p>暫無記錄</p>'; return; }
-    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>技術員</th><th>客戶姓名</th><th>電話</th><th>地址</th><th>服務類型</th><th>備註</th><th>操作</th></tr></thead><tbody>';
+    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>隊員</th><th>客戶姓名</th><th>電話</th><th>地址</th><th>服務類型</th><th>備註</th><th>操作</th></tr></thead><tbody>';
     for (const r of records) {
       const svc = (r.services || []).join('、');
       const svcAll = r.custom_service ? (svc ? svc + '、' + r.custom_service : r.custom_service) : (svc || '—');
       const notesShort = (r.notes || '').length > 40 ? r.notes.substring(0, 40) + '…' : (r.notes || '—');
-      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${r.created_by_emp_name}</td><td>${r.customer_name || '—'}</td><td>${r.customer_phone || '—'}</td><td>${r.customer_address || '—'}</td><td>${svcAll}</td><td title="${(r.notes || '').replace(/"/g,'&quot;')}">${notesShort}</td><td><button class="btn btn-xs btn-outline" onclick="deleteLeadRecord(${r.id})">刪除</button></td></tr>`;
+      const mem = (r.members || []).map(m => m.emp_name).join('、') || '—';
+      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${mem}</td><td>${r.customer_name || '—'}</td><td>${r.customer_phone || '—'}</td><td>${r.customer_address || '—'}</td><td>${svcAll}</td><td title="${(r.notes || '').replace(/"/g,'&quot;')}">${notesShort}</td><td><button class="btn btn-xs btn-outline" onclick="deleteLeadRecord(${r.id})">刪除</button></td></tr>`;
     }
     html += '</tbody></table>';
     box.innerHTML = html;

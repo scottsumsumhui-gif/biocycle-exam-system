@@ -1512,7 +1512,7 @@ const LEAD_SERVICES = ['滅蟲', '白蟻', '老鼠', '消毒', '洗冷氣'];
 // Employee: create a tech-lead record (sales referral by technician)
 app.post('/api/tech-leads/records', authRequired('employee'), async (req, res) => {
   try {
-    const { record_date, customer_name, customer_phone, customer_address, services, custom_service, notes } = req.body || {};
+    const { record_date, customer_name, customer_phone, customer_address, services, custom_service, notes, members } = req.body || {};
     if (!record_date || !/^\d{4}-\d{2}-\d{2}$/.test(record_date)) return res.status(400).json({ error: '請選擇有效日期' });
     const custName = (customer_name == null ? '' : String(customer_name)).trim();
     if (!custName) return res.status(400).json({ error: '請填寫客戶姓名' });
@@ -1520,7 +1520,21 @@ app.post('/api/tech-leads/records', authRequired('employee'), async (req, res) =
     const svcArr = Array.isArray(services) ? services.filter(s => LEAD_SERVICES.includes(s)) : [];
     const custom = (custom_service == null ? '' : String(custom_service)).trim();
     if (svcArr.length === 0 && !custom) return res.status(400).json({ error: '請選擇至少一項服務' });
+    // 隊員 1-3 名，去重複，必須有效 emp_id
     const employees = await loadJSON('employees.json', []);
+    const empIdSet = new Set(employees.map(e => e.id));
+    let memArr = Array.isArray(members) ? members : [];
+    if (memArr.length < 1 || memArr.length > 3) return res.status(400).json({ error: '隊員數量需為 1-3 名' });
+    const cleanedMembers = [];
+    const seen = new Set();
+    for (const m of memArr) {
+      const id = parseInt(m && m.emp_id);
+      if (!id || !empIdSet.has(id)) return res.status(400).json({ error: '隊員必須為有效員工' });
+      if (seen.has(id)) return res.status(400).json({ error: '隊員不可重複' });
+      seen.add(id);
+      const emp = employees.find(e => e.id === id);
+      cleanedMembers.push({ emp_id: id, emp_name: emp ? emp.name : '' });
+    }
     const me = employees.find(e => e.id === req.session.user_id);
     const records = await loadJSON(LEAD_FILE, []);
     const nextId = records.length ? Math.max(...records.map(r => r.id)) + 1 : 1;
@@ -1532,6 +1546,7 @@ app.post('/api/tech-leads/records', authRequired('employee'), async (req, res) =
       customer_address: (customer_address == null ? '' : String(customer_address)).trim(),
       services: svcArr,
       custom_service: custom,
+      members: cleanedMembers,
       notes: (notes == null ? '' : String(notes)).trim(),
       created_by_emp_id: me ? me.id : null,
       created_by_emp_name: me ? me.name : 'unknown',
@@ -1611,11 +1626,12 @@ app.get('/api/admin/tech-leads/export', authRequired('admin'), async (req, res) 
     else records = records.filter(r => (r.record_date || '').startsWith(String(y)));
     records.sort((a, b) => b.id - a.id);
     const wb = XLSX.utils.book_new();
-    const header = ['記錄編號', '日期', '技術員', '客戶姓名', '客戶電話', '客戶地址', '服務類型', '備註'];
+    const header = ['記錄編號', '日期', '隊員', '客戶姓名', '客戶電話', '客戶地址', '服務類型', '備註'];
     const rows = records.map(r => {
       const svc = (r.services || []).join('、');
       const svcAll = r.custom_service ? (svc ? svc + '、' + r.custom_service : r.custom_service) : (svc || '—');
-      return [r.id, r.record_date, r.created_by_emp_name, r.customer_name, r.customer_phone, r.customer_address, svcAll, r.notes];
+      const mem = (r.members || []).map(m => m.emp_name).join('、') || '—';
+      return [r.id, r.record_date, mem, r.customer_name, r.customer_phone, r.customer_address, svcAll, r.notes];
     });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...rows]), '技術員銷售記錄');
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
