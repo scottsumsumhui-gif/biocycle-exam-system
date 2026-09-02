@@ -1734,19 +1734,35 @@ const COMM_PCT = 0.30;          // 佣金 = 全隊總額 30%
 
 // ===== TECH LEAD (服務銷售佣金) ROUTES =====
 const LEAD_FILE = 'tech_leads.json';
-const LEAD_SERVICES = ['滅蟲', '白蟻', '老鼠', '消毒', '洗冷氣'];
+// Fixed service types the technician can pick. `蚊燈` and `Others` are special:
+// 蚊燈 carries an embedded quantity (`蚊燈×3`), Others allows free text (`Others: text`).
+const LEAD_SERVICE_KEYS = ['Aircon Cleaning', 'Bedbug', 'Disinfection', 'In2care', 'Pest control', 'Rodent', 'Sentricon', 'Termite control', '蚊燈', 'Others'];
+
+// Accepts:
+//   1) exact service key (e.g. 'Pest control', 'Termite control')
+//   2) '蚊燈×<positive int>' (quantity is required when 蚊燈 is chosen)
+//   3) 'Others: <text>' (free text after the colon)
+// Anything else is rejected by the validator.
+function isValidLeadService(s) {
+  if (typeof s !== 'string') return false;
+  const t = s.trim();
+  if (!t) return false;
+  if (LEAD_SERVICE_KEYS.includes(t)) return true;
+  if (/^蚊燈×[1-9]\d*$/.test(t)) return true;
+  if (/^Others:\s*\S+/.test(t)) return true;
+  return false;
+}
 
 // Employee: create a tech-lead record (sales referral by technician)
 app.post('/api/tech-leads/records', authRequired('employee'), async (req, res) => {
   try {
-    const { record_date, customer_name, customer_phone, customer_address, services, custom_service, notes, members } = req.body || {};
+    const { record_date, customer_name, customer_phone, customer_address, services, notes, members } = req.body || {};
     if (!record_date || !/^\d{4}-\d{2}-\d{2}$/.test(record_date)) return res.status(400).json({ error: '請選擇有效日期' });
     const custName = (customer_name == null ? '' : String(customer_name)).trim();
     if (!custName) return res.status(400).json({ error: '請填寫客戶姓名' });
-    // 服務 chip 至少 1 個
-    const svcArr = Array.isArray(services) ? services.filter(s => LEAD_SERVICES.includes(s)) : [];
-    const custom = (custom_service == null ? '' : String(custom_service)).trim();
-    if (svcArr.length === 0 && !custom) return res.status(400).json({ error: '請選擇至少一項服務' });
+    // 服務 chip 至少 1 個，必須係 10 個固定選項 + 蚊燈×N + Others: text
+    const svcArr = Array.isArray(services) ? services.filter(isValidLeadService) : [];
+    if (svcArr.length === 0) return res.status(400).json({ error: '請選擇至少一項服務' });
     // 隊員 1-3 名，去重複，必須有效 emp_id
     const employees = await loadJSON('employees.json', []);
     const empIdSet = new Set(employees.map(e => e.id));
@@ -1772,7 +1788,6 @@ app.post('/api/tech-leads/records', authRequired('employee'), async (req, res) =
       customer_phone: (customer_phone == null ? '' : String(customer_phone)).trim(),
       customer_address: (customer_address == null ? '' : String(customer_address)).trim(),
       services: svcArr,
-      custom_service: custom,
       members: cleanedMembers,
       notes: (notes == null ? '' : String(notes)).trim(),
       created_by_emp_id: me ? me.id : null,

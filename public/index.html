@@ -167,12 +167,18 @@
         <div style="margin-bottom:10px"><label>客戶地址：</label><input type="text" id="leadCustomerAddress" style="width:100%" maxlength="100" placeholder="例：九龍區 ..."></div>
         <div style="margin-bottom:10px">
           <label style="display:block; margin-bottom:6px">服務類型（可揀多個）：</label>
-          <label class="lead-chip"><input type="checkbox" value="滅蟲" class="lead-svc"> 滅蟲</label>
-          <label class="lead-chip"><input type="checkbox" value="白蟻" class="lead-svc"> 白蟻</label>
-          <label class="lead-chip"><input type="checkbox" value="老鼠" class="lead-svc"> 老鼠</label>
-          <label class="lead-chip"><input type="checkbox" value="消毒" class="lead-svc"> 消毒</label>
-          <label class="lead-chip"><input type="checkbox" value="洗冷氣" class="lead-svc"> 洗冷氣</label>
-          <input type="text" id="leadCustomService" placeholder="其他（自填）" style="margin-left:6px; width:140px" maxlength="30">
+          <label class="lead-chip"><input type="checkbox" value="Aircon Cleaning" class="lead-svc"> Aircon Cleaning 洗冷氣服務</label>
+          <label class="lead-chip"><input type="checkbox" value="Bedbug" class="lead-svc"> Bedbug 臭蟲處理</label>
+          <label class="lead-chip"><input type="checkbox" value="Disinfection" class="lead-svc"> Disinfection 消毒服務</label>
+          <label class="lead-chip"><input type="checkbox" value="In2care" class="lead-svc"> In2care 蚊子陷阱</label>
+          <label class="lead-chip"><input type="checkbox" value="Pest control" class="lead-svc"> Pest control 滅蟲服務</label>
+          <label class="lead-chip"><input type="checkbox" value="Rodent" class="lead-svc"> Rodent 滅鼠服務</label>
+          <label class="lead-chip"><input type="checkbox" value="Sentricon" class="lead-svc"> Sentricon 心居康</label>
+          <label class="lead-chip"><input type="checkbox" value="Termite control" class="lead-svc"> Termite control 白蟻控制</label>
+          <label class="lead-chip"><input type="checkbox" value="蚊燈" class="lead-svc" id="leadMqlChk" onchange="document.getElementById('leadMqlQtyBox').style.display=this.checked?'inline-block':'none'"> 蚊燈</label>
+          <span id="leadMqlQtyBox" style="display:none; margin-left:6px">數量 <input type="number" id="leadMqlQty" min="1" max="999" style="width:70px" value="1"></span>
+          <label class="lead-chip"><input type="checkbox" value="Others" class="lead-svc" id="leadOtherChk" onchange="document.getElementById('leadCustomService').style.display=this.checked?'inline-block':'none'"> Others</label>
+          <input type="text" id="leadCustomService" placeholder="其他（自填）" style="margin-left:6px; width:140px; maxlength:30; display:none">
         </div>
         <div style="margin-bottom:10px">
           <label style="display:block; margin-bottom:6px">隊員（1-3 名，自己為第 1 位）：</label>
@@ -374,7 +380,7 @@ function commMemberRowHtml() {
   commMemberSeq++;
   const seq = commMemberSeq;
   let opts = '<option value="">— 選擇隊員 —</option>';
-  for (const e of commEmployees) opts += `<option value="${e.id}">${e.emp_number} ${e.name}${e.group_name ? ' (' + e.group_name + ')' : ''}</option>`;
+  for (const e of commEmployees) opts += `<option value="${e.id}">${e.emp_number} ${e.name}</option>`;
   return `<div class="comm-member-row" data-seq="${seq}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px">
     <select class="comm-emp" onchange="recalcCommission()">${opts}</select>
     <label>銷售件數 <input type="number" min="0" class="comm-sales" value="0" style="width:70px" oninput="recalcCommission()"></label>
@@ -406,7 +412,7 @@ function updateCommAddBtn() {
 // ===== TECH LEAD: 隊員管理 (1-3 名，自己預設為第 1 位) =====
 function leadMemberRowHtml() {
   let opts = '<option value="">— 選擇隊員 —</option>';
-  for (const e of commEmployees) opts += `<option value="${e.id}">${e.emp_number} ${e.name}${e.group_name ? ' (' + e.group_name + ')' : ''}</option>`;
+  for (const e of commEmployees) opts += `<option value="${e.id}">${e.emp_number} ${e.name}</option>`;
   return `<div class="lead-member-row" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px">
     <select class="lead-emp" style="min-width:200px">${opts}</select>
     <button class="btn btn-xs btn-outline" onclick="removeLeadMemberRow(this)">移除</button>
@@ -542,6 +548,9 @@ async function submitTechLead() {
       document.getElementById('leadCustomerAddress').value = '';
       document.querySelectorAll('.lead-svc').forEach(c => c.checked = false);
       document.getElementById('leadCustomService').value = '';
+      document.getElementById('leadCustomService').style.display = 'none';
+      document.getElementById('leadMqlQty').value = '1';
+      document.getElementById('leadMqlQtyBox').style.display = 'none';
       document.getElementById('leadNotes').value = '';
       await loadLeadHistory();
     } else {
