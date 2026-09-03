@@ -512,7 +512,9 @@ app.get('/api/exam/current', authRequired('employee'), async (req, res) => {
 
   let mcCount = 20, maxWrong = 4, hasEssay = false, essayCount = 0;
   switch (emp.level) {
-    case 'senior': mcCount = 20; maxWrong = 2; break;
+    // 'd' = 技術員副主管：合格邏輯同 senior 一樣 (20 MC, 最多錯 2, 冇問答)
+    case 'senior':
+    case 'd': mcCount = 20; maxWrong = 2; break;
     case 'supervisor': mcCount = 20; maxWrong = 2; hasEssay = true; essayCount = 3; break;
   }
 
@@ -550,7 +552,9 @@ app.get('/api/exam/questions/:topicId', authRequired('employee'), async (req, re
 
   let mcCount = 20, essayCount = 0;
   switch (emp.level) {
-    case 'senior': mcCount = 20; break;
+    // 'd' = 技術員副主管：同 senior 一樣 (20 MC, 冇問答)
+    case 'senior':
+    case 'd': mcCount = 20; break;
     case 'supervisor': mcCount = 20; essayCount = 3; break;
   }
 
@@ -595,7 +599,9 @@ app.post('/api/exam/submit', authRequired('employee'), async (req, res) => {
 
   let mcCount = 20, maxWrong = 4, hasEssay = false;
   switch (emp.level) {
-    case 'senior': mcCount = 20; maxWrong = 2; break;
+    // 'd' = 技術員副主管：同 senior 一樣 (20 MC, 最多錯 2, 冇問答)
+    case 'senior':
+    case 'd': mcCount = 20; maxWrong = 2; break;
     case 'supervisor': mcCount = 20; maxWrong = 2; hasEssay = true; break;
   }
 
@@ -1122,7 +1128,8 @@ app.post('/api/admin/grade-essay/:resultId', authRequired('admin'), requirePermi
 
   const employees = await loadJSON('employees.json', []);
   const emp = employees.find(e => e.id === result.employee_id);
-  const maxWrong = emp?.level === 'supervisor' ? 2 : 4;
+  // maxWrong 對齊：supervisor/senior/副主管(d) 都係 2，其餘（junior、自訂）係 4
+  const maxWrong = (emp?.level === 'supervisor' || emp?.level === 'senior' || emp?.level === 'd') ? 2 : 4;
   const mcPassed = result.mc_correct >= (result.mc_total - maxWrong);
 
   const essayPassPercent = essayMaxTotal > 0 ? (essayTotal / essayMaxTotal * 100) : 100;
@@ -1758,10 +1765,12 @@ function isValidLeadService(s) {
 // Employee: create a tech-lead record (sales referral by technician)
 app.post('/api/tech-leads/records', authRequired('employee'), async (req, res) => {
   try {
-    const { record_date, customer_name, customer_phone, customer_address, services, notes, members } = req.body || {};
+    const { record_date, customer_name, customer_phone, customer_address, services, notes, members, customer_code } = req.body || {};
     if (!record_date || !/^\d{4}-\d{2}-\d{2}$/.test(record_date)) return res.status(400).json({ error: '請選擇有效日期' });
     const custName = (customer_name == null ? '' : String(customer_name)).trim();
     if (!custName) return res.status(400).json({ error: '請填寫客戶姓名' });
+    // 客戶編號 optional：trim + strip leading '#'
+    const custCode = (customer_code == null ? '' : String(customer_code)).trim().replace(/^#+/, '').slice(0, 20);
     // 服務 chip 至少 1 個，必須係 10 個固定選項 + 蚊燈×N + Others: text
     const svcArr = Array.isArray(services) ? services.filter(isValidLeadService) : [];
     if (svcArr.length === 0) return res.status(400).json({ error: '請選擇至少一項服務' });
@@ -1786,6 +1795,7 @@ app.post('/api/tech-leads/records', authRequired('employee'), async (req, res) =
     const record = {
       id: nextId,
       record_date,
+      customer_code: custCode,
       customer_name: custName,
       customer_phone: (customer_phone == null ? '' : String(customer_phone)).trim(),
       customer_address: (customer_address == null ? '' : String(customer_address)).trim(),
@@ -1870,12 +1880,13 @@ app.get('/api/admin/tech-leads/export', authRequired('admin'), requirePermission
     else records = records.filter(r => (r.record_date || '').startsWith(String(y)));
     records.sort((a, b) => b.id - a.id);
     const wb = XLSX.utils.book_new();
-    const header = ['記錄編號', '日期', '隊員', '客戶姓名', '客戶電話', '客戶地址', '服務類型', '備註'];
+    const header = ['記錄編號', '日期', '客戶編號', '隊員', '客戶姓名', '客戶電話', '客戶地址', '服務類型', '備註'];
     const rows = records.map(r => {
       const svc = (r.services || []).join('、');
       const svcAll = r.custom_service ? (svc ? svc + '、' + r.custom_service : r.custom_service) : (svc || '—');
       const mem = (r.members || []).map(m => m.emp_name).join('、') || '—';
-      return [r.id, r.record_date, mem, r.customer_name, r.customer_phone, r.customer_address, svcAll, r.notes];
+      const custCode = r.customer_code ? '#' + r.customer_code : '';
+      return [r.id, r.record_date, custCode, mem, r.customer_name, r.customer_phone, r.customer_address, svcAll, r.notes];
     });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...rows]), '服務銷售記錄');
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });

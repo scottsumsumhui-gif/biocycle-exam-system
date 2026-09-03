@@ -160,7 +160,8 @@
           <label>日期：</label>
           <input type="date" id="leadDate">
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px">
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:10px">
+          <div><label>客戶編號：</label><input type="text" id="leadCustomerCode" style="width:100%" maxlength="20" placeholder="例：12345 或 #12345"></div>
           <div><label>客戶姓名：</label><input type="text" id="leadCustomerName" style="width:100%" maxlength="40" placeholder="例：陳先生"></div>
           <div><label>客戶電話：</label><input type="text" id="leadCustomerPhone" style="width:100%" maxlength="30" placeholder="例：91234567"></div>
         </div>
@@ -524,6 +525,8 @@ function switchCommHubTab(which) {
 async function submitTechLead() {
   const date = document.getElementById('leadDate').value;
   if (!date) { alert('請選擇日期'); return; }
+  // 客戶編號 optional：trim + strip leading '#'
+  const customer_code = document.getElementById('leadCustomerCode').value.trim().replace(/^#+/, '');
   const customer_name = document.getElementById('leadCustomerName').value.trim();
   if (!customer_name) { alert('請填寫客戶姓名'); return; }
   const customer_phone = document.getElementById('leadCustomerPhone').value.trim();
@@ -564,12 +567,13 @@ async function submitTechLead() {
   try {
     const res = await fetch(API + '/api/tech-leads/records', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-      body: JSON.stringify({ record_date: date, customer_name, customer_phone, customer_address, services, notes, members })
+      body: JSON.stringify({ record_date: date, customer_code, customer_name, customer_phone, customer_address, services, notes, members })
     });
     const data = await res.json();
     if (data.success) {
       document.getElementById('leadMsg').innerHTML = '<span style="color:#27ae60">✅ 已提交！記錄編號 #' + data.record.id + '</span>';
       // 清空表單
+      document.getElementById('leadCustomerCode').value = '';
       document.getElementById('leadCustomerName').value = '';
       document.getElementById('leadCustomerPhone').value = '';
       document.getElementById('leadCustomerAddress').value = '';
@@ -599,7 +603,7 @@ async function loadLeadHistory() {
     for (const r of records) {
       const svc = (r.services || []).join('、');
       const svcAll = r.custom_service ? (svc ? svc + '、' + r.custom_service : r.custom_service) : (svc || '—');
-      const custShort = (r.customer_name || '') + ' / ' + (r.customer_phone || '—');
+      const custShort = (r.customer_code ? '#' + r.customer_code + ' · ' : '') + (r.customer_name || '') + ' / ' + (r.customer_phone || '—');
       const notesShort = (r.notes || '').length > 30 ? r.notes.substring(0, 30) + '…' : (r.notes || '—');
       const mem = (r.members || []).map(m => m.emp_name).join('、') || '—';
       html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${custShort}</td><td>${mem}</td><td>${svcAll}</td><td title="${(r.notes || '').replace(/"/g,'&quot;')}">${notesShort}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyLead(${r.id})">刪除</button></td></tr>`;
