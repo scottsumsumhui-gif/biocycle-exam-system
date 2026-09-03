@@ -2311,6 +2311,123 @@ app.get('/api/admin/fleet/export', authRequired('admin'), requirePermission('fle
   }
 });
 
+// Admin (super only): merge Firebase fleet records for a target date into the platform.
+// Idempotent: records already present (matched by a stable signature) are skipped, so
+// the nightly sync can be re-run safely without creating duplicates.
+app.post('/api/admin/fleet/sync', authRequired('admin'), async (req, res) => {
+  try {
+    const admins = await loadJSON('admins.json', []);
+    const me = admins.find(a => a.id === req.session.user_id);
+    if (!me || !me.is_super) return res.status(403).json({ success: false, error: '只有超級管理員可執行同步' });
+
+    const { target_date, records } = req.body || {};
+    if (!target_date || !/^\d{4}-\d{2}-\d{2}$/.test(target_date))
+      return res.status(400).json({ success: false, error: '請提供 target_date (YYYY-MM-DD)' });
+    if (!records || typeof records !== 'object')
+      return res.status(400).json({ success: false, error: 'records 格式唔正確' });
+
+    const employees = await loadJSON('employees.json', []);
+    const empByNum = {};
+    for (const e of employees) {
+      const m = String(e.emp_number || '').toUpperCase().replace(/^ST/, '').match(/(\d+)/);
+      if (m) empByNum[parseInt(m[1], 10)] = e;
+    }
+    function splitFleetStaff(raw) {
+      const s = String(raw || '').trim();
+      const mm = s.match(/^(\d+)\s+(.*)$/);
+      if (mm) return { num: parseInt(mm[1], 10), name: mm[2].trim() };
+      return { num: null, name: s };
+    }
+    function mapStaff(raw) {
+      const { num, name } = splitFleetStaff(raw);
+      const emp = num != null ? empByNum[num] : null;
+      if (emp) return { employee_id: emp.id, emp_number: emp.emp_number, emp_name: emp.name };
+      return { employee_id: null, emp_number: num != null ? 'ST' + String(num).padStart(3, '0') : '', emp_name: name };
+    }
+    function hkStamp(iso) {
+      if (!iso) return null;
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return null;
+      return new Date(d.getTime() + 8 * 3600000).toISOString().replace('T', ' ').substring(0, 19);
+    }
+    function sig(kind, r) {
+      if (kind === 'trips') return [r.plate, r.emp_number, r.date, r.start_mileage, r.created_at].join('|');
+      if (kind === 'fuels') return [r.plate, r.emp_number, r.date, r.total_cost, r.created_at].join('|');
+      return [r.plate, r.emp_number, r.date, r.type, r.note, r.created_at].join('|');
+    }
+    function convert(kind, raw, arr) {
+      const st = mapStaff(raw.employee);
+      const createdAt = hkStamp(raw.createdAt) || ((raw.date || target_date) + ' 00:00:00');
+      if (kind === 'trips') {
+        const endM = (raw.endMileage === null || raw.endMileage === undefined) ? null : Number(raw.endMileage);
+        return {
+          id: fleetNextId(arr),
+          plate: String(raw.plate || '').trim().toUpperCase(),
+          employee_id: st.employee_id, emp_number: st.emp_number, emp_name: st.emp_name,
+          date: raw.date || createdAt.substring(0, 10),
+          start_mileage: Number(raw.startMileage) || 0,
+          end_mileage: endM,
+          daily_mileage: (raw.dailyMileage === null || raw.dailyMileage === undefined) ? null : Number(raw.dailyMileage),
+          note: String(raw.note || '').slice(0, 200),
+          created_by_emp_id: st.employee_id, created_at: createdAt
+        };
+      }
+      if (kind === 'fuels') {
+        return {
+          id: fleetNextId(arr),
+          plate: String(raw.plate || '').trim().toUpperCase(),
+          employee_id: st.employee_id, emp_number: st.emp_number, emp_name: st.emp_name,
+          date: raw.date || createdAt.substring(0, 10),
+          mileage: Number(raw.mileage) || 0,
+          liters: (raw.liters === null || raw.liters === undefined) ? null : Number(raw.liters),
+          price_per_liter: (raw.pricePerLiter === null || raw.pricePerLiter === undefined) ? null : Number(raw.pricePerLiter),
+          total_cost: Number(raw.totalCost) || 0,
+          created_by_emp_id: st.employee_id, created_at: createdAt
+        };
+      }
+      return {
+        id: fleetNextId(arr),
+        plate: String(raw.plate || '').trim().toUpperCase(),
+        employee_id: st.employee_id, emp_number: st.emp_number, emp_name: st.emp_name,
+        date: raw.date || createdAt.substring(0, 10),
+        type: String(raw.type || '其他保養').trim() || '其他保養',
+        mileage: (raw.mileage === null || raw.mileage === undefined) ? null : Number(raw.mileage),
+        note: String(raw.note || '').slice(0, 200),
+        created_by_emp_id: st.employee_id, created_at: createdAt
+      };
+    }
+
+    const targets = { trips: FLEET_TRIPS_FILE, fuels: FLEET_FUELS_FILE, maintenance: FLEET_MAINT_FILE };
+    const result = { added: {}, skipped: {}, out_of_range: {} };
+
+    for (const kind of ['trips', 'fuels', 'maintenance']) {
+      const file = targets[kind];
+      const incoming = Array.isArray(records[kind]) ? records[kind] : [];
+      const arr = await loadJSON(file, []);
+      const seen = new Set(arr.map(r => sig(kind, r)));
+      let added = 0, skipped = 0, outOfRange = 0;
+      for (const raw of incoming) {
+        if (!raw || typeof raw !== 'object') continue;
+        const date = raw.date || (hkStamp(raw.createdAt) || '').substring(0, 10);
+        if (date !== target_date) { outOfRange++; continue; }
+        const rec = convert(kind, raw, arr);
+        const s = sig(kind, rec);
+        if (seen.has(s)) { skipped++; continue; }
+        seen.add(s);
+        arr.push(rec);
+        added++;
+      }
+      if (added) await saveJSON(file, arr);
+      result.added[kind] = added;
+      result.skipped[kind] = skipped;
+      result.out_of_range[kind] = outOfRange;
+    }
+    res.json({ success: true, target_date, result });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '同步失敗: ' + (e && e.message ? e.message : e) });
+  }
+});
+
 // Employee: list all employees (for team-member picker)
 app.get('/api/commission/employees', authRequired('employee'), async (req, res) => {
   const employees = await loadJSON('employees.json', []);
