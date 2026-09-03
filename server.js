@@ -34,7 +34,8 @@ const ADMIN_PERMISSIONS = {
   questions:   '題庫管理 Question Bank',
   warehouse:   '倉存管理 Warehouse',
   commission:  '渠網銷售佣金 Channel Commission',
-  leads:       '服務銷售 Technician Leads'
+  leads:       '服務銷售 Technician Leads',
+  fleet:       '車隊記錄 Fleet Records'
 };
 const ALL_PERMISSION_KEYS = Object.keys(ADMIN_PERMISSIONS);
 
@@ -77,15 +78,24 @@ function levelLabelFromList(list, key) {
 async function migrateAdminPermissions() {
   const admins = await loadJSON('admins.json', []);
   let dirty = false;
+  const fullSet = ALL_PERMISSION_KEYS.filter(k => k !== 'admin_mgmt');
   for (const a of admins) {
     if (a.is_super) continue;
     if (!Array.isArray(a.permissions)) {
-      a.permissions = ALL_PERMISSION_KEYS.filter(k => k !== 'admin_mgmt');
+      a.permissions = fullSet.slice();
       dirty = true;
-    } else if (a.permissions.includes('admin_mgmt')) {
-      // Existing admins that somehow have admin_mgmt should not — strip it.
-      a.permissions = a.permissions.filter(p => p !== 'admin_mgmt');
-      dirty = true;
+    } else {
+      let changed = false;
+      // Add any newly-introduced permission keys (e.g. 'fleet') to existing admins.
+      for (const k of fullSet) {
+        if (!a.permissions.includes(k)) { a.permissions.push(k); changed = true; }
+      }
+      // Existing admins must never hold admin_mgmt — strip it if present.
+      if (a.permissions.includes('admin_mgmt')) {
+        a.permissions = a.permissions.filter(p => p !== 'admin_mgmt');
+        changed = true;
+      }
+      if (changed) dirty = true;
     }
   }
   if (dirty) await saveJSON('admins.json', admins);
@@ -398,7 +408,7 @@ app.get('/api/auth/check', async (req, res) => {
   if (session.user_type === 'employee') {
     const employees = await loadJSON('employees.json', []);
     const emp = employees.find(e => e.id === session.user_id);
-    if (emp) userInfo = { empNumber: emp.emp_number, name: emp.name, level: emp.level, group: emp.group_name };
+    if (emp) userInfo = { id: emp.id, empNumber: emp.emp_number, name: emp.name, level: emp.level, group: emp.group_name };
   } else {
     const admins = await loadJSON('admins.json', []);
     const adm = admins.find(a => a.id === session.user_id);
@@ -1892,6 +1902,409 @@ app.get('/api/admin/tech-leads/export', authRequired('admin'), requirePermission
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="tech_leads_${y}${m ? ('_' + m) : ''}.xlsx"`);
+    res.send(buf);
+  } catch (e) {
+    res.status(500).json({ success: false, error: '匯出失敗' });
+  }
+});
+
+// ===== FLEET (車隊里數記錄) ROUTES =====
+// Ported from the standalone Firebase app (biocycle-car-recode) into the platform.
+// Data lives in the platform's own storage (Redis / file), so there is ONE login and
+// the admin panel can manage vehicles + export everything to Excel.
+const FLEET_VEHICLES_FILE = 'fleet_vehicles.json';
+const FLEET_TRIPS_FILE    = 'fleet_trips.json';
+const FLEET_FUELS_FILE    = 'fleet_fuels.json';
+const FLEET_MAINT_FILE    = 'fleet_maintenance.json';
+const FLEET_MAINT_TYPES   = ['換機油', '波箱油', '車呔', '冷氣隔', '電池', '剎車皮/碟', '其他保養'];
+const FLEET_FILES = { trip: FLEET_TRIPS_FILE, fuel: FLEET_FUELS_FILE, maintenance: FLEET_MAINT_FILE };
+
+function fleetNextId(rows) { return rows.length ? Math.max(...rows.map(r => r.id || 0)) + 1 : 1; }
+function fleetIsOut(trips, plate) { return trips.some(t => t.plate === plate && t.end_mileage == null); }
+function fleetActiveTrip(trips, plate) { return trips.find(t => t.plate === plate && t.end_mileage == null) || null; }
+function fleetLastMileage(trips, fuels, plate) {
+  let last = 0;
+  for (const t of trips) {
+    if (t.plate !== plate) continue;
+    if (t.end_mileage != null && t.end_mileage > last) last = t.end_mileage;
+    if (t.end_mileage == null && t.start_mileage > last) last = t.start_mileage;
+  }
+  for (const f of fuels) if (f.plate === plate && f.mileage > last) last = f.mileage;
+  return last;
+}
+function todayHK() { return new Date(Date.now() + 8 * 3600000).toISOString().substring(0, 10); }
+function validMileage(v) { const n = Number(v); return Number.isFinite(n) && n >= 0 && n <= 1000000; }
+function validMoney(v) { const n = Number(v); return Number.isFinite(n) && n >= 0 && n <= 10000000; }
+
+// Employee: vehicle list with live status (出車中 / 停泊中), today's km, last known mileage
+app.get('/api/fleet/vehicles', authRequired('employee'), async (req, res) => {
+  const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+  const trips = await loadJSON(FLEET_TRIPS_FILE, []);
+  const fuels = await loadJSON(FLEET_FUELS_FILE, []);
+  const today = todayHK();
+  const list = vehicles.map(v => {
+    const active = fleetActiveTrip(trips, v.plate);
+    const todayKm = trips
+      .filter(t => t.plate === v.plate && t.date === today && t.daily_mileage != null)
+      .reduce((s, t) => s + (t.daily_mileage || 0), 0);
+    return {
+      id: v.id, plate: v.plate, alias: v.alias || '',
+      is_out: !!active,
+      active_trip_id: active ? active.id : null,
+      active_employee: active ? (active.emp_name || '') : '',
+      today_km: todayKm,
+      last_mileage: fleetLastMileage(trips, fuels, v.plate)
+    };
+  });
+  res.json({ success: true, vehicles: list, today, maintenanceTypes: FLEET_MAINT_TYPES });
+});
+
+// Employee: single vehicle detail (+ per-vehicle fuel-cost-per-km card)
+app.get('/api/fleet/vehicles/:plate', authRequired('employee'), async (req, res) => {
+  const plate = req.params.plate;
+  const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+  const v = vehicles.find(x => x.plate === plate);
+  if (!v) return res.status(404).json({ success: false, error: '車輛不存在' });
+  const trips = await loadJSON(FLEET_TRIPS_FILE, []);
+  const fuels = await loadJSON(FLEET_FUELS_FILE, []);
+  const maint = await loadJSON(FLEET_MAINT_FILE, []);
+  const byDateDesc = (a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id);
+  const vTrips = trips.filter(t => t.plate === plate).sort(byDateDesc);
+  const vFuels = fuels.filter(f => f.plate === plate).sort(byDateDesc);
+  const vMaint = maint.filter(m => m.plate === plate).sort(byDateDesc);
+  const totalFuelCost = vFuels.reduce((s, f) => s + (f.total_cost || 0), 0);
+  const totalKm = vTrips.filter(t => t.daily_mileage != null).reduce((s, t) => s + (t.daily_mileage || 0), 0);
+  const active = fleetActiveTrip(trips, plate);
+  res.json({
+    success: true,
+    vehicle: {
+      id: v.id, plate: v.plate, alias: v.alias || '',
+      is_out: !!active,
+      active_trip: active,
+      last_mileage: fleetLastMileage(trips, fuels, plate)
+    },
+    trips: vTrips.slice(0, 80),
+    fuels: vFuels.slice(0, 80),
+    maintenance: vMaint.slice(0, 80),
+    stats: {
+      total_km: totalKm,
+      trip_count: vTrips.length,
+      fuel_cost: totalFuelCost,
+      cost_per_km: totalKm > 0 ? Math.round((totalFuelCost / totalKm) * 100) / 100 : 0
+    },
+    maintenanceTypes: FLEET_MAINT_TYPES
+  });
+});
+
+// Employee: 出車
+app.post('/api/fleet/trips', authRequired('employee'), async (req, res) => {
+  try {
+    const { plate, start_mileage, note } = req.body || {};
+    const employees = await loadJSON('employees.json', []);
+    const me = employees.find(e => e.id === req.session.user_id);
+    if (!me) return res.status(401).json({ success: false, error: '員工資料不存在' });
+    const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+    if (!vehicles.find(v => v.plate === plate)) return res.status(400).json({ success: false, error: '車輛不存在' });
+    if (!validMileage(start_mileage)) return res.status(400).json({ success: false, error: '請輸入有效起始里數' });
+    const trips = await loadJSON(FLEET_TRIPS_FILE, []);
+    if (fleetActiveTrip(trips, plate)) return res.status(400).json({ success: false, error: '呢架車仲未返回，唔可以再出車' });
+    const record = {
+      id: fleetNextId(trips),
+      plate,
+      employee_id: me.id,
+      emp_number: me.emp_number || '',
+      emp_name: me.name || '',
+      date: todayHK(),
+      start_mileage: Number(start_mileage),
+      end_mileage: null,
+      daily_mileage: null,
+      note: (note == null ? '' : String(note)).trim().slice(0, 200),
+      created_by_emp_id: me.id,
+      created_at: nowStr()
+    };
+    trips.push(record);
+    await saveJSON(FLEET_TRIPS_FILE, trips);
+    res.json({ success: true, record });
+  } catch (e) { res.status(500).json({ success: false, error: '記錄失敗' }); }
+});
+
+// Employee: 返回 (anyone may close an open trip, matching the old app's behaviour)
+app.put('/api/fleet/trips/:id/return', authRequired('employee'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const em = Number((req.body || {}).end_mileage);
+    if (!validMileage(em)) return res.status(400).json({ success: false, error: '請輸入有效返回里數' });
+    const trips = await loadJSON(FLEET_TRIPS_FILE, []);
+    const idx = trips.findIndex(t => t.id === id);
+    if (idx < 0) return res.status(404).json({ success: false, error: '記錄不存在' });
+    if (trips[idx].end_mileage != null) return res.status(400).json({ success: false, error: '呢趟車已經返回咗' });
+    if (em < trips[idx].start_mileage) return res.status(400).json({ success: false, error: '返回里數唔可以細過出車里數' });
+    trips[idx].end_mileage = em;
+    trips[idx].daily_mileage = em - trips[idx].start_mileage;
+    await saveJSON(FLEET_TRIPS_FILE, trips);
+    res.json({ success: true, record: trips[idx] });
+  } catch (e) { res.status(500).json({ success: false, error: '更新失敗' }); }
+});
+
+// Employee: 入油
+app.post('/api/fleet/fuels', authRequired('employee'), async (req, res) => {
+  try {
+    const { plate, mileage, liters, price_per_liter, total_cost } = req.body || {};
+    const employees = await loadJSON('employees.json', []);
+    const me = employees.find(e => e.id === req.session.user_id);
+    if (!me) return res.status(401).json({ success: false, error: '員工資料不存在' });
+    const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+    if (!vehicles.find(v => v.plate === plate)) return res.status(400).json({ success: false, error: '車輛不存在' });
+    if (!validMileage(mileage)) return res.status(400).json({ success: false, error: '請輸入有效里數' });
+    if (!validMoney(total_cost) || Number(total_cost) <= 0) return res.status(400).json({ success: false, error: '請輸入有效油費' });
+    if (liters != null && liters !== '' && !validMoney(liters)) return res.status(400).json({ success: false, error: '入油量格式唔正確' });
+    if (price_per_liter != null && price_per_liter !== '' && !validMoney(price_per_liter)) return res.status(400).json({ success: false, error: '單價格式唔正確' });
+    const fuels = await loadJSON(FLEET_FUELS_FILE, []);
+    const record = {
+      id: fleetNextId(fuels),
+      plate,
+      employee_id: me.id,
+      emp_number: me.emp_number || '',
+      emp_name: me.name || '',
+      date: todayHK(),
+      mileage: Number(mileage),
+      liters: (liters == null || liters === '') ? null : Number(liters),
+      price_per_liter: (price_per_liter == null || price_per_liter === '') ? null : Number(price_per_liter),
+      total_cost: Number(total_cost),
+      created_by_emp_id: me.id,
+      created_at: nowStr()
+    };
+    fuels.push(record);
+    await saveJSON(FLEET_FUELS_FILE, fuels);
+    res.json({ success: true, record });
+  } catch (e) { res.status(500).json({ success: false, error: '記錄失敗' }); }
+});
+
+// Employee: 保養
+app.post('/api/fleet/maintenance', authRequired('employee'), async (req, res) => {
+  try {
+    const { plate, type, mileage, note } = req.body || {};
+    const employees = await loadJSON('employees.json', []);
+    const me = employees.find(e => e.id === req.session.user_id);
+    if (!me) return res.status(401).json({ success: false, error: '員工資料不存在' });
+    const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+    if (!vehicles.find(v => v.plate === plate)) return res.status(400).json({ success: false, error: '車輛不存在' });
+    if (!FLEET_MAINT_TYPES.includes(type)) return res.status(400).json({ success: false, error: '請選擇保養類型' });
+    if (mileage != null && mileage !== '' && !validMileage(mileage)) return res.status(400).json({ success: false, error: '里數格式唔正確' });
+    const maint = await loadJSON(FLEET_MAINT_FILE, []);
+    const record = {
+      id: fleetNextId(maint),
+      plate,
+      employee_id: me.id,
+      emp_number: me.emp_number || '',
+      emp_name: me.name || '',
+      date: todayHK(),
+      type,
+      mileage: (mileage == null || mileage === '') ? null : Number(mileage),
+      note: (note == null ? '' : String(note)).trim().slice(0, 200),
+      created_by_emp_id: me.id,
+      created_at: nowStr()
+    };
+    maint.push(record);
+    await saveJSON(FLEET_MAINT_FILE, maint);
+    res.json({ success: true, record });
+  } catch (e) { res.status(500).json({ success: false, error: '記錄失敗' }); }
+});
+
+// Employee: combined record feed (fleet data is shared company data, so everyone can browse it)
+app.get('/api/fleet/records', authRequired('employee'), async (req, res) => {
+  const { plate, month, type } = req.query;
+  const trips = await loadJSON(FLEET_TRIPS_FILE, []);
+  const fuels = await loadJSON(FLEET_FUELS_FILE, []);
+  const maint = await loadJSON(FLEET_MAINT_FILE, []);
+  let rows = [
+    ...trips.map(r => ({ ...r, rec_type: 'trip' })),
+    ...fuels.map(r => ({ ...r, rec_type: 'fuel' })),
+    ...maint.map(r => ({ ...r, rec_type: 'maintenance' }))
+  ];
+  if (plate) rows = rows.filter(r => r.plate === plate);
+  if (month) rows = rows.filter(r => (r.date || '').startsWith(String(month)));
+  if (type && FLEET_FILES[type]) rows = rows.filter(r => r.rec_type === type);
+  rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id));
+  res.json({ success: true, records: rows.slice(0, 400), total: rows.length });
+});
+
+// Employee: delete own record within 24h
+app.delete('/api/fleet/records/:type/:id', authRequired('employee'), async (req, res) => {
+  try {
+    const file = FLEET_FILES[req.params.type];
+    if (!file) return res.status(400).json({ success: false, error: '記錄類型唔正確' });
+    const rows = await loadJSON(file, []);
+    const idx = rows.findIndex(r => r.id === Number(req.params.id));
+    if (idx < 0) return res.status(404).json({ success: false, error: '記錄不存在' });
+    if (rows[idx].created_by_emp_id !== req.session.user_id) return res.status(403).json({ success: false, error: '只可以刪除自己嘅記錄' });
+    const created = new Date((rows[idx].created_at || '').replace(' ', 'T') + '+08:00');
+    if (isNaN(created.getTime()) || Date.now() - created.getTime() > 24 * 3600 * 1000) {
+      return res.status(403).json({ success: false, error: '超過 24 小時，唔可以刪除，請聯絡管理員' });
+    }
+    rows.splice(idx, 1);
+    await saveJSON(file, rows);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ success: false, error: '刪除失敗' }); }
+});
+
+// Admin: vehicle list
+app.get('/api/admin/fleet/vehicles', authRequired('admin'), requirePermission('fleet'), async (req, res) => {
+  const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+  const trips = await loadJSON(FLEET_TRIPS_FILE, []);
+  const fuels = await loadJSON(FLEET_FUELS_FILE, []);
+  const maint = await loadJSON(FLEET_MAINT_FILE, []);
+  const list = vehicles.map(v => ({
+    ...v,
+    is_out: fleetIsOut(trips, v.plate),
+    last_mileage: fleetLastMileage(trips, fuels, v.plate),
+    trip_count: trips.filter(t => t.plate === v.plate).length,
+    fuel_count: fuels.filter(f => f.plate === v.plate).length,
+    maint_count: maint.filter(m => m.plate === v.plate).length
+  }));
+  res.json({ success: true, vehicles: list });
+});
+
+// Admin: add vehicle
+app.post('/api/admin/fleet/vehicles', authRequired('admin'), requirePermission('fleet'), async (req, res) => {
+  try {
+    const plate = ((req.body || {}).plate || '').trim().toUpperCase();
+    const alias = ((req.body || {}).alias || '').trim();
+    if (!plate) return res.status(400).json({ success: false, error: '請輸入車牌' });
+    const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+    if (vehicles.some(v => v.plate.toUpperCase() === plate)) return res.status(400).json({ success: false, error: '呢個車牌已經存在' });
+    const v = { id: vehicles.length ? Math.max(...vehicles.map(x => x.id)) + 1 : 1, plate, alias };
+    vehicles.push(v);
+    await saveJSON(FLEET_VEHICLES_FILE, vehicles);
+    res.json({ success: true, vehicle: v });
+  } catch (e) { res.status(500).json({ success: false, error: '新增失敗' }); }
+});
+
+// Admin: edit vehicle (alias only; plate rename is intentionally not supported to protect history)
+app.put('/api/admin/fleet/vehicles/:id', authRequired('admin'), requirePermission('fleet'), async (req, res) => {
+  try {
+    const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+    const idx = vehicles.findIndex(v => v.id === Number(req.params.id));
+    if (idx < 0) return res.status(404).json({ success: false, error: '車輛不存在' });
+    vehicles[idx].alias = ((req.body || {}).alias || '').trim();
+    await saveJSON(FLEET_VEHICLES_FILE, vehicles);
+    res.json({ success: true, vehicle: vehicles[idx] });
+  } catch (e) { res.status(500).json({ success: false, error: '更新失敗' }); }
+});
+
+// Admin: delete vehicle (blocked while it still has records)
+app.delete('/api/admin/fleet/vehicles/:id', authRequired('admin'), requirePermission('fleet'), async (req, res) => {
+  try {
+    const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+    const idx = vehicles.findIndex(v => v.id === Number(req.params.id));
+    if (idx < 0) return res.status(404).json({ success: false, error: '車輛不存在' });
+    const plate = vehicles[idx].plate;
+    const trips = await loadJSON(FLEET_TRIPS_FILE, []);
+    const fuels = await loadJSON(FLEET_FUELS_FILE, []);
+    const maint = await loadJSON(FLEET_MAINT_FILE, []);
+    const used = trips.filter(t => t.plate === plate).length + fuels.filter(f => f.plate === plate).length + maint.filter(m => m.plate === plate).length;
+    if (used > 0) return res.status(400).json({ success: false, error: `呢架車有 ${used} 條記錄，唔可以刪除` });
+    vehicles.splice(idx, 1);
+    await saveJSON(FLEET_VEHICLES_FILE, vehicles);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ success: false, error: '刪除失敗' }); }
+});
+
+// Admin: all records with filters
+app.get('/api/admin/fleet/records', authRequired('admin'), requirePermission('fleet'), async (req, res) => {
+  const { plate, month, type } = req.query;
+  const trips = await loadJSON(FLEET_TRIPS_FILE, []);
+  const fuels = await loadJSON(FLEET_FUELS_FILE, []);
+  const maint = await loadJSON(FLEET_MAINT_FILE, []);
+  let rows = [
+    ...trips.map(r => ({ ...r, rec_type: 'trip' })),
+    ...fuels.map(r => ({ ...r, rec_type: 'fuel' })),
+    ...maint.map(r => ({ ...r, rec_type: 'maintenance' }))
+  ];
+  if (plate) rows = rows.filter(r => r.plate === plate);
+  if (month) rows = rows.filter(r => (r.date || '').startsWith(String(month)));
+  if (type && FLEET_FILES[type]) rows = rows.filter(r => r.rec_type === type);
+  rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id));
+  res.json({ success: true, records: rows, total: rows.length });
+});
+
+// Admin: delete any record
+app.delete('/api/admin/fleet/records/:type/:id', authRequired('admin'), requirePermission('fleet'), async (req, res) => {
+  try {
+    const file = FLEET_FILES[req.params.type];
+    if (!file) return res.status(400).json({ success: false, error: '記錄類型唔正確' });
+    const rows = await loadJSON(file, []);
+    const idx = rows.findIndex(r => r.id === Number(req.params.id));
+    if (idx < 0) return res.status(404).json({ success: false, error: '記錄不存在' });
+    rows.splice(idx, 1);
+    await saveJSON(file, rows);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ success: false, error: '刪除失敗' }); }
+});
+
+// Admin: export to Excel (overview sheet + one sheet per vehicle, matching the old app)
+app.get('/api/admin/fleet/export', authRequired('admin'), requirePermission('fleet'), async (req, res) => {
+  try {
+    const { month } = req.query;
+    const mk = month ? String(month) : todayHK().substring(0, 7);
+    const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+    const allTrips = await loadJSON(FLEET_TRIPS_FILE, []);
+    const allFuels = await loadJSON(FLEET_FUELS_FILE, []);
+    const allMaint = await loadJSON(FLEET_MAINT_FILE, []);
+    const inMonth = r => (r.date || '').startsWith(mk);
+    const trips = allTrips.filter(inMonth);
+    const fuels = allFuels.filter(inMonth);
+    const maint = allMaint.filter(inMonth);
+
+    const wb = XLSX.utils.book_new();
+
+    const ovRows = vehicles.map(v => {
+      const vt = trips.filter(t => t.plate === v.plate);
+      const vf = fuels.filter(f => f.plate === v.plate);
+      const vm = maint.filter(m => m.plate === v.plate);
+      const km = vt.filter(t => t.daily_mileage != null).reduce((s, t) => s + (t.daily_mileage || 0), 0);
+      const cost = vf.reduce((s, f) => s + (f.total_cost || 0), 0);
+      return [v.plate, v.alias || '', vt.length, Math.round(km * 10) / 10, vf.length, Math.round(cost * 100) / 100, vm.length];
+    });
+    const ov = [
+      ['車牌', '別名', '出車次數', '總行車里數', '入油次數', '總油費', '保養次數'],
+      ...ovRows,
+      ['合計', '', trips.length, Math.round(trips.filter(t => t.daily_mileage != null).reduce((s, t) => s + (t.daily_mileage || 0), 0) * 10) / 10,
+       fuels.length, Math.round(fuels.reduce((s, f) => s + (f.total_cost || 0), 0) * 100) / 100, maint.length]
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ov), '總覽');
+
+    for (const v of vehicles) {
+      const vt = trips.filter(t => t.plate === v.plate);
+      const vf = fuels.filter(f => f.plate === v.plate);
+      const vm = maint.filter(m => m.plate === v.plate);
+      if (!vt.length && !vf.length && !vm.length) continue;
+      const rows = [];
+      rows.push(['【出車記錄】']);
+      rows.push(['日期', '員工', '起始里數', '返回里數', '行車里數', '備註']);
+      vt.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      for (const t of vt) rows.push([t.date, t.emp_name, t.start_mileage, t.end_mileage == null ? '未返回' : t.end_mileage, t.daily_mileage == null ? '' : t.daily_mileage, t.note || '']);
+      rows.push(['合計行車里數', '', '', '', Math.round(vt.filter(t => t.daily_mileage != null).reduce((s, t) => s + (t.daily_mileage || 0), 0) * 10) / 10]);
+      rows.push([]);
+      rows.push(['【入油記錄】']);
+      rows.push(['日期', '員工', '里數', '入油量(L)', '單價', '總油費']);
+      vf.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      for (const f of vf) rows.push([f.date, f.emp_name, f.mileage, f.liters == null ? '' : f.liters, f.price_per_liter == null ? '' : f.price_per_liter, f.total_cost]);
+      rows.push(['合計油費', '', '', '', '', Math.round(vf.reduce((s, f) => s + (f.total_cost || 0), 0) * 100) / 100]);
+      if (vm.length) {
+        rows.push([]);
+        rows.push(['【保養記錄】']);
+        rows.push(['日期', '員工', '保養類型', '當時里數', '備註']);
+        vm.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+        for (const m of vm) rows.push([m.date, m.emp_name, m.type, m.mileage == null ? '' : m.mileage, m.note || '']);
+      }
+      const sheetName = (v.alias || v.plate).replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 28);
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), sheetName);
+    }
+
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="fleet_${mk.replace('-', '')}.xlsx"`);
     res.send(buf);
   } catch (e) {
     res.status(500).json({ success: false, error: '匯出失敗' });

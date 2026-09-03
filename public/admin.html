@@ -50,6 +50,7 @@
     <button class="nav-btn" data-tab="questionBank" onclick="showTab('questionBank')" id="tabQuestionBank">&#128218; 題庫管理</button>
     <button class="nav-btn" data-tab="warehouse" onclick="showTab('warehouse')" id="tabWarehouse">&#128230; 倉存管理</button>
     <button class="nav-btn" data-tab="commission" onclick="showTab('commission')" id="tabCommission">&#128176; 服務銷售佣金</button>
+    <button class="nav-btn" data-tab="fleet" onclick="showTab('fleet')" id="tabFleet">&#128663; 車輛管理</button>
   </nav>
   
   <main class="admin-body" id="adminBody"></main>
@@ -116,7 +117,8 @@ const TAB_PERMISSION_MAP = {
   grading: 'grading',
   questionBank: 'questions',
   warehouse: 'warehouse',
-  commission: 'commission'
+  commission: 'commission',
+  fleet: 'fleet'
 };
 function hasPerm(key) {
   if (!adminData) return false;
@@ -134,7 +136,7 @@ function applyNavPermissions() {
 
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission' };
+  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet' };
   const tabEl = document.getElementById(tabIdMap[tab]);
   if (tabEl) tabEl.classList.add('active');
   
@@ -148,6 +150,7 @@ function showTab(tab) {
     case 'questionBank': loadQuestionBank(); break;
     case 'warehouse': loadWarehouse(); break;
     case 'commission': loadCommissionAdmin(); break;
+    case 'fleet': loadFleetAdmin(); break;
   }
 }
 
@@ -1753,6 +1756,176 @@ async function deleteQuestion(type, topicId, qIndex) {
     console.error(e);
     alert('刪除失敗');
   }
+}
+
+// ===== FLEET ADMIN =====
+let fleetAdminCache = { vehicles: [], records: [] };
+
+async function loadFleetAdmin() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = '<div class="loading">載入中...</div>';
+  try {
+    const [vehRes, recRes] = await Promise.all([
+      fetch(API + '/api/admin/fleet/vehicles', { credentials: 'include' }),
+      fetch(API + '/api/admin/fleet/records', { credentials: 'include' })
+    ]);
+    const vehData = await vehRes.json();
+    const recData = await recRes.json();
+    fleetAdminCache.vehicles = vehData.vehicles || [];
+    fleetAdminCache.records = recData.records || [];
+    renderFleetAdmin();
+  } catch (e) {
+    body.innerHTML = '<p>載入失敗</p>';
+  }
+}
+
+function renderFleetAdmin() {
+  const { vehicles } = fleetAdminCache;
+  const plateOpts = vehicles.map(v => `<option value="${v.plate}">${v.alias ? v.alias + ' (' + v.plate + ')' : v.plate}</option>`).join('');
+  let html = '<h2>&#128663; 車輛管理 Fleet Management</h2>';
+
+  // --- Vehicle management ---
+  html += '<div class="section-card"><h3>車輛列表（' + vehicles.length + ' 架）</h3>';
+  html += `<div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; margin-bottom:10px">
+    <div class="form-group" style="margin:0"><label>新增車輛 車牌</label><input id="fleetNewPlate" placeholder="例：SH8294" style="width:120px"></div>
+    <div class="form-group" style="margin:0"><label>別名（選填）</label><input id="fleetNewAlias" placeholder="例：CAR 1" style="width:120px"></div>
+    <button class="btn btn-sm btn-primary" onclick="adminAddFleetVehicle()">新增</button>
+  </div>`;
+  if (!vehicles.length) {
+    html += '<p style="color:#888">暫無車輛</p>';
+  } else {
+    html += '<table class="data-table"><thead><tr><th>車牌</th><th>別名</th><th>狀態</th><th>出車</th><th>入油</th><th>保養</th><th>操作</th></tr></thead><tbody>';
+    for (const v of vehicles) {
+      html += `<tr><td>${v.plate}</td><td>${v.alias || '—'}</td><td>${v.is_out ? '<span style="color:#e74c3c">出車中</span>' : '停泊中'}</td><td>${v.trip_count}</td><td>${v.fuel_count}</td><td>${v.maint_count}</td><td><button class="btn btn-xs btn-outline" onclick="adminEditFleetVehicle(${v.id})">改名</button> <button class="btn btn-xs btn-outline" onclick="adminDeleteFleetVehicle(${v.id})">刪除</button></td></tr>`;
+    }
+    html += '</tbody></table>';
+  }
+  html += '</div>';
+
+  // --- Records ---
+  html += '<div class="section-card"><h3>所有記錄</h3>';
+  html += `<div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px">
+    <label>車牌：</label>
+    <select id="fleetRecPlate" onchange="loadFleetRecordsAdmin()"><option value="">全部</option>${plateOpts}</select>
+    <label>月份：</label>
+    <input id="fleetRecMonth" type="month" onchange="loadFleetRecordsAdmin()" style="width:150px">
+    <label>類型：</label>
+    <select id="fleetRecType" onchange="loadFleetRecordsAdmin()">
+      <option value="">全部</option>
+      <option value="trip">出車</option>
+      <option value="fuel">入油</option>
+      <option value="maintenance">保養</option>
+    </select>
+    <button class="btn btn-sm btn-primary" onclick="exportFleetExcel()">&#128229; 匯出 Excel</button>
+  </div>`;
+  html += '<div id="fleetRecBox"></div></div>';
+
+  document.getElementById('adminBody').innerHTML = html;
+  renderFleetRecordsAdmin(fleetAdminCache.records);
+}
+
+async function loadFleetRecordsAdmin() {
+  const plate = document.getElementById('fleetRecPlate').value;
+  const month = document.getElementById('fleetRecMonth').value;
+  const type = document.getElementById('fleetRecType').value;
+  const q = new URLSearchParams();
+  if (plate) q.set('plate', plate);
+  if (month) q.set('month', month);
+  if (type) q.set('type', type);
+  const box = document.getElementById('fleetRecBox');
+  if (box) box.innerHTML = '<p>載入中...</p>';
+  try {
+    const res = await fetch(API + '/api/admin/fleet/records?' + q.toString(), { credentials: 'include' });
+    const data = await res.json();
+    if (!data.success) { if (box) box.innerHTML = '<p>' + (data.error || '載入失敗') + '</p>'; return; }
+    renderFleetRecordsAdmin(data.records || []);
+  } catch (e) { if (box) box.innerHTML = '<p>載入失敗</p>'; }
+}
+
+function renderFleetRecordsAdmin(rows) {
+  const box = document.getElementById('fleetRecBox');
+  if (!box) return;
+  if (!rows.length) { box.innerHTML = '<p style="color:#888">暫無記錄</p>'; return; }
+  let html = '<table class="data-table"><thead><tr><th>編號</th><th>類型</th><th>日期</th><th>車牌</th><th>員工</th><th>詳情</th><th>操作</th></tr></thead><tbody>';
+  for (const r of rows) {
+    let detail = '';
+    if (r.rec_type === 'trip') {
+      detail = `起始 ${r.start_mileage} → ${r.end_mileage == null ? '<span style="color:#e74c3c">未返回</span>' : r.end_mileage} km`
+        + (r.daily_mileage != null ? `（${r.daily_mileage} km）` : '')
+        + (r.note ? `<br>${r.note}` : '');
+    } else if (r.rec_type === 'fuel') {
+      detail = (r.liters == null ? '' : r.liters + ' L @ $' + r.price_per_liter + ' · ') + '總油費 $' + r.total_cost;
+    } else if (r.rec_type === 'maintenance') {
+      detail = r.type + (r.mileage != null ? ` @ ${r.mileage} km` : '') + (r.note ? ` · ${r.note}` : '');
+    }
+    const typeLabel = { trip: '出車', fuel: '入油', maintenance: '保養' }[r.rec_type] || r.rec_type;
+    html += `<tr><td>${r.id}</td><td>${typeLabel}</td><td>${r.date}</td><td>${r.plate}</td><td>${r.emp_name || '—'}</td><td>${detail}</td><td><button class="btn btn-xs btn-outline" onclick="deleteFleetRecordAdmin('${r.rec_type}', ${r.id})">刪除</button></td></tr>`;
+  }
+  html += '</tbody></table>';
+  box.innerHTML = html;
+}
+
+async function adminAddFleetVehicle() {
+  const plate = (document.getElementById('fleetNewPlate').value || '').trim().toUpperCase();
+  const alias = (document.getElementById('fleetNewAlias').value || '').trim();
+  if (!plate) { alert('請輸入車牌'); return; }
+  try {
+    const res = await fetch(API + '/api/admin/fleet/vehicles', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plate, alias })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || '新增失敗'); return; }
+    loadFleetAdmin();
+  } catch (e) { alert('新增失敗'); }
+}
+
+async function adminEditFleetVehicle(id) {
+  const v = fleetAdminCache.vehicles.find(x => x.id === id);
+  if (!v) return;
+  const alias = prompt('修改車輛別名（車牌不可改）：', v.alias || '');
+  if (alias === null) return;
+  try {
+    const res = await fetch(API + '/api/admin/fleet/vehicles/' + id, {
+      method: 'PUT', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alias: alias.trim() })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || '更新失敗'); return; }
+    loadFleetAdmin();
+  } catch (e) { alert('更新失敗'); }
+}
+
+async function adminDeleteFleetVehicle(id) {
+  if (!confirm('確定刪除呢架車？有記錄嘅車唔可以刪。')) return;
+  try {
+    const res = await fetch(API + '/api/admin/fleet/vehicles/' + id, {
+      method: 'DELETE', credentials: 'include'
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || '刪除失敗'); return; }
+    loadFleetAdmin();
+  } catch (e) { alert('刪除失敗'); }
+}
+
+async function deleteFleetRecordAdmin(type, id) {
+  if (!confirm('確定刪除呢筆記錄？')) return;
+  try {
+    const res = await fetch(API + `/api/admin/fleet/records/${type}/${id}`, {
+      method: 'DELETE', credentials: 'include'
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || '刪除失敗'); return; }
+    loadFleetRecordsAdmin();
+  } catch (e) { alert('刪除失敗'); }
+}
+
+function exportFleetExcel() {
+  const month = document.getElementById('fleetRecMonth').value;
+  const q = month ? '?month=' + month : '';
+  window.open(API + '/api/admin/fleet/export' + q, '_blank');
 }
 
 // Keep the admin session alive while the panel is open (long-lived 30-day TTL,

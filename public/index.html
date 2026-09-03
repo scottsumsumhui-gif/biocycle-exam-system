@@ -46,6 +46,11 @@
         <div class="module-title">服務銷售佣金</div>
         <div class="module-desc">渠網 / 服務銷售</div>
       </div>
+      <div class="module-card" onclick="showFleet()">
+        <div class="module-icon">🚐</div>
+        <div class="module-title">車輛里數記錄</div>
+        <div class="module-desc">出車 / 入油 / 保養</div>
+      </div>
     </div>
     <div style="display:flex; gap:12px; justify-content:center">
       <button class="btn btn-outline btn-sm" onclick="showChangePw()">修改密碼</button>
@@ -271,6 +276,129 @@
         <select id="whStockCatFilter" onchange="renderWhStock(this.value)"><option value="">全部</option></select>
       </div>
       <div id="whStockTable" style="overflow-x:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FLEET (車輛里數記錄) -->
+<div id="fleetScreen" class="screen" style="display:none">
+  <div class="wide-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+      <h2>🚐 車輛里數記錄</h2>
+      <button class="btn btn-outline btn-sm" onclick="showHome()">← 返回主板面</button>
+    </div>
+    <p id="fleetEmpInfo" style="color:#666"></p>
+    <div id="fleetMsg" style="margin:8px 0"></div>
+
+    <!-- ========== LIST VIEW ========== -->
+    <div id="fleetListView">
+      <div id="fleetTodayStats" style="display:flex; gap:12px; flex-wrap:wrap; margin:10px 0"></div>
+      <div id="fleetGrid" class="fleet-grid"></div>
+
+      <h3 style="margin-top:22px">📋 記錄</h3>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:10px">
+        <div class="form-group" style="margin:0">
+          <label>車牌</label>
+          <select id="fleetFilterPlate" onchange="loadFleetRecords()" style="min-width:130px"><option value="">全部車輛</option></select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>類型</label>
+          <select id="fleetFilterType" onchange="loadFleetRecords()" style="min-width:110px">
+            <option value="">全部</option>
+            <option value="trip">出車</option>
+            <option value="fuel">入油</option>
+            <option value="maintenance">保養</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>月份</label>
+          <input type="month" id="fleetFilterMonth" onchange="loadFleetRecords()">
+        </div>
+      </div>
+      <div id="fleetRecords" style="overflow-x:auto"></div>
+    </div>
+
+    <!-- ========== DETAIL VIEW ========== -->
+    <div id="fleetDetailView" style="display:none">
+      <button class="btn btn-outline btn-sm" onclick="fleetBackToList()">← 返回車輛列表</button>
+      <h3 id="fleetDetailTitle" style="margin-top:12px"></h3>
+      <div id="fleetDetailStats" style="display:flex; gap:12px; flex-wrap:wrap; margin:10px 0"></div>
+
+      <div id="fleetActionBar" style="display:flex; gap:8px; flex-wrap:wrap; margin:12px 0"></div>
+
+      <!-- 出車 -->
+      <div id="fleetDepartBox" class="fleet-form-box" style="display:none">
+        <strong>🚗 出車</strong>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:8px">
+          <div class="form-group" style="margin:0">
+            <label>起始里數</label>
+            <input type="number" id="fleetDepartMileage" style="width:130px">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>備註（選填）</label>
+            <input type="text" id="fleetDepartNote" placeholder="例：九龍區" style="width:200px">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="submitFleetDepart()">確認出車</button>
+        </div>
+      </div>
+
+      <!-- 返回 -->
+      <div id="fleetReturnBox" class="fleet-form-box" style="display:none">
+        <strong>🏁 返回</strong>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:8px">
+          <div class="form-group" style="margin:0">
+            <label>返回里數</label>
+            <input type="number" id="fleetReturnMileage" style="width:130px">
+          </div>
+          <button class="btn btn-success btn-sm" onclick="submitFleetReturn()">確認返回</button>
+        </div>
+      </div>
+
+      <!-- 入油 -->
+      <div id="fleetFuelBox" class="fleet-form-box" style="display:none">
+        <strong>⛽ 入油</strong>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:8px">
+          <div class="form-group" style="margin:0">
+            <label>當時里數</label>
+            <input type="number" id="fleetFuelMileage" style="width:120px">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>入油量 (L)</label>
+            <input type="number" id="fleetFuelLiters" step="0.01" style="width:110px">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>單價 ($/L)</label>
+            <input type="number" id="fleetFuelPrice" step="0.01" style="width:110px">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>總油費 ($)</label>
+            <input type="number" id="fleetFuelCost" step="0.01" style="width:120px">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="submitFleetFuel()">確認入油</button>
+        </div>
+      </div>
+
+      <!-- 保養 -->
+      <div id="fleetMaintBox" class="fleet-form-box" style="display:none">
+        <strong>🔧 保養</strong>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:8px">
+          <div class="form-group" style="margin:0">
+            <label>保養類型</label>
+            <select id="fleetMaintType" style="min-width:130px"></select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>當時里數</label>
+            <input type="number" id="fleetMaintMileage" style="width:120px">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>備註（選填）</label>
+            <input type="text" id="fleetMaintNote" placeholder="例：頭呔" style="width:200px">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="submitFleetMaint()">確認保養</button>
+        </div>
+      </div>
+
+      <div id="fleetDetailTables" style="margin-top:16px"></div>
     </div>
   </div>
 </div>
@@ -1323,6 +1451,290 @@ async function logout() {
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
   document.getElementById(id).style.display = '';
+}
+
+// ===== FLEET (車輛里數記錄) =====
+let fleetVehicles = [];
+let fleetCurrentPlate = null;
+let fleetMaintTypes = [];
+
+async function showFleet() {
+  const hb = await pingHeartbeat();
+  if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  showScreen('fleetScreen');
+  document.getElementById('fleetEmpInfo').textContent = `${empData.name} | ${levelNames[empData.level] || empData.level}`;
+  if (!document.getElementById('fleetFilterMonth').value) {
+    const d = new Date(Date.now() + 8 * 3600000);
+    document.getElementById('fleetFilterMonth').value = d.toISOString().substring(0, 7);
+  }
+  fleetBackToList();
+  await loadFleetVehicles();
+  await loadFleetRecords();
+}
+
+function fleetBackToList() {
+  document.getElementById('fleetListView').style.display = '';
+  document.getElementById('fleetDetailView').style.display = 'none';
+  document.getElementById('fleetMsg').innerHTML = '';
+  fleetCurrentPlate = null;
+}
+
+function fleetMsg(text, ok) {
+  document.getElementById('fleetMsg').innerHTML = `<span style="color:${ok ? '#27ae60' : '#e74c3c'}">${text}</span>`;
+}
+
+async function loadFleetVehicles() {
+  try {
+    const res = await fetch(API + '/api/fleet/vehicles', { credentials: 'include' });
+    const data = await res.json();
+    if (!data.success) { document.getElementById('fleetGrid').innerHTML = '<p>' + (data.error || '載入失敗') + '</p>'; return; }
+    fleetVehicles = data.vehicles || [];
+    fleetMaintTypes = data.maintenanceTypes || [];
+    const sel = document.getElementById('fleetFilterPlate');
+    const keep = sel.value;
+    sel.innerHTML = '<option value="">全部車輛</option>' + fleetVehicles.map(v =>
+      `<option value="${v.plate}">${v.alias ? v.alias + ' (' + v.plate + ')' : v.plate}</option>`).join('');
+    if (keep) sel.value = keep;
+    document.getElementById('fleetMaintType').innerHTML = fleetMaintTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+    renderFleetGrid();
+  } catch (e) { document.getElementById('fleetGrid').innerHTML = '<p>載入失敗</p>'; }
+}
+
+function renderFleetGrid() {
+  const grid = document.getElementById('fleetGrid');
+  if (!fleetVehicles.length) { grid.innerHTML = '<p style="color:#888">暫無車輛，請聯絡管理員新增。</p>'; return; }
+  const outCount = fleetVehicles.filter(v => v.is_out).length;
+  const todayKm = fleetVehicles.reduce((s, v) => s + (v.today_km || 0), 0);
+  document.getElementById('fleetTodayStats').innerHTML = `
+    <div class="fleet-stat-box"><div class="fleet-stat-label">今日總行車里數</div><div class="fleet-stat-value">${todayKm.toFixed(1)} km</div></div>
+    <div class="fleet-stat-box"><div class="fleet-stat-label">出車中 / 全車隊</div><div class="fleet-stat-value">${outCount} / ${fleetVehicles.length}</div></div>`;
+  grid.innerHTML = fleetVehicles.map(v => {
+    const name = v.alias || v.plate;
+    const driver = v.is_out && v.active_employee ? `<div class="fleet-last">${v.active_employee}</div>` : '';
+    return `<div class="fleet-card ${v.is_out ? 'status-out' : ''}" onclick="openFleetVehicle('${v.plate}')">
+      <div class="fleet-dot ${v.is_out ? 'out' : ''}"></div>
+      <div class="fleet-plate">${name}</div>
+      ${v.alias ? `<div class="fleet-alias">${v.plate}</div>` : ''}
+      <div class="fleet-status ${v.is_out ? 'out' : 'in'}">${v.is_out ? '出車中' : '停泊中'}</div>
+      ${v.today_km > 0 ? `<div class="fleet-today">今日 ${v.today_km.toFixed(1)} km</div>` : ''}
+      ${v.last_mileage ? `<div class="fleet-last">上次 ${v.last_mileage} km</div>` : ''}
+      ${driver}
+    </div>`;
+  }).join('');
+}
+
+function fleetShowForm(id) {
+  const all = ['fleetDepartBox', 'fleetReturnBox', 'fleetFuelBox', 'fleetMaintBox'];
+  const target = document.getElementById(id);
+  const willOpen = target.style.display === 'none' || target.style.display === '';
+  all.forEach(x => document.getElementById(x).style.display = 'none');
+  if (willOpen) target.style.display = '';
+}
+
+async function openFleetVehicle(plate) {
+  fleetCurrentPlate = plate;
+  document.getElementById('fleetListView').style.display = 'none';
+  document.getElementById('fleetDetailView').style.display = '';
+  document.getElementById('fleetMsg').innerHTML = '';
+  ['fleetDepartBox', 'fleetReturnBox', 'fleetFuelBox', 'fleetMaintBox'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('fleetDetailTables').innerHTML = '<p>載入中…</p>';
+  try {
+    const res = await fetch(API + '/api/fleet/vehicles/' + encodeURIComponent(plate), { credentials: 'include' });
+    const data = await res.json();
+    if (!data.success) { document.getElementById('fleetDetailTables').innerHTML = '<p>' + (data.error || '載入失敗') + '</p>'; return; }
+    const v = data.vehicle, s = data.stats;
+    document.getElementById('fleetDetailTitle').textContent =
+      (v.alias ? v.alias + '（' + v.plate + '）' : v.plate) + ' — ' + (v.is_out ? '出車中' : '停泊中');
+    document.getElementById('fleetDetailStats').innerHTML = `
+      <div class="fleet-stat-box"><div class="fleet-stat-label">上次里數</div><div class="fleet-stat-value">${v.last_mileage || 0} km</div></div>
+      <div class="fleet-stat-box"><div class="fleet-stat-label">累積行車</div><div class="fleet-stat-value">${(s.total_km || 0).toFixed(1)} km</div></div>
+      <div class="fleet-stat-box"><div class="fleet-stat-label">總油費</div><div class="fleet-stat-value">$${(s.fuel_cost || 0).toFixed(0)}</div></div>
+      <div class="fleet-stat-box"><div class="fleet-stat-label">平均每公里油費</div><div class="fleet-stat-value">$${(s.cost_per_km || 0).toFixed(2)}</div></div>`;
+    let bar = v.is_out
+      ? `<button class="btn btn-success btn-sm" onclick="fleetShowForm('fleetReturnBox')">🏁 返回</button>`
+      : `<button class="btn btn-primary btn-sm" onclick="fleetShowForm('fleetDepartBox')">🚗 出車</button>`;
+    bar += `<button class="btn btn-outline btn-sm" onclick="fleetShowForm('fleetFuelBox')">⛽ 入油</button>`;
+    bar += `<button class="btn btn-outline btn-sm" onclick="fleetShowForm('fleetMaintBox')">🔧 保養</button>`;
+    document.getElementById('fleetActionBar').innerHTML = bar;
+    document.getElementById('fleetDepartMileage').value = v.last_mileage || '';
+    document.getElementById('fleetFuelMileage').value = v.last_mileage || '';
+    document.getElementById('fleetMaintMileage').value = v.last_mileage || '';
+    document.getElementById('fleetReturnMileage').value = v.active_trip ? v.active_trip.start_mileage : '';
+    renderFleetDetailTables(data);
+  } catch (e) { document.getElementById('fleetDetailTables').innerHTML = '<p>載入失敗</p>'; }
+}
+
+function renderFleetDetailTables(data) {
+  let html = '';
+  const v = data.vehicle;
+  if (v.is_out && v.active_trip) {
+    html += `<p style="background:#fdf0ee;border-left:4px solid #e74c3c;padding:8px 12px;border-radius:4px">
+      <strong>出車中</strong> — ${v.active_trip.emp_name} 於 ${v.active_trip.date} 出車，起始里數 ${v.active_trip.start_mileage} km</p>`;
+  }
+  const tTrips = (data.trips || []).slice(0, 10);
+  html += '<h4 style="margin:14px 0 6px">出車記錄（最近 10 次）</h4>';
+  html += tTrips.length
+    ? '<table class="data-table"><thead><tr><th>日期</th><th>員工</th><th>起始</th><th>返回</th><th>行車</th><th>備註</th></tr></thead><tbody>' +
+      tTrips.map(t => `<tr><td>${t.date}</td><td>${t.emp_name || '—'}</td><td>${t.start_mileage}</td><td>${t.end_mileage == null ? '<span style="color:#e74c3c">未返回</span>' : t.end_mileage}</td><td>${t.daily_mileage == null ? '—' : t.daily_mileage + ' km'}</td><td>${t.note || '—'}</td></tr>`).join('') + '</tbody></table>'
+    : '<p style="color:#888">暫無記錄</p>';
+  const tFuels = (data.fuels || []).slice(0, 10);
+  html += '<h4 style="margin:14px 0 6px">入油記錄（最近 10 次）</h4>';
+  html += tFuels.length
+    ? '<table class="data-table"><thead><tr><th>日期</th><th>員工</th><th>里數</th><th>油量</th><th>單價</th><th>總油費</th></tr></thead><tbody>' +
+      tFuels.map(f => `<tr><td>${f.date}</td><td>${f.emp_name || '—'}</td><td>${f.mileage}</td><td>${f.liters == null ? '—' : f.liters + ' L'}</td><td>${f.price_per_liter == null ? '—' : '$' + f.price_per_liter}</td><td>$${f.total_cost}</td></tr>`).join('') + '</tbody></table>'
+    : '<p style="color:#888">暫無記錄</p>';
+  const tMaint = (data.maintenance || []).slice(0, 10);
+  html += '<h4 style="margin:14px 0 6px">保養記錄（最近 10 次）</h4>';
+  html += tMaint.length
+    ? '<table class="data-table"><thead><tr><th>日期</th><th>員工</th><th>類型</th><th>里數</th><th>備註</th></tr></thead><tbody>' +
+      tMaint.map(m => `<tr><td>${m.date}</td><td>${m.emp_name || '—'}</td><td>${m.type}</td><td>${m.mileage == null ? '—' : m.mileage}</td><td>${m.note || '—'}</td></tr>`).join('') + '</tbody></table>'
+    : '<p style="color:#888">暫無記錄</p>';
+  document.getElementById('fleetDetailTables').innerHTML = html;
+}
+
+async function submitFleetDepart() {
+  const mileage = document.getElementById('fleetDepartMileage').value;
+  const note = document.getElementById('fleetDepartNote').value;
+  if (mileage === '' || isNaN(Number(mileage))) { alert('請輸入有效起始里數'); return; }
+  const last = (fleetVehicles.find(v => v.plate === fleetCurrentPlate) || {}).last_mileage || 0;
+  if (last && Number(mileage) < last - 50) {
+    if (!confirm(`你輸入嘅里數（${mileage} km）比上次記錄（${last} km）低超過 50 km，確定繼續？`)) return;
+  }
+  const hb = await pingHeartbeat();
+  if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  try {
+    const res = await fetch(API + '/api/fleet/trips', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+      body: JSON.stringify({ plate: fleetCurrentPlate, start_mileage: Number(mileage), note })
+    });
+    const data = await res.json();
+    if (!data.success) { alert(data.error || '記錄失敗'); return; }
+    document.getElementById('fleetDepartNote').value = '';
+    fleetMsg('✅ 出車記錄已儲存', true);
+    await loadFleetVehicles();
+    await openFleetVehicle(fleetCurrentPlate);
+    await loadFleetRecords();
+  } catch (e) { alert('提交失敗，請重試'); }
+}
+
+async function submitFleetReturn() {
+  const mileage = document.getElementById('fleetReturnMileage').value;
+  if (mileage === '' || isNaN(Number(mileage))) { alert('請輸入有效返回里數'); return; }
+  const hb = await pingHeartbeat();
+  if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  try {
+    const res = await fetch(API + '/api/fleet/vehicles/' + encodeURIComponent(fleetCurrentPlate), { credentials: 'include' });
+    const d = await res.json();
+    if (!d.success || !d.vehicle.active_trip) { alert('搵唔到進行中嘅出車記錄'); return; }
+    const r2 = await fetch(API + '/api/fleet/trips/' + d.vehicle.active_trip.id + '/return', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+      body: JSON.stringify({ end_mileage: Number(mileage) })
+    });
+    const data = await r2.json();
+    if (!data.success) { alert(data.error || '記錄失敗'); return; }
+    fleetMsg(`✅ 返回記錄已儲存，今次行車 ${data.record.daily_mileage} km`, true);
+    await loadFleetVehicles();
+    await openFleetVehicle(fleetCurrentPlate);
+    await loadFleetRecords();
+  } catch (e) { alert('提交失敗，請重試'); }
+}
+
+async function submitFleetFuel() {
+  const mileage = document.getElementById('fleetFuelMileage').value;
+  const liters = document.getElementById('fleetFuelLiters').value;
+  const price = document.getElementById('fleetFuelPrice').value;
+  const cost = document.getElementById('fleetFuelCost').value;
+  if (mileage === '' || isNaN(Number(mileage))) { alert('請輸入有效里數'); return; }
+  if (cost === '' || isNaN(Number(cost)) || Number(cost) <= 0) { alert('請輸入有效油費'); return; }
+  const hb = await pingHeartbeat();
+  if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  try {
+    const res = await fetch(API + '/api/fleet/fuels', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+      body: JSON.stringify({ plate: fleetCurrentPlate, mileage: Number(mileage), liters, price_per_liter: price, total_cost: Number(cost) })
+    });
+    const data = await res.json();
+    if (!data.success) { alert(data.error || '記錄失敗'); return; }
+    ['fleetFuelLiters', 'fleetFuelPrice', 'fleetFuelCost'].forEach(id => document.getElementById(id).value = '');
+    fleetMsg('✅ 入油記錄已儲存', true);
+    await loadFleetVehicles();
+    await openFleetVehicle(fleetCurrentPlate);
+    await loadFleetRecords();
+  } catch (e) { alert('提交失敗，請重試'); }
+}
+
+async function submitFleetMaint() {
+  const type = document.getElementById('fleetMaintType').value;
+  const mileage = document.getElementById('fleetMaintMileage').value;
+  const note = document.getElementById('fleetMaintNote').value;
+  if (!type) { alert('請選擇保養類型'); return; }
+  const hb = await pingHeartbeat();
+  if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  try {
+    const res = await fetch(API + '/api/fleet/maintenance', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+      body: JSON.stringify({ plate: fleetCurrentPlate, type, mileage, note })
+    });
+    const data = await res.json();
+    if (!data.success) { alert(data.error || '記錄失敗'); return; }
+    document.getElementById('fleetMaintNote').value = '';
+    fleetMsg('✅ 保養記錄已儲存', true);
+    await loadFleetVehicles();
+    await openFleetVehicle(fleetCurrentPlate);
+    await loadFleetRecords();
+  } catch (e) { alert('提交失敗，請重試'); }
+}
+
+async function loadFleetRecords() {
+  const plate = document.getElementById('fleetFilterPlate').value;
+  const type = document.getElementById('fleetFilterType').value;
+  const month = document.getElementById('fleetFilterMonth').value;
+  const q = new URLSearchParams();
+  if (plate) q.set('plate', plate);
+  if (type) q.set('type', type);
+  if (month) q.set('month', month);
+  try {
+    const res = await fetch(API + '/api/fleet/records?' + q.toString(), { credentials: 'include' });
+    const data = await res.json();
+    renderFleetRecords(data.records || []);
+  } catch (e) { document.getElementById('fleetRecords').innerHTML = '<p>載入失敗</p>'; }
+}
+
+function renderFleetRecords(rows) {
+  const box = document.getElementById('fleetRecords');
+  if (!rows.length) { box.innerHTML = '<p style="color:#888">暫無記錄</p>'; return; }
+  let html = '<table class="data-table"><thead><tr><th>日期</th><th>車牌</th><th>類型</th><th>員工</th><th>內容</th><th>操作</th></tr></thead><tbody>';
+  for (const r of rows) {
+    let detail = '';
+    if (r.rec_type === 'trip') {
+      detail = r.end_mileage == null
+        ? `出車 ${r.start_mileage} km${r.note ? ' · ' + r.note : ''}`
+        : `${r.start_mileage} → ${r.end_mileage} km（行 ${r.daily_mileage} km）${r.note ? ' · ' + r.note : ''}`;
+    } else if (r.rec_type === 'fuel') {
+      detail = `${r.mileage} km · ${r.liters == null ? '—' : r.liters + ' L'} · $${r.total_cost}`;
+    } else {
+      detail = `${r.type}${r.mileage == null ? '' : ' · ' + r.mileage + ' km'}${r.note ? ' · ' + r.note : ''}`;
+    }
+    const typeLabel = r.rec_type === 'trip' ? '出車' : r.rec_type === 'fuel' ? '入油' : '保養';
+    const mine = empData && r.created_by_emp_id != null && r.created_by_emp_id === empData.id;
+    html += `<tr><td>${r.date}</td><td>${r.plate}</td><td>${typeLabel}</td><td>${r.emp_name || '—'}</td><td>${detail}</td>` +
+      `<td>${mine ? `<button class="btn btn-xs btn-outline" onclick="deleteFleetRecord('${r.rec_type}', ${r.id})">刪除</button>` : ''}</td></tr>`;
+  }
+  html += '</tbody></table>';
+  box.innerHTML = html;
+}
+
+async function deleteFleetRecord(type, id) {
+  if (!confirm('確定刪除呢條記錄？（只可以刪自己 24 小時內嘅記錄）')) return;
+  try {
+    const res = await fetch(API + `/api/fleet/records/${type}/${id}`, { method: 'DELETE', credentials: 'include' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || '刪除失敗'); return; }
+    fleetMsg('✅ 記錄已刪除', true);
+    await loadFleetVehicles();
+    await loadFleetRecords();
+    if (fleetCurrentPlate) await openFleetVehicle(fleetCurrentPlate);
+  } catch (e) { alert('刪除失敗'); }
 }
 
 // Check existing session on load
