@@ -1917,7 +1917,9 @@ const FLEET_TRIPS_FILE    = 'fleet_trips.json';
 const FLEET_FUELS_FILE    = 'fleet_fuels.json';
 const FLEET_MAINT_FILE    = 'fleet_maintenance.json';
 const FLEET_MAINT_TYPES   = ['換機油', '波箱油', '車呔', '冷氣隔', '電池', '剎車皮/碟', '其他保養'];
-const FLEET_FILES = { trip: FLEET_TRIPS_FILE, fuel: FLEET_FUELS_FILE, maintenance: FLEET_MAINT_FILE };
+const FLEET_REPAIRS_FILE  = 'fleet_repairs.json';
+const FLEET_REPAIR_TYPES  = ['引擎', '跟車', '底盤', '電氣', '冷氣', '車身/外觀', '保養', '其他'];
+const FLEET_FILES = { trip: FLEET_TRIPS_FILE, fuel: FLEET_FUELS_FILE, maintenance: FLEET_MAINT_FILE, repair: FLEET_REPAIRS_FILE };
 
 function fleetNextId(rows) { return rows.length ? Math.max(...rows.map(r => r.id || 0)) + 1 : 1; }
 function fleetIsOut(trips, plate) { return trips.some(t => t.plate === plate && t.end_mileage == null); }
@@ -1956,7 +1958,7 @@ app.get('/api/fleet/vehicles', authRequired('employee'), async (req, res) => {
       last_mileage: fleetLastMileage(trips, fuels, v.plate)
     };
   });
-  res.json({ success: true, vehicles: list, today, maintenanceTypes: FLEET_MAINT_TYPES });
+  res.json({ success: true, vehicles: list, today, maintenanceTypes: FLEET_MAINT_TYPES, repairTypes: FLEET_REPAIR_TYPES });
 });
 
 // Employee: single vehicle detail (+ per-vehicle fuel-cost-per-km card)
@@ -1968,10 +1970,12 @@ app.get('/api/fleet/vehicles/:plate', authRequired('employee'), async (req, res)
   const trips = await loadJSON(FLEET_TRIPS_FILE, []);
   const fuels = await loadJSON(FLEET_FUELS_FILE, []);
   const maint = await loadJSON(FLEET_MAINT_FILE, []);
+  const repairs = await loadJSON(FLEET_REPAIRS_FILE, []);
   const byDateDesc = (a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id);
   const vTrips = trips.filter(t => t.plate === plate).sort(byDateDesc);
   const vFuels = fuels.filter(f => f.plate === plate).sort(byDateDesc);
   const vMaint = maint.filter(m => m.plate === plate).sort(byDateDesc);
+  const vRepairs = repairs.filter(r => r.plate === plate).sort(byDateDesc);
   const totalFuelCost = vFuels.reduce((s, f) => s + (f.total_cost || 0), 0);
   const totalKm = vTrips.filter(t => t.daily_mileage != null).reduce((s, t) => s + (t.daily_mileage || 0), 0);
   const active = fleetActiveTrip(trips, plate);
@@ -1986,13 +1990,15 @@ app.get('/api/fleet/vehicles/:plate', authRequired('employee'), async (req, res)
     trips: vTrips.slice(0, 80),
     fuels: vFuels.slice(0, 80),
     maintenance: vMaint.slice(0, 80),
+    repairs: vRepairs.slice(0, 80),
     stats: {
       total_km: totalKm,
       trip_count: vTrips.length,
       fuel_cost: totalFuelCost,
       cost_per_km: totalKm > 0 ? Math.round((totalFuelCost / totalKm) * 100) / 100 : 0
     },
-    maintenanceTypes: FLEET_MAINT_TYPES
+    maintenanceTypes: FLEET_MAINT_TYPES,
+    repairTypes: FLEET_REPAIR_TYPES
   });
 });
 
@@ -2111,16 +2117,50 @@ app.post('/api/fleet/maintenance', authRequired('employee'), async (req, res) =>
   } catch (e) { res.status(500).json({ success: false, error: '記錄失敗' }); }
 });
 
+// Employee: 維修 (car sent out for repair, no in/out mileage logic needed)
+app.post('/api/fleet/repairs', authRequired('employee'), async (req, res) => {
+  try {
+    const { plate, type, mileage, location, note } = req.body || {};
+    const employees = await loadJSON('employees.json', []);
+    const me = employees.find(e => e.id === req.session.user_id);
+    if (!me) return res.status(401).json({ success: false, error: '員工資料不存在' });
+    const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+    if (!vehicles.find(v => v.plate === plate)) return res.status(400).json({ success: false, error: '車輛不存在' });
+    if (!FLEET_REPAIR_TYPES.includes(type)) return res.status(400).json({ success: false, error: '請選擇維修類型' });
+    if (mileage != null && mileage !== '' && !validMileage(mileage)) return res.status(400).json({ success: false, error: '里數格式唔正確' });
+    const repairs = await loadJSON(FLEET_REPAIRS_FILE, []);
+    const record = {
+      id: fleetNextId(repairs),
+      plate,
+      employee_id: me.id,
+      emp_number: me.emp_number || '',
+      emp_name: me.name || '',
+      date: todayHK(),
+      type,
+      mileage: (mileage == null || mileage === '') ? null : Number(mileage),
+      location: (location == null ? '' : String(location)).trim().slice(0, 120),
+      note: (note == null ? '' : String(note)).trim().slice(0, 200),
+      created_by_emp_id: me.id,
+      created_at: nowStr()
+    };
+    repairs.push(record);
+    await saveJSON(FLEET_REPAIRS_FILE, repairs);
+    res.json({ success: true, record });
+  } catch (e) { res.status(500).json({ success: false, error: '記錄失敗' }); }
+});
+
 // Employee: combined record feed (fleet data is shared company data, so everyone can browse it)
 app.get('/api/fleet/records', authRequired('employee'), async (req, res) => {
   const { plate, month, type } = req.query;
   const trips = await loadJSON(FLEET_TRIPS_FILE, []);
   const fuels = await loadJSON(FLEET_FUELS_FILE, []);
   const maint = await loadJSON(FLEET_MAINT_FILE, []);
+  const repairs = await loadJSON(FLEET_REPAIRS_FILE, []);
   let rows = [
     ...trips.map(r => ({ ...r, rec_type: 'trip' })),
     ...fuels.map(r => ({ ...r, rec_type: 'fuel' })),
-    ...maint.map(r => ({ ...r, rec_type: 'maintenance' }))
+    ...maint.map(r => ({ ...r, rec_type: 'maintenance' })),
+    ...repairs.map(r => ({ ...r, rec_type: 'repair' }))
   ];
   if (plate) rows = rows.filter(r => r.plate === plate);
   if (month) rows = rows.filter(r => (r.date || '').startsWith(String(month)));
@@ -2154,13 +2194,15 @@ app.get('/api/admin/fleet/vehicles', authRequired('admin'), requirePermission('f
   const trips = await loadJSON(FLEET_TRIPS_FILE, []);
   const fuels = await loadJSON(FLEET_FUELS_FILE, []);
   const maint = await loadJSON(FLEET_MAINT_FILE, []);
+  const repairs = await loadJSON(FLEET_REPAIRS_FILE, []);
   const list = vehicles.map(v => ({
     ...v,
     is_out: fleetIsOut(trips, v.plate),
     last_mileage: fleetLastMileage(trips, fuels, v.plate),
     trip_count: trips.filter(t => t.plate === v.plate).length,
     fuel_count: fuels.filter(f => f.plate === v.plate).length,
-    maint_count: maint.filter(m => m.plate === v.plate).length
+    maint_count: maint.filter(m => m.plate === v.plate).length,
+    repair_count: repairs.filter(r => r.plate === v.plate).length
   }));
   res.json({ success: true, vehicles: list });
 });
@@ -2216,10 +2258,12 @@ app.get('/api/admin/fleet/records', authRequired('admin'), requirePermission('fl
   const trips = await loadJSON(FLEET_TRIPS_FILE, []);
   const fuels = await loadJSON(FLEET_FUELS_FILE, []);
   const maint = await loadJSON(FLEET_MAINT_FILE, []);
+  const repairs = await loadJSON(FLEET_REPAIRS_FILE, []);
   let rows = [
     ...trips.map(r => ({ ...r, rec_type: 'trip' })),
     ...fuels.map(r => ({ ...r, rec_type: 'fuel' })),
-    ...maint.map(r => ({ ...r, rec_type: 'maintenance' }))
+    ...maint.map(r => ({ ...r, rec_type: 'maintenance' })),
+    ...repairs.map(r => ({ ...r, rec_type: 'repair' }))
   ];
   if (plate) rows = rows.filter(r => r.plate === plate);
   if (month) rows = rows.filter(r => (r.date || '').startsWith(String(month)));
@@ -2251,6 +2295,7 @@ app.get('/api/admin/fleet/export', authRequired('admin'), requirePermission('fle
     const allTrips = await loadJSON(FLEET_TRIPS_FILE, []);
     const allFuels = await loadJSON(FLEET_FUELS_FILE, []);
     const allMaint = await loadJSON(FLEET_MAINT_FILE, []);
+    const allRepairs = await loadJSON(FLEET_REPAIRS_FILE, []);
     const inMonth = r => (r.date || '').startsWith(mk);
     const trips = allTrips.filter(inMonth);
     const fuels = allFuels.filter(inMonth);
@@ -2262,15 +2307,16 @@ app.get('/api/admin/fleet/export', authRequired('admin'), requirePermission('fle
       const vt = trips.filter(t => t.plate === v.plate);
       const vf = fuels.filter(f => f.plate === v.plate);
       const vm = maint.filter(m => m.plate === v.plate);
+      const vr = allRepairs.filter(r => r.plate === v.plate);
       const km = vt.filter(t => t.daily_mileage != null).reduce((s, t) => s + (t.daily_mileage || 0), 0);
       const cost = vf.reduce((s, f) => s + (f.total_cost || 0), 0);
-      return [v.plate, v.alias || '', vt.length, Math.round(km * 10) / 10, vf.length, Math.round(cost * 100) / 100, vm.length];
+      return [v.plate, v.alias || '', vt.length, Math.round(km * 10) / 10, vf.length, Math.round(cost * 100) / 100, vm.length, vr.length];
     });
     const ov = [
-      ['車牌', '別名', '出車次數', '總行車里數', '入油次數', '總油費', '保養次數'],
+      ['車牌', '別名', '出車次數', '總行車里數', '入油次數', '總油費', '保養次數', '維修次數'],
       ...ovRows,
       ['合計', '', trips.length, Math.round(trips.filter(t => t.daily_mileage != null).reduce((s, t) => s + (t.daily_mileage || 0), 0) * 10) / 10,
-       fuels.length, Math.round(fuels.reduce((s, f) => s + (f.total_cost || 0), 0) * 100) / 100, maint.length]
+       fuels.length, Math.round(fuels.reduce((s, f) => s + (f.total_cost || 0), 0) * 100) / 100, maint.length, allRepairs.length]
     ];
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ov), '總覽');
 
@@ -2278,7 +2324,8 @@ app.get('/api/admin/fleet/export', authRequired('admin'), requirePermission('fle
       const vt = trips.filter(t => t.plate === v.plate);
       const vf = fuels.filter(f => f.plate === v.plate);
       const vm = maint.filter(m => m.plate === v.plate);
-      if (!vt.length && !vf.length && !vm.length) continue;
+      const vr = allRepairs.filter(r => r.plate === v.plate);
+      if (!vt.length && !vf.length && !vm.length && !vr.length) continue;
       const rows = [];
       rows.push(['【出車記錄】']);
       rows.push(['日期', '員工', '起始里數', '返回里數', '行車里數', '備註']);
@@ -2297,6 +2344,13 @@ app.get('/api/admin/fleet/export', authRequired('admin'), requirePermission('fle
         rows.push(['日期', '員工', '保養類型', '當時里數', '備註']);
         vm.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
         for (const m of vm) rows.push([m.date, m.emp_name, m.type, m.mileage == null ? '' : m.mileage, m.note || '']);
+      }
+      if (vr.length) {
+        rows.push([]);
+        rows.push(['【維修記錄】']);
+        rows.push(['日期', '員工', '維修類型', '當時里數', '維修廠/地點', '備註']);
+        vr.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+        for (const r of vr) rows.push([r.date, r.emp_name, r.type, r.mileage == null ? '' : r.mileage, r.location || '', r.note || '']);
       }
       const sheetName = (v.alias || v.plate).replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 28);
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), sheetName);
@@ -2397,10 +2451,10 @@ app.post('/api/admin/fleet/sync', authRequired('admin'), async (req, res) => {
       };
     }
 
-    const targets = { trips: FLEET_TRIPS_FILE, fuels: FLEET_FUELS_FILE, maintenance: FLEET_MAINT_FILE };
+    const targets = { trips: FLEET_TRIPS_FILE, fuels: FLEET_FUELS_FILE, maintenance: FLEET_MAINT_FILE, repair: FLEET_REPAIRS_FILE };
     const result = { added: {}, skipped: {}, out_of_range: {} };
 
-    for (const kind of ['trips', 'fuels', 'maintenance']) {
+    for (const kind of ['trips', 'fuels', 'maintenance', 'repair']) {
       const file = targets[kind];
       const incoming = Array.isArray(records[kind]) ? records[kind] : [];
       const arr = await loadJSON(file, []);

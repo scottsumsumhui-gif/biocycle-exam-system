@@ -1794,9 +1794,9 @@ function renderFleetAdmin() {
   if (!vehicles.length) {
     html += '<p style="color:#888">暫無車輛</p>';
   } else {
-    html += '<table class="data-table"><thead><tr><th>車牌</th><th>別名</th><th>狀態</th><th>出車</th><th>入油</th><th>保養</th><th>操作</th></tr></thead><tbody>';
+    html += '<table class="data-table"><thead><tr><th>車牌</th><th>別名</th><th>狀態</th><th>出車</th><th>入油</th><th>保養</th><th>維修</th><th>操作</th></tr></thead><tbody>';
     for (const v of vehicles) {
-      html += `<tr><td>${v.plate}</td><td>${v.alias || '—'}</td><td>${v.is_out ? '<span style="color:#e74c3c">出車中</span>' : '停泊中'}</td><td>${v.trip_count}</td><td>${v.fuel_count}</td><td>${v.maint_count}</td><td><button class="btn btn-xs btn-outline" onclick="adminEditFleetVehicle(${v.id})">改名</button> <button class="btn btn-xs btn-outline" onclick="adminDeleteFleetVehicle(${v.id})">刪除</button></td></tr>`;
+      html += `<tr><td>${v.plate}</td><td>${v.alias || '—'}</td><td>${v.is_out ? '<span style="color:#e74c3c">出車中</span>' : '停泊中'}</td><td>${v.trip_count}</td><td>${v.fuel_count}</td><td>${v.maint_count}</td><td>${v.repair_count}</td><td><button class="btn btn-xs btn-outline" onclick="adminEditFleetVehicle(${v.id})">改名</button> <button class="btn btn-xs btn-outline" onclick="adminDeleteFleetVehicle(${v.id})">刪除</button></td></tr>`;
     }
     html += '</tbody></table>';
   }
@@ -1815,6 +1815,7 @@ function renderFleetAdmin() {
       <option value="trip">出車</option>
       <option value="fuel">入油</option>
       <option value="maintenance">保養</option>
+      <option value="repair">維修</option>
     </select>
     <button class="btn btn-sm btn-primary" onclick="exportFleetExcel()">&#128229; 匯出 Excel</button>
   </div>`;
@@ -1857,8 +1858,10 @@ function renderFleetRecordsAdmin(rows) {
       detail = (r.liters == null ? '' : r.liters + ' L @ $' + r.price_per_liter + ' · ') + '總油費 $' + r.total_cost;
     } else if (r.rec_type === 'maintenance') {
       detail = r.type + (r.mileage != null ? ` @ ${r.mileage} km` : '') + (r.note ? ` · ${r.note}` : '');
+    } else if (r.rec_type === 'repair') {
+      detail = r.type + (r.mileage != null ? ` @ ${r.mileage} km` : '') + (r.location ? ` · ${r.location}` : '') + (r.note ? ` · ${r.note}` : '');
     }
-    const typeLabel = { trip: '出車', fuel: '入油', maintenance: '保養' }[r.rec_type] || r.rec_type;
+    const typeLabel = { trip: '出車', fuel: '入油', maintenance: '保養', repair: '維修' }[r.rec_type] || r.rec_type;
     html += `<tr><td>${r.id}</td><td>${typeLabel}</td><td>${r.date}</td><td>${r.plate}</td><td>${r.emp_name || '—'}</td><td>${detail}</td><td><button class="btn btn-xs btn-outline" onclick="deleteFleetRecordAdmin('${r.rec_type}', ${r.id})">刪除</button></td></tr>`;
   }
   html += '</tbody></table>';
