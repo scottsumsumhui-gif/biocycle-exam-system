@@ -1517,6 +1517,7 @@ async function loadFleetVehicles() {
     fleetVehicles = data.vehicles || [];
     fleetMaintTypes = data.maintenanceTypes || [];
     fleetRepairTypes = data.repairTypes || [];
+    if (!fleetRepairTypes.length) fleetRepairTypes = ['引擎', '跟車', '底盤', '電氣', '冷氣', '車身/外觀', '保養', '其他'];
     const sel = document.getElementById('fleetFilterPlate');
     const keep = sel.value;
     sel.innerHTML = '<option value="">全部車輛</option>' + fleetVehicles.map(v =>
