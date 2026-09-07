@@ -1929,6 +1929,8 @@ const WORKTIME_FILE = 'worktime.json';
 const WORKTIME_TYPES = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他'];
 const WORKTIME_STATUSES = ['正常上班', '公眾假期', '大假', '病假'];
 const WORKTIME_EDIT_DAYS = 7; // technicians may edit/delete their own record within 7 days
+const WORKTIME_NIGHT_CUT = 20 * 60; // 20:00 後嘅 OT 係另一價錢，OT 由此分界拆做日間 OT / 深夜 OT
+const WORKTIME_TECH_LEVELS = ['junior', 'senior', 'supervisor', 'b', 'd']; // 隊員名單顯示技術員體系職級（初級/高級技術員、技術員主管/經理/副主管）；行政/高層(a/c/g)唔顯示
 
 // Parse "HH:MM" -> minutes since midnight, or null if invalid.
 function parseHM(s) {
@@ -1962,21 +1964,30 @@ function worktimeStandardHours(dateStr) {
 // Compute OT. Base = schedule_in + standard (late arrival does NOT reduce OT).
 // Public holiday: all worked hours count as OT (standard = 0). Leave days: 0.
 function computeWorktimeOt({ day_status, date, schedule_in, actual_in, off_time }) {
-  if (day_status === '大假' || day_status === '病假')
-    return { total_duty_hours: 0, standard_hours: 0, ot_hours: 0 };
+  const zero = { total_duty_hours: 0, standard_hours: 0, ot_hours: 0, ot_evening_hours: 0, ot_night_hours: 0 };
+  if (day_status === '大假' || day_status === '病假') return zero;
   const std = worktimeStandardHours(date);
-  if (std === null) return { total_duty_hours: 0, standard_hours: 0, ot_hours: 0 }; // Sunday
+  if (std === null) return zero; // Sunday
   const round1 = x => Math.round(x * 10) / 10;
+  // OT 由 20:00 分界拆做日間 OT(20:00 前) 與深夜 OT(20:00 後，另一價錢)
+  const split = (otMin, effStart, off) => {
+    const nightStart = Math.max(effStart, WORKTIME_NIGHT_CUT);
+    const nightMin = Math.max(0, off - nightStart);
+    const eveningMin = otMin - nightMin;
+    return { ot_evening_hours: round1(eveningMin / 60), ot_night_hours: round1(nightMin / 60) };
+  };
   if (day_status === '公眾假期') {
     const a = parseHM(actual_in), o = parseHM(off_time);
-    if (a == null || o == null) return { total_duty_hours: 0, standard_hours: 0, ot_hours: 0 };
+    if (a == null || o == null) return zero;
     let off = o; if (off < a) off += 1440;
-    const total = round1((off - a) / 60);
-    return { total_duty_hours: total, standard_hours: 0, ot_hours: total };
+    const totalMin = off - a;
+    const total = round1(totalMin / 60);
+    const splitOt = split(totalMin, a, off);
+    return { total_duty_hours: total, standard_hours: 0, ot_hours: total, ...splitOt };
   }
   // normal
   const s = parseHM(schedule_in), o = parseHM(off_time);
-  if (s == null || o == null) return { total_duty_hours: 0, standard_hours: std, ot_hours: 0 };
+  if (s == null || o == null) return { total_duty_hours: 0, standard_hours: std, ot_hours: 0, ot_evening_hours: 0, ot_night_hours: 0 };
   let off = o; if (off < s) off += 1440; // crossed midnight
   const a = parseHM(actual_in);
   const actualStart = (a == null) ? s : a;
@@ -1987,7 +1998,8 @@ function computeWorktimeOt({ day_status, date, schedule_in, actual_in, off_time 
   const otMin = Math.max(0, off - effStart);
   let totalMin = off - actualStart;
   if (totalMin < 0) totalMin = 0;
-  return { total_duty_hours: round1(totalMin / 60), standard_hours: std, ot_hours: round1(otMin / 60) };
+  const splitOt = split(otMin, effStart, off);
+  return { total_duty_hours: round1(totalMin / 60), standard_hours: std, ot_hours: round1(otMin / 60), ...splitOt };
 }
 
 // True if the work date is within the editable window (today or up to WORKTIME_EDIT_DAYS days ago).
@@ -1997,6 +2009,14 @@ function withinWorktimeWindow(dateStr) {
   if (!d || !t) return false;
   const diffDays = Math.floor((t - d) / 86400000);
   return diffDays >= 0 && diffDays <= WORKTIME_EDIT_DAYS;
+}
+
+// 舊記錄（未有夜 OT 分界前）補算 ot_evening_hours / ot_night_hours，避免升級後顯示錯誤。
+function ensureWorktimeOtSplit(rec) {
+  if (rec == null) return rec;
+  if (typeof rec.ot_night_hours === 'number' && typeof rec.ot_evening_hours === 'number') return rec;
+  const ot = computeWorktimeOt({ day_status: rec.day_status, date: rec.date, schedule_in: rec.schedule_in, actual_in: rec.actual_in, off_time: rec.off_time });
+  return { ...rec, ot_hours: ot.ot_hours, ot_evening_hours: ot.ot_evening_hours, ot_night_hours: ot.ot_night_hours, total_duty_hours: ot.total_duty_hours, standard_hours: ot.standard_hours };
 }
 
 function fleetNextId(rows) { return rows.length ? Math.max(...rows.map(r => r.id || 0)) + 1 : 1; }
@@ -2566,8 +2586,18 @@ app.get('/api/worktime/meta', authRequired('employee'), async (req, res) => {
   res.json({ success: true, types: WORKTIME_TYPES, statuses: WORKTIME_STATUSES });
 });
 
+// Employee picker for the worktime team-member selector.
+app.get('/api/worktime/employees', authRequired('employee'), async (req, res) => {
+  const employees = await loadJSON('employees.json', []);
+  const list = employees
+    .filter(e => WORKTIME_TECH_LEVELS.includes(e.level))
+    .map(e => ({ id: e.id, name: e.name, emp_number: e.emp_number || '' }))
+    .sort((a, b) => String(a.emp_number).localeCompare(String(b.emp_number)));
+  res.json({ success: true, employees: list });
+});
+
 // Sanitize + validate a day record payload. Returns { ok, error, value }.
-function sanitizeWorktimePayload(body, emp) {
+async function sanitizeWorktimePayload(body, emp) {
   const date = (body.date || '').toString().trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date))
     return { ok: false, error: '請提供正確日期 (YYYY-MM-DD)' };
@@ -2576,44 +2606,68 @@ function sanitizeWorktimePayload(body, emp) {
   if (!withinWorktimeWindow(date))
     return { ok: false, error: '只可以填寫今日或過去 ' + WORKTIME_EDIT_DAYS + ' 日內嘅記錄' };
   const day_status = WORKTIME_STATUSES.includes(body.day_status) ? body.day_status : '正常上班';
-  const needsTimes = (day_status === '正常上班' || day_status === '公眾假期');
-  const fieldOf = { schedule_in: '上班時間', actual_in: '實際上班時間', off_time: '下班時間' };
+  // 公眾假期預設當大假/病假處理（唔使填時間），除非 user 明確 tick 咗「假期開工」
+  const holiday_work = (day_status === '公眾假期' && body.holiday_work === true);
+  const needsTimes = (day_status === '正常上班' || holiday_work);
+  // 上班時間 + 實際上班 必填；下班時間可後補（做哂全日工作先去入）
+  const fieldOf = { schedule_in: '上班時間', actual_in: '實際上班時間' };
   const vals = {};
-  for (const f of ['schedule_in', 'actual_in', 'off_time']) {
+  for (const f of ['schedule_in', 'actual_in']) {
     const v = (body[f] || '').toString().trim();
     if (needsTimes) {
       if (!v || parseHM(v) === null) return { ok: false, error: '請填寫正確嘅' + fieldOf[f] };
     }
     vals[f] = v;
   }
-  const departure_carpark = (body.departure_carpark || '').toString().trim();
-  if (departure_carpark && parseHM(departure_carpark) === null)
-    return { ok: false, error: '出車廠時間格式唔正確' };
+  const off_time = (body.off_time || '').toString().trim();
+  if (off_time && parseHM(off_time) === null) return { ok: false, error: '請填寫正確嘅下班時間' };
+  vals.off_time = off_time;
   const remark = (body.remark == null ? '' : String(body.remark)).trim().slice(0, 200);
 
   const rawJobs = Array.isArray(body.jobs) ? body.jobs : [];
   const jobs = [];
-  for (const j of rawJobs) {
-    const types = (Array.isArray(j.types) ? j.types : []).filter(t => WORKTIME_TYPES.includes(t));
-    const client_no = (j.client_no == null ? '' : String(j.client_no)).trim().slice(0, 40);
-    const start = (j.start || '').toString().trim();
-    const end = (j.end || '').toString().trim();
-    const remarks = (j.remarks == null ? '' : String(j.remarks)).trim().slice(0, 200);
-    if (!client_no && types.length === 0 && !start && !end && !remarks) continue; // skip empty row
-    if (types.length === 0) return { ok: false, error: '每張單請選擇至少一個工作類型' };
-    if (start && parseHM(start) === null) return { ok: false, error: '單開始時間格式唔正確' };
-    if (end && parseHM(end) === null) return { ok: false, error: '單完結時間格式唔正確' };
-    jobs.push({ client_no, start, end, types, remarks });
+  if (needsTimes) {
+    for (const j of rawJobs) {
+      const types = (Array.isArray(j.types) ? j.types : []).filter(t => WORKTIME_TYPES.includes(t));
+      const client_no = (j.client_no == null ? '' : String(j.client_no)).trim().slice(0, 40);
+      const start = (j.start || '').toString().trim();
+      const end = (j.end || '').toString().trim();
+      const remarks = (j.remarks == null ? '' : String(j.remarks)).trim().slice(0, 200);
+      if (!client_no && types.length === 0 && !start && !end && !remarks) continue; // skip empty row
+      if (types.length === 0) return { ok: false, error: '每張單請選擇至少一個工作類型' };
+      if (start && parseHM(start) === null) return { ok: false, error: '單開始時間格式唔正確' };
+      if (end && parseHM(end) === null) return { ok: false, error: '單完結時間格式唔正確' };
+      jobs.push({ client_no, start, end, types, remarks });
+    }
+  }
+
+  // 今日隊員（2-4 人），只在開工日需要
+  const members = [];
+  if (needsTimes) {
+    const employees = await loadJSON('employees.json', []);
+    const rawMembers = Array.isArray(body.members) ? body.members : [];
+    const seen = new Set();
+    for (const m of rawMembers) {
+      const id = Number(m && m.emp_id);
+      if (!id || seen.has(id)) continue;
+      const found = employees.find(e => e.id === id);
+      if (!found) continue;
+      seen.add(id);
+      members.push({ emp_id: id, emp_name: found.name || '', emp_number: found.emp_number || '' });
+    }
+    if (members.length < 2 || members.length > 4)
+      return { ok: false, error: '今日隊員必須 2 至 4 人' };
   }
 
   const ot = computeWorktimeOt({ day_status, date, schedule_in: vals.schedule_in, actual_in: vals.actual_in, off_time: vals.off_time });
   return {
     ok: true, value: {
-      date, day_status,
-      schedule_in: vals.schedule_in, actual_in: vals.actual_in,
-      departure_carpark, off_time: vals.off_time, remark, jobs,
+      date, day_status, holiday_work,
+      schedule_in: vals.schedule_in, actual_in: vals.actual_in, off_time: vals.off_time,
+      remark, jobs, members,
       emp_id: emp.id, emp_number: emp.emp_number || '', emp_name: emp.name || '',
-      total_duty_hours: ot.total_duty_hours, standard_hours: ot.standard_hours, ot_hours: ot.ot_hours
+      total_duty_hours: ot.total_duty_hours, standard_hours: ot.standard_hours, ot_hours: ot.ot_hours,
+      ot_evening_hours: ot.ot_evening_hours, ot_night_hours: ot.ot_night_hours
     }
   };
 }
@@ -2624,7 +2678,7 @@ app.post('/api/worktime/records', authRequired('employee'), async (req, res) => 
     const employees = await loadJSON('employees.json', []);
     const me = employees.find(e => e.id === req.session.user_id);
     if (!me) return res.status(401).json({ success: false, error: '員工資料不存在' });
-    const s = sanitizeWorktimePayload(req.body || {}, me);
+    const s = await sanitizeWorktimePayload(req.body || {}, me);
     if (!s.ok) return res.status(400).json({ success: false, error: s.error });
     const v = s.value;
     const recs = await loadJSON(WORKTIME_FILE, []);
@@ -2647,7 +2701,7 @@ app.get('/api/worktime/records', authRequired('employee'), async (req, res) => {
   try {
     const { month, from, to } = req.query;
     let recs = await loadJSON(WORKTIME_FILE, []);
-    recs = recs.filter(r => r.emp_id === req.session.user_id);
+    recs = recs.filter(r => r.emp_id === req.session.user_id).map(ensureWorktimeOtSplit);
     if (month) recs = recs.filter(r => (r.date || '').startsWith(String(month)));
     if (from) recs = recs.filter(r => (r.date || '') >= from);
     if (to) recs = recs.filter(r => (r.date || '') <= to);
@@ -2667,7 +2721,7 @@ app.put('/api/worktime/records/:id', authRequired('employee'), async (req, res) 
     if (idx < 0) return res.status(404).json({ success: false, error: '記錄不存在' });
     if (recs[idx].emp_id !== me.id) return res.status(403).json({ success: false, error: '只可以修改自己嘅記錄' });
     if (!withinWorktimeWindow(recs[idx].date)) return res.status(403).json({ success: false, error: '超過 ' + WORKTIME_EDIT_DAYS + ' 日，唔可以修改' });
-    const s = sanitizeWorktimePayload(req.body || {}, me);
+    const s = await sanitizeWorktimePayload(req.body || {}, me);
     if (!s.ok) return res.status(400).json({ success: false, error: s.error });
     const v = s.value;
     recs[idx] = { ...recs[idx], ...v, updated_at: nowStr() };
@@ -2696,6 +2750,7 @@ app.get('/api/admin/worktime/records', authRequired('admin'), requirePermission(
   try {
     const { emp_id, month, from, to } = req.query;
     let recs = await loadJSON(WORKTIME_FILE, []);
+    recs = recs.map(ensureWorktimeOtSplit);
     if (emp_id) recs = recs.filter(r => String(r.emp_id) === String(emp_id));
     if (month) recs = recs.filter(r => (r.date || '').startsWith(String(month)));
     if (from) recs = recs.filter(r => (r.date || '') >= from);
@@ -2714,7 +2769,7 @@ app.put('/api/admin/worktime/records/:id', authRequired('admin'), requirePermiss
     if (idx < 0) return res.status(404).json({ success: false, error: '記錄不存在' });
     // admin edit keeps the original employee attribution; re-validate times via a synthetic emp
     const me = employees.find(e => e.id === recs[idx].emp_id) || { id: recs[idx].emp_id, emp_number: recs[idx].emp_number, name: recs[idx].emp_name };
-    const s = sanitizeWorktimePayload(req.body || {}, me);
+    const s = await sanitizeWorktimePayload(req.body || {}, me);
     if (!s.ok) return res.status(400).json({ success: false, error: s.error });
     recs[idx] = { ...recs[idx], ...s.value, updated_at: nowStr() };
     await saveJSON(WORKTIME_FILE, recs);
@@ -2748,7 +2803,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
     const weekStart = dates[0], weekEnd = dates[6];
     const dowName = ['日', '一', '二', '三', '四', '五', '六'];
     const all = await loadJSON(WORKTIME_FILE, []);
-    const inWeek = all.filter(r => (r.date || '') >= weekStart && (r.date || '') <= weekEnd);
+    const inWeek = all.map(ensureWorktimeOtSplit).filter(r => (r.date || '') >= weekStart && (r.date || '') <= weekEnd);
     const employees = await loadJSON('employees.json', []);
     const byEmp = {};
     for (const r of inWeek) {
@@ -2765,7 +2820,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
       rows.push(['技術員工時記錄 — ' + emp.name + ' (' + emp.number + ')']);
       rows.push(['週次', weekStart + ' 至 ' + weekEnd]);
       rows.push([]);
-      let weekOt = 0, weekDuty = 0;
+      let weekOt = 0, weekDuty = 0, weekEveningOt = 0, weekNightOt = 0;
       for (const date of dates) {
         const rec = emp.recs.find(r => r.date === date);
         const d = parseDateUTC(date);
@@ -2776,9 +2831,12 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
         }
         if (d.getUTCDay() === 0) { rows.push([label, '休息日']); continue; }
         weekOt += rec.ot_hours || 0; weekDuty += rec.total_duty_hours || 0;
+        weekEveningOt += rec.ot_evening_hours || 0; weekNightOt += rec.ot_night_hours || 0;
         rows.push([label, '狀態', rec.day_status]);
-        rows.push(['上班', rec.schedule_in || '', '實際', rec.actual_in || '', '出車廠', rec.departure_carpark || '', '下班', rec.off_time || '']);
-        rows.push(['總當值(h)', rec.total_duty_hours, '標準(h)', rec.standard_hours, 'OT(h)', rec.ot_hours]);
+        rows.push(['上班', rec.schedule_in || '', '實際', rec.actual_in || '', '下班', rec.off_time || '']);
+        if (rec.members && rec.members.length)
+          rows.push(['隊員', rec.members.map(m => m.emp_name || m.emp_number).join('、')]);
+        rows.push(['總當值(h)', rec.total_duty_hours, '標準(h)', rec.standard_hours, 'OT(h)', rec.ot_hours, '20:00前OT', rec.ot_evening_hours || 0, '20:00後OT', rec.ot_night_hours || 0]);
         if (rec.jobs && rec.jobs.length) {
           rows.push(['單號', '開始', '完結', '工作類型', '備註']);
           for (const j of rec.jobs) rows.push([j.client_no || '', j.start || '', j.end || '', (j.types || []).join('/'), j.remarks || '']);
@@ -2786,7 +2844,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
         if (rec.remark) rows.push(['備註', rec.remark]);
         rows.push([]);
       }
-      rows.push(['本週合計', '總當值 ' + Math.round(weekDuty * 10) / 10 + 'h', 'OT ' + Math.round(weekOt * 10) / 10 + 'h']);
+      rows.push(['本週合計', '總當值 ' + Math.round(weekDuty * 10) / 10 + 'h', 'OT ' + Math.round(weekOt * 10) / 10 + 'h', '20:00前OT ' + Math.round(weekEveningOt * 10) / 10 + 'h', '20:00後OT ' + Math.round(weekNightOt * 10) / 10 + 'h']);
       const sheetName = (emp.name || emp.number || '員工').replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 28);
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), sheetName);
     }

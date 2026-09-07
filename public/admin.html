@@ -1988,12 +1988,14 @@ function renderWorktimeRecordsAdmin(rows) {
   if (!box) return;
   if (!rows.length) { box.innerHTML = '<p style="color:#888">暫無記錄</p>'; return; }
   rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id));
-  let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>員工</th><th>狀態</th><th>上班</th><th>實際</th><th>出車廠</th><th>下班</th><th>總當值</th><th>標準</th><th>OT</th><th>單數</th><th>備註</th><th>操作</th></tr></thead><tbody>';
+  let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>員工</th><th>狀態</th><th>上班</th><th>實際</th><th>下班</th><th>總當值</th><th>標準</th><th>OT</th><th>20:00後OT</th><th>單數</th><th>隊員</th><th>備註</th><th>操作</th></tr></thead><tbody>';
   for (const r of rows) {
-    html += `<tr><td>${r.id}</td><td>${r.date}</td><td>${r.emp_name} (${r.emp_number})</td><td>${r.day_status}</td>
-      <td>${r.schedule_in || '-'}</td><td>${r.actual_in || '-'}</td><td>${r.departure_carpark || '-'}</td><td>${r.off_time || '-'}</td>
+    const team = (r.members || []).map(m => m.emp_name || m.emp_number).join('、') || '-';
+    html += `<tr><td>${r.id}</td><td>${r.date}</td><td>${r.emp_name} (${r.emp_number})</td><td>${r.day_status}${r.holiday_work ? '（開工）' : ''}</td>
+      <td>${r.schedule_in || '-'}</td><td>${r.actual_in || '-'}</td><td>${r.off_time || '-'}</td>
       <td>${r.total_duty_hours}h</td><td>${r.standard_hours}h</td><td><b style="color:#e67e22">${r.ot_hours}h</b></td>
-      <td>${(r.jobs || []).length}</td><td>${r.remark || ''}</td>
+      <td><b style="color:#c0392b">${r.ot_night_hours || 0}h</b></td>
+      <td>${(r.jobs || []).length}</td><td>${team}</td><td>${r.remark || ''}</td>
       <td><button class="btn btn-xs btn-outline" onclick="deleteWorktimeAdmin(${r.id})">刪除</button></td></tr>`;
   }
   html += '</tbody></table>';

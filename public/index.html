@@ -455,14 +455,22 @@
       <span id="wtSundayWarn" style="color:#e74c3c; display:none">星期日為休息日，無需填寫</span>
     </div>
 
+    <div id="wtHolidayWorkBox" style="display:none; margin-top:10px">
+      <label style="cursor:pointer"><input type="checkbox" id="wtHolidayWork" onchange="wtHolidayWorkChange()"> 今日假期開工（需填時間）</label>
+    </div>
+
     <div id="wtTimesBox">
       <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:12px">
         <div><label>上班時間</label><br><input type="time" id="wtScheduleIn" step="60"></div>
         <div><label>實際上班</label><br><input type="time" id="wtActualIn" step="60"></div>
-        <div><label>出車廠</label><br><input type="time" id="wtDeparture" step="60"></div>
         <div><label>下班時間</label><br><input type="time" id="wtOff" step="60"></div>
       </div>
-      <div style="margin-top:8px"><label>備註（假別 / 備註）</label><br><input type="text" id="wtRemark" placeholder="例如：國慶、年假、感冒" style="width:340px"></div>
+      <div style="margin-top:10px">
+        <label>今日隊員（2-4 人）</label>
+        <div id="wtMembers" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px"></div>
+        <button type="button" class="btn btn-xs btn-outline" onclick="wtAddMember()" style="margin-top:6px">+ 加隊員</button>
+      </div>
+      <div style="margin-top:8px"><label>備註（假別 / 備註）</label><br><input type="text" id="wtRemark" style="width:340px"></div>
     </div>
 
     <div id="wtJobsBox" style="margin-top:16px">
@@ -1858,6 +1866,21 @@ async function deleteFleetRecord(type, id) {
 
 // ===== WORKTIME (技術員每日工時記錄) =====
 let wtTypes = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他'];
+let wtEmployees = [];
+
+function wtParseHM(s) {
+  if (!s) return null;
+  const m = String(s).trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+}
+// 將「時:分」換算成相對「上班時間」嘅當日刻度：數值細過上班時間，代表已跨午夜屬翌日，+24h
+// 例：上班 08:00(480)，下班 01:00(60) < 480 → 60+1440=1500（即翌日凌晨 1 點）
+function wtShiftDay(m, anchor) {
+  if (m == null) return null;
+  if (anchor != null && m < anchor) return m + 1440;
+  return m;
+}
 
 async function showWorktime() {
   const hb = await pingHeartbeat();
@@ -1867,6 +1890,10 @@ async function showWorktime() {
   try {
     const m = await fetch(API + '/api/worktime/meta', { credentials: 'include' }).then(r => r.json());
     if (m.success && m.types) wtTypes = m.types;
+  } catch (e) {}
+  try {
+    const em = await fetch(API + '/api/worktime/employees', { credentials: 'include' }).then(r => r.json());
+    if (em.success && em.employees) wtEmployees = em.employees;
   } catch (e) {}
   const d = new Date(Date.now() + 8 * 3600000);
   document.getElementById('wtDate').value = d.toISOString().substring(0, 10);
@@ -1879,9 +1906,24 @@ async function showWorktime() {
 
 function wtStatusChange() {
   const st = document.getElementById('wtStatus').value;
-  const isLeave = (st === '大假' || st === '病假');
-  document.getElementById('wtTimesBox').style.display = isLeave ? 'none' : '';
-  document.getElementById('wtJobsBox').style.display = isLeave ? 'none' : '';
+  document.getElementById('wtHolidayWorkBox').style.display = (st === '公眾假期') ? '' : 'none';
+  const holidayWork = document.getElementById('wtHolidayWork').checked;
+  const showWork = (st === '正常上班') || ((st === '公眾假期') && holidayWork);
+  document.getElementById('wtTimesBox').style.display = showWork ? '' : 'none';
+  document.getElementById('wtJobsBox').style.display = showWork ? '' : 'none';
+  if (showWork && document.querySelectorAll('#wtMembers .wt-member').length === 0) {
+    wtAddMember(empData.id);
+    wtAddMember();
+  }
+}
+
+function wtHolidayWorkChange() {
+  const on = document.getElementById('wtHolidayWork').checked;
+  if (on && document.querySelectorAll('#wtMembers .wt-member').length === 0) {
+    wtAddMember(empData.id);
+    wtAddMember();
+  }
+  wtStatusChange();
 }
 
 async function wtDateChange() {
@@ -1892,25 +1934,34 @@ async function wtDateChange() {
   document.getElementById('wtResult').innerHTML = '';
   document.getElementById('wtMsg').textContent = '';
   if (!date) return;
+  // 清空舊狀態
+  document.getElementById('wtMembers').innerHTML = '';
+  document.getElementById('wtJobs').innerHTML = '';
+  document.getElementById('wtHolidayWork').checked = false;
+  document.getElementById('wtScheduleIn').value = '';
+  document.getElementById('wtActualIn').value = '';
+  document.getElementById('wtOff').value = '';
+  document.getElementById('wtRemark').value = '';
   try {
     const res = await fetch(API + '/api/worktime/records?from=' + date + '&to=' + date, { credentials: 'include' });
     const data = await res.json();
     if (data.success && data.records.length) {
       const rec = data.records[0];
       document.getElementById('wtStatus').value = rec.day_status || '正常上班';
-      wtStatusChange();
+      document.getElementById('wtHolidayWork').checked =
+        rec.day_status === '公眾假期' && (rec.holiday_work === true || !!(rec.schedule_in || rec.off_time));
       document.getElementById('wtScheduleIn').value = rec.schedule_in || '';
       document.getElementById('wtActualIn').value = rec.actual_in || '';
-      document.getElementById('wtDeparture').value = rec.departure_carpark || '';
       document.getElementById('wtOff').value = rec.off_time || '';
       document.getElementById('wtRemark').value = rec.remark || '';
-      const jobsBox = document.getElementById('wtJobs');
-      jobsBox.innerHTML = '';
       if (rec.jobs && rec.jobs.length) rec.jobs.forEach(j => wtAddJob(j)); else wtAddJob();
+      const mems = (rec.members && rec.members.length) ? rec.members : [];
+      mems.forEach(m => wtAddMember(m.emp_id));
+      wtStatusChange();
       document.getElementById('wtResult').innerHTML = `<span style="color:#2980b9">已載入 ${rec.date} 嘅記錄，儲存會更新佢。</span>`;
     } else {
-      document.getElementById('wtJobs').innerHTML = '';
       wtAddJob();
+      wtStatusChange();
     }
   } catch (e) {}
 }
@@ -1932,9 +1983,36 @@ function wtAddJob(preset) {
       <button class="btn btn-xs btn-outline" onclick="this.closest('.wt-job').remove()">刪除</button>
     </div>
     <div style="margin-top:6px">工作類型：${typesHtml}</div>
-    <div style="margin-top:6px">備註 <input type="text" class="wt-remarks" value="${preset.remarks || ''}" style="width:320px" placeholder="例如：咩地方、咩野"></div>
+    <div style="margin-top:6px">備註 <input type="text" class="wt-remarks" value="${preset.remarks || ''}" style="width:320px"></div>
   `;
   box.appendChild(div);
+}
+
+function wtAddMember(selectedId) {
+  const box = document.getElementById('wtMembers');
+  const count = box.querySelectorAll('.wt-member').length;
+  if (count >= 4) { alert('今日隊員最多 4 人'); return; }
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;gap:4px';
+  const sel = document.createElement('select');
+  sel.className = 'wt-member';
+  let opts = '<option value="">— 選擇 —</option>';
+  for (const e of wtEmployees) {
+    opts += `<option value="${e.id}" ${e.id === selectedId ? 'selected' : ''}>${e.name} (${e.emp_number})</option>`;
+  }
+  sel.innerHTML = opts;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn btn-xs btn-outline';
+  btn.textContent = '×';
+  btn.onclick = () => {
+    const rows = box.querySelectorAll('.wt-member');
+    if (rows.length <= 2) { alert('今日隊員最少 2 人'); return; }
+    row.remove();
+  };
+  row.appendChild(sel);
+  row.appendChild(btn);
+  box.appendChild(row);
 }
 
 function wtMsg(t, ok) {
@@ -1947,17 +2025,17 @@ async function submitWorktime() {
   const dow = new Date(date + 'T00:00:00+08:00').getDay();
   if (dow === 0) { wtMsg('星期日為休息日，無需填寫', false); return; }
   const day_status = document.getElementById('wtStatus').value;
-  const isLeave = (day_status === '大假' || day_status === '病假');
+  const holiday_work = (day_status === '公眾假期' && document.getElementById('wtHolidayWork').checked);
+  const isWorking = (day_status === '正常上班' || holiday_work);
   const payload = {
-    date, day_status,
+    date, day_status, holiday_work,
     schedule_in: document.getElementById('wtScheduleIn').value,
     actual_in: document.getElementById('wtActualIn').value,
-    departure_carpark: document.getElementById('wtDeparture').value,
     off_time: document.getElementById('wtOff').value,
     remark: document.getElementById('wtRemark').value.trim()
   };
   payload.jobs = [];
-  if (!isLeave) {
+  if (isWorking) {
     document.querySelectorAll('#wtJobs .wt-job').forEach(div => {
       const types = Array.from(div.querySelectorAll('.wt-type:checked')).map(c => c.value);
       payload.jobs.push({
@@ -1968,6 +2046,35 @@ async function submitWorktime() {
         remarks: div.querySelector('.wt-remarks').value.trim()
       });
     });
+    payload.members = [];
+    document.querySelectorAll('#wtMembers .wt-member').forEach(sel => {
+      if (sel.value) payload.members.push({ emp_id: Number(sel.value) });
+    });
+    // 規則：下班時間比最尾一張單完結時間超過 1 小時 → 彈警告要求寫原因
+    // 用「上班時間」做當日錨點，夜更跨午夜嘅下班/單完結時間，全部換算到同一刻度先比，避免誤判
+    const wtAnchor = wtParseHM(document.getElementById('wtScheduleIn').value) || 0;
+    const offM = wtShiftDay(wtParseHM(document.getElementById('wtOff').value), wtAnchor);
+    let lastEndM = null;
+    document.querySelectorAll('#wtJobs .wt-end').forEach(inp => {
+      const m = wtShiftDay(wtParseHM(inp.value), wtAnchor);
+      if (m != null && (lastEndM == null || m > lastEndM)) lastEndM = m;
+    });
+    if (offM != null && lastEndM != null) {
+      let gap = offM - lastEndM;
+      if (gap < 0) gap = 0; // 防護：正常情況下收工應喺尾單之後
+      if (gap > 60) {
+        // 原因可以寫喺「備註(假別/備註)」或者任何一張單嘅備註，有字就放行
+        const reasons =
+          document.getElementById('wtRemark').value.trim() + ' ' +
+          Array.from(document.querySelectorAll('#wtJobs .wt-remarks')).map(i => i.value.trim()).filter(Boolean).join(' ');
+        if (!reasons.trim()) {
+          alert('下班時間比最尾一張單完結時間超過 1 小時，請喺「備註(假別/備註)」或者單嘅備註寫番原因。');
+          document.getElementById('wtRemark').focus();
+          return;
+        }
+        if (!confirm('下班時間比最尾一張單完結時間超過 1 小時，確定已喺備註寫咗原因？')) return;
+      }
+    }
   }
   try {
     const res = await fetch(API + '/api/worktime/records', {
@@ -1981,6 +2088,7 @@ async function submitWorktime() {
     document.getElementById('wtResult').innerHTML =
       `<div style="background:#f4f8fb;border:1px solid #d6e4f0;border-radius:8px;padding:10px;display:inline-block">
         今日總當值 <b>${r.total_duty_hours}h</b> ｜ 標準 <b>${r.standard_hours}h</b> ｜ <span style="color:#e67e22"><b>OT ${r.ot_hours}h</b></span>
+        <div style="margin-top:4px;color:#555;font-size:13px">OT 細分：20:00前 <b>${r.ot_evening_hours || 0}h</b> ｜ 20:00後 <b style="color:#c0392b">${r.ot_night_hours || 0}h</b></div>
       </div>`;
     await loadWtWeek();
   } catch (e) { wtMsg('連接錯誤', false); }
@@ -2001,21 +2109,25 @@ async function loadWtWeek() {
     if (!data.success || !data.records.length) { box.innerHTML = '<p style="color:#888">本週暫無記錄</p>'; return; }
     const dowName = ['日', '一', '二', '三', '四', '五', '六'];
     data.records.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-    let html = '<table class="data-table"><thead><tr><th>日期</th><th>狀態</th><th>上班</th><th>實際</th><th>出車廠</th><th>下班</th><th>總當值</th><th>OT</th><th>單數</th></tr></thead><tbody>';
-    let weekOt = 0;
+    let html = '<table class="data-table"><thead><tr><th>日期</th><th>狀態</th><th>上班</th><th>實際</th><th>下班</th><th>總當值</th><th>OT</th><th>20:00後OT</th><th>單數</th><th>隊員</th></tr></thead><tbody>';
+    let weekOt = 0, weekNightOt = 0;
     for (const r of data.records) {
       weekOt += (r.ot_hours || 0);
+      weekNightOt += (r.ot_night_hours || 0);
+      const team = (r.members || []).map(m => m.emp_name || m.emp_number).join('、') || '-';
       html += `<tr>
         <td>${r.date}(${dowName[new Date(r.date + 'T00:00:00+08:00').getDay()]})</td>
-        <td>${r.day_status}</td>
+        <td>${r.day_status}${r.holiday_work ? '（開工）' : ''}</td>
         <td>${r.schedule_in || '-'}</td><td>${r.actual_in || '-'}</td>
-        <td>${r.departure_carpark || '-'}</td><td>${r.off_time || '-'}</td>
+        <td>${r.off_time || '-'}</td>
         <td>${r.total_duty_hours}h</td>
         <td><b style="color:#e67e22">${r.ot_hours}h</b></td>
+        <td><b style="color:#c0392b">${r.ot_night_hours || 0}h</b></td>
         <td>${(r.jobs || []).length}</td>
+        <td>${team}</td>
       </tr>`;
     }
-    html += `</tbody></table><p><b>本週 OT 合計：${Math.round(weekOt * 10) / 10}h</b></p>`;
+    html += `</tbody></table><p><b>本週 OT 合計：${Math.round(weekOt * 10) / 10}h（其中 20:00後 ${Math.round(weekNightOt * 10) / 10}h）</b></p>`;
     box.innerHTML = html;
   } catch (e) { document.getElementById('wtWeek').innerHTML = '載入失敗'; }
 }
