@@ -1961,13 +1961,15 @@ function renderWorktimeAdmin() {
   const dow = now.getDay();
   const monday = new Date(now.getTime() - (dow === 0 ? 6 : dow - 1) * 86400000);
   const monStr = monday.toISOString().substring(0, 10);
+  const sunStr = new Date(monday.getTime() + 6 * 86400000).toISOString().substring(0, 10);
   let html = '<h2>&#9201; 工時記錄 Worktime Records</h2>';
   html += `<div class="section-card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
     <label>員工：</label><select id="wtAdminEmp"><option value="">全部</option>${empOpts.join('')}</select>
     <label>月份：</label><input id="wtAdminMonth" type="month" style="width:150px">
-    <label>週一日期（匯出用）：</label><input id="wtAdminWeek" type="date" value="${monStr}">
+    <label>匯出日期（由）：</label><input id="wtAdminFrom" type="date" value="${monStr}">
+    <label>至：</label><input id="wtAdminTo" type="date" value="${sunStr}">
     <button class="btn btn-sm btn-primary" onclick="loadWorktimeRecordsAdmin()">搜尋</button>
-    <button class="btn btn-sm btn-outline" onclick="exportWorktimeExcel()">&#128229; 匯出本週 Excel</button>
+    <button class="btn btn-sm btn-outline" onclick="exportWorktimeExcel()">&#128229; 匯出 Excel</button>
   </div></div>`;
   html += '<div id="wtAdminBox"></div>';
   document.getElementById('adminBody').innerHTML = html;
@@ -2003,8 +2005,11 @@ function renderWorktimeRecordsAdmin(rows) {
 }
 
 function exportWorktimeExcel() {
-  const week = document.getElementById('wtAdminWeek').value;
-  window.open(API + '/api/admin/worktime/export?week=' + encodeURIComponent(week || ''), '_blank');
+  const from = document.getElementById('wtAdminFrom').value;
+  const to = document.getElementById('wtAdminTo').value;
+  if (!from) { alert('請揀開始日期'); return; }
+  const url = API + '/api/admin/worktime/export?from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to || from);
+  window.open(url, '_blank');
 }
 
 async function deleteWorktimeAdmin(id) {

@@ -2792,15 +2792,27 @@ app.delete('/api/admin/worktime/records/:id', authRequired('admin'), requirePerm
 // Admin: export a week to Excel — one sheet per employee (matching the paper form).
 app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('worktime'), async (req, res) => {
   try {
-    let week = (req.query.week || '').toString().trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(week)) week = todayHK();
-    let monday = parseDateUTC(week);
-    if (!monday) monday = parseDateUTC(todayHK());
-    const dates = [];
-    for (let i = 0; i < 7; i++) {
-      dates.push(new Date(monday.getTime() + i * 86400000).toISOString().slice(0, 10));
+    // 支援日期範圍 (from/to)；無 from 時 fallback 舊 `week`（週一，取 7 日）保留兼容
+    let from = (req.query.from || '').toString().trim();
+    let to = (req.query.to || '').toString().trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(from)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(to)) to = from; // 只揀單日
+    } else {
+      let week = (req.query.week || '').toString().trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(week)) week = todayHK();
+      let monday = parseDateUTC(week);
+      if (!monday) monday = parseDateUTC(todayHK());
+      from = new Date(monday.getTime()).toISOString().slice(0, 10);
+      to = new Date(monday.getTime() + 6 * 86400000).toISOString().slice(0, 10);
     }
-    const weekStart = dates[0], weekEnd = dates[6];
+    const f = parseDateUTC(from), t = parseDateUTC(to);
+    const dates = [];
+    if (f && t) {
+      if (f.getTime() > t.getTime()) { const tmp = from; from = to; to = tmp; }
+      const fs = parseDateUTC(from).getTime(), ts = parseDateUTC(to).getTime();
+      for (let cur = fs; cur <= ts; cur += 86400000) dates.push(new Date(cur).toISOString().slice(0, 10));
+    }
+    const weekStart = from, weekEnd = to;
     const dowName = ['日', '一', '二', '三', '四', '五', '六'];
     const all = await loadJSON(WORKTIME_FILE, []);
     const inWeek = all.map(ensureWorktimeOtSplit).filter(r => (r.date || '') >= weekStart && (r.date || '') <= weekEnd);
