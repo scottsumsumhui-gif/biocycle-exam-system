@@ -51,6 +51,7 @@
     <button class="nav-btn" data-tab="warehouse" onclick="showTab('warehouse')" id="tabWarehouse">&#128230; 倉存管理</button>
     <button class="nav-btn" data-tab="commission" onclick="showTab('commission')" id="tabCommission">&#128176; 服務銷售佣金</button>
     <button class="nav-btn" data-tab="fleet" onclick="showTab('fleet')" id="tabFleet">&#128663; 車輛管理</button>
+    <button class="nav-btn" data-tab="worktime" onclick="showTab('worktime')" id="tabWorktime">&#9201; 工時記錄</button>
   </nav>
   
   <main class="admin-body" id="adminBody"></main>
@@ -118,7 +119,8 @@ const TAB_PERMISSION_MAP = {
   questionBank: 'questions',
   warehouse: 'warehouse',
   commission: 'commission',
-  fleet: 'fleet'
+  fleet: 'fleet',
+  worktime: 'worktime'
 };
 function hasPerm(key) {
   if (!adminData) return false;
@@ -136,7 +138,7 @@ function applyNavPermissions() {
 
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet' };
+  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet', worktime:'tabWorktime' };
   const tabEl = document.getElementById(tabIdMap[tab]);
   if (tabEl) tabEl.classList.add('active');
   
@@ -151,6 +153,7 @@ function showTab(tab) {
     case 'warehouse': loadWarehouse(); break;
     case 'commission': loadCommissionAdmin(); break;
     case 'fleet': loadFleetAdmin(); break;
+    case 'worktime': loadWorktimeAdmin(); break;
   }
 }
 
@@ -1929,6 +1932,88 @@ function exportFleetExcel() {
   const month = document.getElementById('fleetRecMonth').value;
   const q = month ? '?month=' + month : '';
   window.open(API + '/api/admin/fleet/export' + q, '_blank');
+}
+
+// ===== WORKTIME ADMIN =====
+let wtAdminCache = { employees: [], records: [] };
+
+async function loadWorktimeAdmin() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = '<div class="loading">載入中...</div>';
+  try {
+    const recRes = await fetch(API + '/api/admin/worktime/records', { credentials: 'include' });
+    const recData = await recRes.json();
+    if (!recData.success) { body.innerHTML = '<p>' + (recData.error || '載入失敗') + '</p>'; return; }
+    wtAdminCache.records = recData.records || [];
+    renderWorktimeAdmin();
+  } catch (e) { body.innerHTML = '<p>載入失敗</p>'; }
+}
+
+function renderWorktimeAdmin() {
+  const recs = wtAdminCache.records;
+  const empOpts = [];
+  const seen = {};
+  for (const r of recs) {
+    if (!seen[r.emp_id]) { seen[r.emp_id] = 1; empOpts.push(`<option value="${r.emp_id}">${r.emp_name} (${r.emp_number})</option>`); }
+  }
+  const d = new Date(Date.now() + 8 * 3600000);
+  const now = new Date(d.toISOString().substring(0, 10) + 'T00:00:00+08:00');
+  const dow = now.getDay();
+  const monday = new Date(now.getTime() - (dow === 0 ? 6 : dow - 1) * 86400000);
+  const monStr = monday.toISOString().substring(0, 10);
+  let html = '<h2>&#9201; 工時記錄 Worktime Records</h2>';
+  html += `<div class="section-card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <label>員工：</label><select id="wtAdminEmp"><option value="">全部</option>${empOpts.join('')}</select>
+    <label>月份：</label><input id="wtAdminMonth" type="month" style="width:150px">
+    <label>週一日期（匯出用）：</label><input id="wtAdminWeek" type="date" value="${monStr}">
+    <button class="btn btn-sm btn-primary" onclick="loadWorktimeRecordsAdmin()">搜尋</button>
+    <button class="btn btn-sm btn-outline" onclick="exportWorktimeExcel()">&#128229; 匯出本週 Excel</button>
+  </div></div>`;
+  html += '<div id="wtAdminBox"></div>';
+  document.getElementById('adminBody').innerHTML = html;
+  renderWorktimeRecordsAdmin(recs);
+}
+
+function loadWorktimeRecordsAdmin() {
+  const emp = document.getElementById('wtAdminEmp').value;
+  const month = document.getElementById('wtAdminMonth').value;
+  let rows = wtAdminCache.records.slice();
+  if (emp) rows = rows.filter(r => String(r.emp_id) === String(emp));
+  if (month) rows = rows.filter(r => (r.date || '').startsWith(month));
+  renderWorktimeRecordsAdmin(rows);
+}
+
+function renderWorktimeRecordsAdmin(rows) {
+  const box = document.getElementById('wtAdminBox');
+  if (!box) return;
+  if (!rows.length) { box.innerHTML = '<p style="color:#888">暫無記錄</p>'; return; }
+  rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id));
+  let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>員工</th><th>狀態</th><th>上班</th><th>實際</th><th>出車廠</th><th>下班</th><th>總當值</th><th>標準</th><th>OT</th><th>單數</th><th>備註</th><th>操作</th></tr></thead><tbody>';
+  for (const r of rows) {
+    html += `<tr><td>${r.id}</td><td>${r.date}</td><td>${r.emp_name} (${r.emp_number})</td><td>${r.day_status}</td>
+      <td>${r.schedule_in || '-'}</td><td>${r.actual_in || '-'}</td><td>${r.departure_carpark || '-'}</td><td>${r.off_time || '-'}</td>
+      <td>${r.total_duty_hours}h</td><td>${r.standard_hours}h</td><td><b style="color:#e67e22">${r.ot_hours}h</b></td>
+      <td>${(r.jobs || []).length}</td><td>${r.remark || ''}</td>
+      <td><button class="btn btn-xs btn-outline" onclick="deleteWorktimeAdmin(${r.id})">刪除</button></td></tr>`;
+  }
+  html += '</tbody></table>';
+  box.innerHTML = html;
+}
+
+function exportWorktimeExcel() {
+  const week = document.getElementById('wtAdminWeek').value;
+  window.open(API + '/api/admin/worktime/export?week=' + encodeURIComponent(week || ''), '_blank');
+}
+
+async function deleteWorktimeAdmin(id) {
+  if (!confirm('確定刪除呢筆工時記錄？')) return;
+  try {
+    const res = await fetch(API + '/api/admin/worktime/records/' + id, { method: 'DELETE', credentials: 'include' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || '刪除失敗'); return; }
+    wtAdminCache.records = wtAdminCache.records.filter(r => r.id !== id);
+    loadWorktimeRecordsAdmin();
+  } catch (e) { alert('刪除失敗'); }
 }
 
 // Keep the admin session alive while the panel is open (long-lived 30-day TTL,

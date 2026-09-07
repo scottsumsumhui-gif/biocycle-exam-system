@@ -51,6 +51,11 @@
         <div class="module-title">車輛里數記錄</div>
         <div class="module-desc">出車 / 入油 / 保養 / 維修</div>
       </div>
+      <div class="module-card" onclick="showWorktime()">
+        <div class="module-icon">⏱️</div>
+        <div class="module-title">工時記錄</div>
+        <div class="module-desc">每日上班 / 下班 / 工作單 / OT</div>
+      </div>
     </div>
     <div style="display:flex; gap:12px; justify-content:center">
       <button class="btn btn-outline btn-sm" onclick="showChangePw()">修改密碼</button>
@@ -425,6 +430,58 @@
 
       <div id="fleetDetailTables" style="margin-top:16px"></div>
     </div>
+  </div>
+</div>
+
+<!-- WORKTIME (技術員每日工時記錄) -->
+<div id="worktimeScreen" class="screen" style="display:none">
+  <div class="center-card">
+    <div style="display:flex; justify-content:space-between; align-items:center">
+      <h2>⏱️ 工時記錄 Work Time</h2>
+      <button class="btn btn-outline btn-sm" onclick="showHome()">返回</button>
+    </div>
+    <div id="wtEmpInfo" style="color:#666; font-size:13px"></div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:14px; margin-top:12px; align-items:flex-end">
+      <div><label>日期</label><br><input type="date" id="wtDate" onchange="wtDateChange()"></div>
+      <div><label>狀態</label><br>
+        <select id="wtStatus" onchange="wtStatusChange()">
+          <option value="正常上班">正常上班</option>
+          <option value="公眾假期">公眾假期</option>
+          <option value="大假">大假</option>
+          <option value="病假">病假</option>
+        </select>
+      </div>
+      <span id="wtSundayWarn" style="color:#e74c3c; display:none">星期日為休息日，無需填寫</span>
+    </div>
+
+    <div id="wtTimesBox">
+      <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:12px">
+        <div><label>上班時間</label><br><input type="time" id="wtScheduleIn" step="60"></div>
+        <div><label>實際上班</label><br><input type="time" id="wtActualIn" step="60"></div>
+        <div><label>出車廠</label><br><input type="time" id="wtDeparture" step="60"></div>
+        <div><label>下班時間</label><br><input type="time" id="wtOff" step="60"></div>
+      </div>
+      <div style="margin-top:8px"><label>備註（假別 / 備註）</label><br><input type="text" id="wtRemark" placeholder="例如：國慶、年假、感冒" style="width:340px"></div>
+    </div>
+
+    <div id="wtJobsBox" style="margin-top:16px">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <h3 style="margin:0">工作單</h3>
+        <button class="btn btn-outline btn-sm" onclick="wtAddJob()">+ 加單</button>
+      </div>
+      <div id="wtJobs"></div>
+    </div>
+
+    <div style="margin-top:16px">
+      <button class="btn btn-primary" onclick="submitWorktime()">儲存</button>
+      <span id="wtMsg" style="margin-left:12px"></span>
+    </div>
+    <div id="wtResult" style="margin-top:12px"></div>
+
+    <hr style="margin:20px 0">
+    <h3>本週紀錄</h3>
+    <div id="wtWeek"></div>
   </div>
 </div>
 
@@ -1797,6 +1854,170 @@ async function deleteFleetRecord(type, id) {
     await loadFleetRecords();
     if (fleetCurrentPlate) await openFleetVehicle(fleetCurrentPlate);
   } catch (e) { alert('刪除失敗'); }
+}
+
+// ===== WORKTIME (技術員每日工時記錄) =====
+let wtTypes = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他'];
+
+async function showWorktime() {
+  const hb = await pingHeartbeat();
+  if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  showScreen('worktimeScreen');
+  document.getElementById('wtEmpInfo').textContent = `${empData.name} | ${levelNames[empData.level] || empData.level}`;
+  try {
+    const m = await fetch(API + '/api/worktime/meta', { credentials: 'include' }).then(r => r.json());
+    if (m.success && m.types) wtTypes = m.types;
+  } catch (e) {}
+  const d = new Date(Date.now() + 8 * 3600000);
+  document.getElementById('wtDate').value = d.toISOString().substring(0, 10);
+  document.getElementById('wtResult').innerHTML = '';
+  document.getElementById('wtMsg').textContent = '';
+  wtAddJob();
+  await wtDateChange();
+  await loadWtWeek();
+}
+
+function wtStatusChange() {
+  const st = document.getElementById('wtStatus').value;
+  const isLeave = (st === '大假' || st === '病假');
+  document.getElementById('wtTimesBox').style.display = isLeave ? 'none' : '';
+  document.getElementById('wtJobsBox').style.display = isLeave ? 'none' : '';
+}
+
+async function wtDateChange() {
+  const date = document.getElementById('wtDate').value;
+  const warn = document.getElementById('wtSundayWarn');
+  const dow = date ? new Date(date + 'T00:00:00+08:00').getDay() : -1;
+  warn.style.display = (dow === 0) ? '' : 'none';
+  document.getElementById('wtResult').innerHTML = '';
+  document.getElementById('wtMsg').textContent = '';
+  if (!date) return;
+  try {
+    const res = await fetch(API + '/api/worktime/records?from=' + date + '&to=' + date, { credentials: 'include' });
+    const data = await res.json();
+    if (data.success && data.records.length) {
+      const rec = data.records[0];
+      document.getElementById('wtStatus').value = rec.day_status || '正常上班';
+      wtStatusChange();
+      document.getElementById('wtScheduleIn').value = rec.schedule_in || '';
+      document.getElementById('wtActualIn').value = rec.actual_in || '';
+      document.getElementById('wtDeparture').value = rec.departure_carpark || '';
+      document.getElementById('wtOff').value = rec.off_time || '';
+      document.getElementById('wtRemark').value = rec.remark || '';
+      const jobsBox = document.getElementById('wtJobs');
+      jobsBox.innerHTML = '';
+      if (rec.jobs && rec.jobs.length) rec.jobs.forEach(j => wtAddJob(j)); else wtAddJob();
+      document.getElementById('wtResult').innerHTML = `<span style="color:#2980b9">已載入 ${rec.date} 嘅記錄，儲存會更新佢。</span>`;
+    } else {
+      document.getElementById('wtJobs').innerHTML = '';
+      wtAddJob();
+    }
+  } catch (e) {}
+}
+
+function wtAddJob(preset) {
+  preset = preset || {};
+  const box = document.getElementById('wtJobs');
+  const div = document.createElement('div');
+  div.className = 'wt-job';
+  div.style.cssText = 'border:1px solid #e0e0e0;border-radius:8px;padding:10px;margin:8px 0';
+  const typesHtml = wtTypes.map(t =>
+    `<label style="margin-right:10px;font-size:13px"><input type="checkbox" class="wt-type" value="${t}" ${preset.types && preset.types.includes(t) ? 'checked' : ''}> ${t}</label>`
+  ).join('');
+  div.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+      <span>單號 <input type="text" class="wt-client" value="${preset.client_no || ''}" placeholder="工作單號" style="width:140px"></span>
+      <span>開始 <input type="time" class="wt-start" step="60" value="${preset.start || ''}"></span>
+      <span>完結 <input type="time" class="wt-end" step="60" value="${preset.end || ''}"></span>
+      <button class="btn btn-xs btn-outline" onclick="this.closest('.wt-job').remove()">刪除</button>
+    </div>
+    <div style="margin-top:6px">工作類型：${typesHtml}</div>
+    <div style="margin-top:6px">備註 <input type="text" class="wt-remarks" value="${preset.remarks || ''}" style="width:320px" placeholder="例如：咩地方、咩野"></div>
+  `;
+  box.appendChild(div);
+}
+
+function wtMsg(t, ok) {
+  document.getElementById('wtMsg').innerHTML = `<span style="color:${ok ? '#27ae60' : '#e74c3c'}">${t}</span>`;
+}
+
+async function submitWorktime() {
+  const date = document.getElementById('wtDate').value;
+  if (!date) { wtMsg('請選擇日期', false); return; }
+  const dow = new Date(date + 'T00:00:00+08:00').getDay();
+  if (dow === 0) { wtMsg('星期日為休息日，無需填寫', false); return; }
+  const day_status = document.getElementById('wtStatus').value;
+  const isLeave = (day_status === '大假' || day_status === '病假');
+  const payload = {
+    date, day_status,
+    schedule_in: document.getElementById('wtScheduleIn').value,
+    actual_in: document.getElementById('wtActualIn').value,
+    departure_carpark: document.getElementById('wtDeparture').value,
+    off_time: document.getElementById('wtOff').value,
+    remark: document.getElementById('wtRemark').value.trim()
+  };
+  payload.jobs = [];
+  if (!isLeave) {
+    document.querySelectorAll('#wtJobs .wt-job').forEach(div => {
+      const types = Array.from(div.querySelectorAll('.wt-type:checked')).map(c => c.value);
+      payload.jobs.push({
+        client_no: div.querySelector('.wt-client').value.trim(),
+        start: div.querySelector('.wt-start').value,
+        end: div.querySelector('.wt-end').value,
+        types,
+        remarks: div.querySelector('.wt-remarks').value.trim()
+      });
+    });
+  }
+  try {
+    const res = await fetch(API + '/api/worktime/records', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!data.success) { wtMsg(data.error || '儲存失敗', false); return; }
+    const r = data.record;
+    wtMsg(data.updated ? '✅ 已更新' : '✅ 已儲存', true);
+    document.getElementById('wtResult').innerHTML =
+      `<div style="background:#f4f8fb;border:1px solid #d6e4f0;border-radius:8px;padding:10px;display:inline-block">
+        今日總當值 <b>${r.total_duty_hours}h</b> ｜ 標準 <b>${r.standard_hours}h</b> ｜ <span style="color:#e67e22"><b>OT ${r.ot_hours}h</b></span>
+      </div>`;
+    await loadWtWeek();
+  } catch (e) { wtMsg('連接錯誤', false); }
+}
+
+async function loadWtWeek() {
+  const d = new Date(Date.now() + 8 * 3600000);
+  const now = new Date(d.toISOString().substring(0, 10) + 'T00:00:00+08:00');
+  const dow = now.getDay();
+  const monday = new Date(now.getTime() - (dow === 0 ? 6 : dow - 1) * 86400000);
+  const from = monday.toISOString().substring(0, 10);
+  const sunday = new Date(monday.getTime() + 6 * 86400000);
+  const to = sunday.toISOString().substring(0, 10);
+  try {
+    const res = await fetch(API + `/api/worktime/records?from=${from}&to=${to}`, { credentials: 'include' });
+    const data = await res.json();
+    const box = document.getElementById('wtWeek');
+    if (!data.success || !data.records.length) { box.innerHTML = '<p style="color:#888">本週暫無記錄</p>'; return; }
+    const dowName = ['日', '一', '二', '三', '四', '五', '六'];
+    data.records.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    let html = '<table class="data-table"><thead><tr><th>日期</th><th>狀態</th><th>上班</th><th>實際</th><th>出車廠</th><th>下班</th><th>總當值</th><th>OT</th><th>單數</th></tr></thead><tbody>';
+    let weekOt = 0;
+    for (const r of data.records) {
+      weekOt += (r.ot_hours || 0);
+      html += `<tr>
+        <td>${r.date}(${dowName[new Date(r.date + 'T00:00:00+08:00').getDay()]})</td>
+        <td>${r.day_status}</td>
+        <td>${r.schedule_in || '-'}</td><td>${r.actual_in || '-'}</td>
+        <td>${r.departure_carpark || '-'}</td><td>${r.off_time || '-'}</td>
+        <td>${r.total_duty_hours}h</td>
+        <td><b style="color:#e67e22">${r.ot_hours}h</b></td>
+        <td>${(r.jobs || []).length}</td>
+      </tr>`;
+    }
+    html += `</tbody></table><p><b>本週 OT 合計：${Math.round(weekOt * 10) / 10}h</b></p>`;
+    box.innerHTML = html;
+  } catch (e) { document.getElementById('wtWeek').innerHTML = '載入失敗'; }
 }
 
 // Check existing session on load
