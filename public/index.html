@@ -699,7 +699,7 @@ async function showCommissionHub() {
   document.getElementById('commHubEmpInfo').textContent = `${empData.name} | ${levelNames[empData.level] || empData.level}`;
   // load employees list once (used by channel sub member picker)
   try {
-    const res = await fetch(API + '/api/commission/employees', { credentials: 'include' });
+    const res = await fetch(API + '/api/commission/employees', { credentials: 'include', cache: 'no-store' });
     commEmployees = await res.json();
   } catch (e) { commEmployees = []; }
   switchCommHubTab('channel');

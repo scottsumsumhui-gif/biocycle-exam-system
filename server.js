@@ -2864,6 +2864,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
 app.get('/api/commission/employees', authRequired('employee'), async (req, res) => {
   const employees = await loadJSON('employees.json', []);
   const list = employees
+    .filter(e => WORKTIME_TECH_LEVELS.includes(e.level)) // 只顯示技術員體系職級（同 OT 記錄隊員名單一致），排除行政/高層(a/c/g)
     .map(e => ({ id: e.id, name: e.name, emp_number: e.emp_number, group_name: e.group_name || '' }))
     .sort((a, b) => String(a.emp_number).localeCompare(String(b.emp_number)));
   res.json(list);
