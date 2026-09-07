@@ -413,7 +413,7 @@ app.get('/api/auth/check', async (req, res) => {
   } else {
     const admins = await loadJSON('admins.json', []);
     const adm = admins.find(a => a.id === session.user_id);
-    if (adm) userInfo = { username: adm.username, displayName: adm.display_name, isSuper: adm.is_super, permissions: effectivePermissions(adm) };
+    if (adm) userInfo = { id: adm.id, username: adm.username, displayName: adm.display_name, isSuper: adm.is_super, permissions: effectivePermissions(adm) };
   }
 
   res.json({ authenticated: true, userType: session.user_type, user: userInfo });

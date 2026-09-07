@@ -36,12 +36,14 @@
     </div>
     <div class="header-right">
       <span id="adminNameDisplay"></span>
+      <button class="btn btn-sm btn-outline" onclick="showChangeMyPw()">修改密碼</button>
       <button class="btn btn-sm btn-outline" onclick="adminLogout()">登出</button>
     </div>
   </header>
   
   <nav class="admin-nav">
-    <button class="nav-btn active" data-tab="dashboard" onclick="showTab('dashboard')" id="tabDashboard">&#128202; Dashboard</button>
+    <button class="nav-btn active" data-tab="home" onclick="showTab('home')" id="tabHome">&#127968; 首頁</button>
+    <button class="nav-btn" data-tab="dashboard" onclick="showTab('dashboard')" id="tabDashboard">&#128202; Dashboard</button>
     <button class="nav-btn" data-tab="employees" onclick="showTab('employees')" id="tabEmployees">&#128101; 員工管理</button>
     <button class="nav-btn" data-tab="admins" onclick="showTab('admins')" id="tabAdmins">&#128272; 管理員</button>
     <button class="nav-btn" data-tab="examConfig" onclick="showTab('examConfig')" id="tabExamConfig">&#128197; 考試配置</button>
@@ -94,7 +96,7 @@ async function adminLogin() {
       document.getElementById('adminNameDisplay').textContent = adminData.displayName;
       applyNavPermissions();
       showScreen('adminPanel');
-      showTab('dashboard');
+      showTab('home');
     } else {
       err.textContent = data.error; err.style.display = 'block';
     }
@@ -143,6 +145,7 @@ function showTab(tab) {
   if (tabEl) tabEl.classList.add('active');
   
   switch(tab) {
+    case 'home': showHome(); break;
     case 'dashboard': loadDashboard(); break;
     case 'employees': loadEmployees(); break;
     case 'admins': loadAdmins(); break;
@@ -1100,10 +1103,45 @@ async function changeAdminPw(id) {
   if (data.success) {
     alert('密碼已修改');
     document.getElementById('adminForm').style.display = 'none';
-    loadAdmins();
+    const tabAdmins = document.getElementById('tabAdmins');
+    if (tabAdmins && tabAdmins.style.display !== 'none') loadAdmins();
   } else {
     alert(data.error || '修改失敗');
   }
+}
+
+// ===== HOME (首頁) + 自助改密碼 =====
+function showHome() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = `
+    <div class="section-card" style="text-align:center; padding:60px 20px; margin-top:40px">
+      <div class="logo" style="margin-bottom:16px"><img src="img/biocycle-logo.png" alt="BIOCYCLE" style="height:90px"></div>
+      <h1 style="margin:0 0 8px; font-size:34px; color:var(--primary,#2c6e49)">歡迎登入</h1>
+      <h2 style="margin:0; font-size:26px; color:var(--text,#1f2d3d)">BIOCYCLE OPERATION SYSTEM</h2>
+      <p style="margin-top:20px; color:var(--text-light,#6b7280)">請由上方選單揀選您有權限嘅功能</p>
+    </div>`;
+}
+
+function showChangeMyPw() {
+  if (!adminData) return;
+  const me = adminData;
+  let form = document.getElementById('adminForm');
+  if (!form) {
+    form = document.createElement('div');
+    form.id = 'adminForm';
+    form.style.display = 'block';
+    document.getElementById('adminBody').prepend(form);
+  }
+  form.style.display = 'block';
+  form.innerHTML = `
+    <div class="section-card"><h3>修改我的密碼：${me.displayName}</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>新密碼</label><input type="password" id="chgAdminPw" placeholder="至少 4 位"></div>
+      <div class="form-group"><label>確認新密碼</label><input type="password" id="chgAdminPw2" placeholder="再次輸入"></div>
+    </div>
+    <button class="btn btn-primary" onclick="changeAdminPw(${me.id})">確認</button>
+    <button class="btn btn-outline" onclick="document.getElementById('adminForm').style.display='none'">取消</button>
+    </div>`;
 }
 
 // ===== EXAM CONFIG =====
@@ -2054,7 +2092,7 @@ function showScreen(id) {
       adminData = data.user;
       document.getElementById('adminNameDisplay').textContent = adminData.displayName;
       showScreen('adminPanel');
-      showTab('dashboard');
+      showTab('home');
     }
   } catch(e) {}
 })();
