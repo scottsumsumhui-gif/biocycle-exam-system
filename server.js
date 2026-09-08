@@ -1926,7 +1926,7 @@ const FLEET_FILES = { trip: FLEET_TRIPS_FILE, fuel: FLEET_FUELS_FILE, maintenanc
 // Digitised version of the paper "Technician Work Time Report".
 // One record per employee per date, with nested job rows. OT is computed server-side.
 const WORKTIME_FILE = 'worktime.json';
-const WORKTIME_TYPES = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他'];
+const WORKTIME_TYPES = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除'];
 const WORKTIME_STATUSES = ['正常上班', '公眾假期', '大假', '病假'];
 const WORKTIME_EDIT_DAYS = 7; // technicians may edit/delete their own record within 7 days
 const WORKTIME_NIGHT_CUT = 20 * 60; // 20:00 後嘅 OT 係另一價錢，OT 由此分界拆做日間 OT / 深夜 OT
