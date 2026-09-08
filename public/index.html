@@ -2017,6 +2017,9 @@ function wtAddJob(preset) {
       <span style="font-size:14px; color:var(--text)">工作類型：</span>
       <div class="wt-types">${typesHtml}</div>
     </div>
+    <label class="wt-nosync" style="display:flex; align-items:center; gap:6px; margin-top:8px; font-size:13px; color:var(--text)">
+      <input type="checkbox" class="wt-nosync-in" ${preset.no_sync ? 'checked' : ''}> 此單不同步到其他隊員
+    </label>
     <div class="wt-full" style="margin-top:8px">備註 <input type="text" class="wt-remarks wt-full" value="${preset.remarks || ''}"></div>
     <div style="margin-top:8px; text-align:right"><button class="btn btn-xs btn-outline" onclick="this.closest('.wt-job').remove()">刪除</button></div>
   `;
@@ -2079,7 +2082,8 @@ async function submitWorktime() {
         start: wtNormalizeTime(div.querySelector('.wt-start').value),
         end: wtNormalizeTime(div.querySelector('.wt-end').value),
         types,
-        remarks: div.querySelector('.wt-remarks').value.trim()
+        remarks: div.querySelector('.wt-remarks').value.trim(),
+        no_sync: !!(div.querySelector('.wt-nosync-in') && div.querySelector('.wt-nosync-in').checked)
       });
     });
     payload.members = [];

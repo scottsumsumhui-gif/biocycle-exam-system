@@ -596,6 +596,7 @@ h2 { font-size: 18px; color: var(--text-light); margin-bottom: 24px; }
   .wt-inline { gap: 8px; }
   .wt-types { gap: 6px; }
   .wt-type-chip { font-size: 13px; padding: 7px 11px; }
+  .wt-nosync { font-size: 14px; }
   .wt-client { width: 100% !important; }
 }
 

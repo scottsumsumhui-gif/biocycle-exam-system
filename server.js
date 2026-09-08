@@ -2637,7 +2637,7 @@ async function sanitizeWorktimePayload(body, emp) {
       if (types.length === 0) return { ok: false, error: '每張單請選擇至少一個工作類型' };
       if (start && parseHM(start) === null) return { ok: false, error: '單開始時間格式唔正確' };
       if (end && parseHM(end) === null) return { ok: false, error: '單完結時間格式唔正確' };
-      jobs.push({ client_no, start, end, types, remarks });
+      jobs.push({ client_no, start, end, types, remarks, no_sync: j.no_sync === true });
     }
   }
 
@@ -2676,8 +2676,11 @@ async function sanitizeWorktimePayload(body, emp) {
 // 規則：淨同步 jobs（時間/狀態/備註/隊員各自保留）；source 冇 job 就唔郁（避免清空人哋）；
 // 「後儲存覆蓋」= 邊個最後儲存，成隊工作單就跟佢。
 function syncTeamJobs(recs, source, employees) {
-  if (!source || !Array.isArray(source.jobs) || source.jobs.length === 0) return;
-  const jobsCopy = JSON.parse(JSON.stringify(source.jobs));
+  if (!source || !Array.isArray(source.jobs)) return;
+  // 只同步「冇剔『此單不同步到其他隊員』」嗰啲單；如果全部單都係唔同步，就唔郁隊員（避免清走人哋）
+  const syncedJobs = source.jobs.filter(j => j && !j.no_sync);
+  if (syncedJobs.length === 0) return;
+  const jobsCopy = JSON.parse(JSON.stringify(syncedJobs));
   const teammates = (source.members || []).filter(m => m && Number(m.emp_id) !== Number(source.emp_id));
   for (const t of teammates) {
     const tid = Number(t.emp_id);
