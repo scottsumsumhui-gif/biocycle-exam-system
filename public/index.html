@@ -1986,7 +1986,11 @@ async function wtDateChange() {
       const mems = (rec.members && rec.members.length) ? rec.members : [];
       mems.forEach(m => wtAddMember(m.emp_id));
       wtStatusChange();
-      document.getElementById('wtResult').innerHTML = `<span style="color:#2980b9">已載入 ${rec.date} 嘅記錄，儲存會更新佢。</span>`;
+      let loadNote = `已載入 ${rec.date} 嘅記錄，儲存會更新佢。`;
+      if (rec.jobs_synced_from && rec.jobs_synced_from.emp_name) {
+        loadNote += `<br><span style="color:#8e44ad">ℹ️ 工作單由隊員 ${rec.jobs_synced_from.emp_name} 同步過嚟，你儲存會覆蓋返全隊。</span>`;
+      }
+      document.getElementById('wtResult').innerHTML = `<span style="color:#2980b9">${loadNote}</span>`;
     } else {
       wtAddJob();
       wtStatusChange();

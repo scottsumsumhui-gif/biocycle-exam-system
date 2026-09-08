@@ -2672,6 +2672,45 @@ async function sanitizeWorktimePayload(body, emp) {
   };
 }
 
+// 同步工作單：把 source 當日嘅 jobs 覆蓋到佢「今日隊員」名單入面其他隊員嘅同日記錄。
+// 規則：淨同步 jobs（時間/狀態/備註/隊員各自保留）；source 冇 job 就唔郁（避免清空人哋）；
+// 「後儲存覆蓋」= 邊個最後儲存，成隊工作單就跟佢。
+function syncTeamJobs(recs, source, employees) {
+  if (!source || !Array.isArray(source.jobs) || source.jobs.length === 0) return;
+  const jobsCopy = JSON.parse(JSON.stringify(source.jobs));
+  const teammates = (source.members || []).filter(m => m && Number(m.emp_id) !== Number(source.emp_id));
+  for (const t of teammates) {
+    const tid = Number(t.emp_id);
+    if (!tid) continue;
+    const fromInfo = { emp_id: source.emp_id, emp_name: source.emp_name || '', at: nowStr() };
+    const tIdx = recs.findIndex(r => r.emp_id === tid && r.date === source.date);
+    if (tIdx >= 0) {
+      recs[tIdx].jobs = JSON.parse(JSON.stringify(jobsCopy));
+      recs[tIdx].jobs_synced_from = fromInfo;
+      recs[tIdx].updated_at = nowStr();
+    } else {
+      const emp = employees.find(e => e.id === tid);
+      recs.push({
+        id: recs.length ? Math.max(...recs.map(r => r.id || 0)) + 1 : 1,
+        date: source.date,
+        emp_id: tid,
+        emp_number: t.emp_number || (emp && emp.emp_number) || '',
+        emp_name: t.emp_name || (emp && emp.name) || '',
+        day_status: '正常上班',
+        holiday_work: false,
+        schedule_in: '', actual_in: '', off_time: '',
+        remark: '',
+        jobs: JSON.parse(JSON.stringify(jobsCopy)),
+        members: JSON.parse(JSON.stringify(source.members || [])),
+        total_duty_hours: 0, standard_hours: 0, ot_hours: 0, ot_evening_hours: 0, ot_night_hours: 0,
+        jobs_synced_from: fromInfo,
+        created_by_emp_id: source.emp_id,
+        created_at: nowStr()
+      });
+    }
+  }
+}
+
 // Employee: create or update (upsert by emp+date) own daily record.
 app.post('/api/worktime/records', authRequired('employee'), async (req, res) => {
   try {
@@ -2683,16 +2722,20 @@ app.post('/api/worktime/records', authRequired('employee'), async (req, res) => 
     const v = s.value;
     const recs = await loadJSON(WORKTIME_FILE, []);
     const idx = recs.findIndex(r => r.emp_id === me.id && r.date === v.date);
+    let record, updated;
     if (idx >= 0) {
       const existing = recs[idx];
-      recs[idx] = { ...existing, ...v, id: existing.id, created_by_emp_id: existing.created_by_emp_id, created_at: existing.created_at, updated_at: nowStr() };
-      await saveJSON(WORKTIME_FILE, recs);
-      return res.json({ success: true, record: recs[idx], updated: true });
+      record = { ...existing, ...v, id: existing.id, created_by_emp_id: existing.created_by_emp_id, created_at: existing.created_at, jobs_synced_from: null, updated_at: nowStr() };
+      recs[idx] = record;
+      updated = true;
+    } else {
+      record = { ...v, id: recs.length ? Math.max(...recs.map(r => r.id || 0)) + 1 : 1, created_by_emp_id: me.id, created_at: nowStr() };
+      recs.push(record);
+      updated = false;
     }
-    const record = { ...v, id: recs.length ? Math.max(...recs.map(r => r.id || 0)) + 1 : 1, created_by_emp_id: me.id, created_at: nowStr() };
-    recs.push(record);
+    syncTeamJobs(recs, record, employees);
     await saveJSON(WORKTIME_FILE, recs);
-    res.json({ success: true, record, updated: false });
+    res.json({ success: true, record, updated });
   } catch (e) { res.status(500).json({ success: false, error: '儲存失敗' }); }
 });
 
@@ -2724,7 +2767,8 @@ app.put('/api/worktime/records/:id', authRequired('employee'), async (req, res) 
     const s = await sanitizeWorktimePayload(req.body || {}, me);
     if (!s.ok) return res.status(400).json({ success: false, error: s.error });
     const v = s.value;
-    recs[idx] = { ...recs[idx], ...v, updated_at: nowStr() };
+    recs[idx] = { ...recs[idx], ...v, jobs_synced_from: null, updated_at: nowStr() };
+    syncTeamJobs(recs, recs[idx], employees);
     await saveJSON(WORKTIME_FILE, recs);
     res.json({ success: true, record: recs[idx] });
   } catch (e) { res.status(500).json({ success: false, error: '修改失敗' }); }
@@ -2771,7 +2815,8 @@ app.put('/api/admin/worktime/records/:id', authRequired('admin'), requirePermiss
     const me = employees.find(e => e.id === recs[idx].emp_id) || { id: recs[idx].emp_id, emp_number: recs[idx].emp_number, name: recs[idx].emp_name };
     const s = await sanitizeWorktimePayload(req.body || {}, me);
     if (!s.ok) return res.status(400).json({ success: false, error: s.error });
-    recs[idx] = { ...recs[idx], ...s.value, updated_at: nowStr() };
+    recs[idx] = { ...recs[idx], ...s.value, jobs_synced_from: null, updated_at: nowStr() };
+    syncTeamJobs(recs, recs[idx], employees);
     await saveJSON(WORKTIME_FILE, recs);
     res.json({ success: true, record: recs[idx] });
   } catch (e) { res.status(500).json({ success: false, error: '修改失敗' }); }
