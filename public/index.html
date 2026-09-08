@@ -1867,6 +1867,7 @@ async function deleteFleetRecord(type, id) {
 // ===== WORKTIME (技術員每日工時記錄) =====
 let wtTypes = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除'];
 let wtEmployees = [];
+let wtLoadedHadJobs = false; // 載入記錄時原本有冇工作單（用嚟防止誤保存空單清走自己）
 
 function wtParseHM(s) {
   if (!s) return null;
@@ -1975,6 +1976,7 @@ async function wtDateChange() {
     const data = await res.json();
     if (data.success && data.records.length) {
       const rec = data.records[0];
+      wtLoadedHadJobs = !!(rec.jobs && rec.jobs.length);
       document.getElementById('wtStatus').value = rec.day_status || '正常上班';
       document.getElementById('wtHolidayWork').checked =
         rec.day_status === '公眾假期' && (rec.holiday_work === true || !!(rec.schedule_in || rec.off_time));
@@ -1992,10 +1994,11 @@ async function wtDateChange() {
       }
       document.getElementById('wtResult').innerHTML = `<span style="color:#2980b9">${loadNote}</span>`;
     } else {
+      wtLoadedHadJobs = false;
       wtAddJob();
       wtStatusChange();
     }
-  } catch (e) {}
+  } catch (e) { wtMsg('載入記錄失敗，請重新整理頁面', false); }
 }
 
 function wtAddJob(preset) {
@@ -2021,10 +2024,15 @@ function wtAddJob(preset) {
       <input type="checkbox" class="wt-nosync-in" ${preset.no_sync ? 'checked' : ''}> 此單不同步到其他隊員
     </label>
     <div class="wt-full" style="margin-top:8px">備註 <input type="text" class="wt-remarks wt-full" value="${preset.remarks || ''}"></div>
-    <div style="margin-top:8px; text-align:right"><button class="btn btn-xs btn-outline" onclick="this.closest('.wt-job').remove()">刪除</button></div>
+    <div style="margin-top:8px; text-align:right"><button class="btn btn-xs btn-outline" onclick="wtRemoveJob(this)">刪除</button></div>
   `;
   box.appendChild(div);
   div.querySelectorAll('.wt-start, .wt-end').forEach(wtBindTimeInput);
+}
+
+function wtRemoveJob(btn) {
+  if (!confirm('刪除後儲存，會同步刪除全隊呢張單，確定？')) return;
+  btn.closest('.wt-job').remove();
 }
 
 function wtAddMember(selectedId) {
@@ -2090,6 +2098,10 @@ async function submitWorktime() {
     document.querySelectorAll('#wtMembers .wt-member').forEach(sel => {
       if (sel.value) payload.members.push({ emp_id: Number(sel.value) });
     });
+    // 防誤清空：原本有工作單，但今次保存一張單都冇 → 彈確認先
+    if (wtLoadedHadJobs && payload.jobs.length === 0) {
+      if (!confirm('⚠️ 你原本有工作單，但而家一張單都冇。\n繼續保存會清走你自己今日嘅工作單（隊員嗰份唔受影響）。\n確定要清空？')) return;
+    }
     // 規則：下班時間比最尾一張單完結時間超過 1 小時 → 彈警告要求寫原因
     // 用「上班時間」做當日錨點，夜更跨午夜嘅下班/單完結時間，全部換算到同一刻度先比，避免誤判
     const wtAnchor = wtParseHM(payload.schedule_in) || 0;
