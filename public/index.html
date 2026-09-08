@@ -460,17 +460,17 @@
     </div>
 
     <div id="wtTimesBox">
-      <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:12px">
-        <div><label>上班時間</label><br><input type="time" id="wtScheduleIn" step="60"></div>
-        <div><label>實際上班</label><br><input type="time" id="wtActualIn" step="60"></div>
-        <div><label>下班時間</label><br><input type="time" id="wtOff" step="60"></div>
+      <div class="wt-inline" style="margin-top:12px">
+        <div><label>上班時間</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtScheduleIn" placeholder="--:--"></div>
+        <div><label>實際上班</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtActualIn" placeholder="--:--"></div>
+        <div><label>下班時間</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtOff" placeholder="--:--"></div>
       </div>
       <div style="margin-top:10px">
         <label>今日隊員（2-4 人）</label>
         <div id="wtMembers" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px"></div>
         <button type="button" class="btn btn-xs btn-outline" onclick="wtAddMember()" style="margin-top:6px">+ 加隊員</button>
       </div>
-      <div style="margin-top:8px"><label>備註（假別 / 備註）</label><br><input type="text" id="wtRemark" style="width:340px"></div>
+      <div class="wt-full" style="margin-top:8px"><label>備註（假別 / 備註）</label><br><input type="text" class="wt-full" id="wtRemark"></div>
     </div>
 
     <div id="wtJobsBox" style="margin-top:16px">
@@ -1881,12 +1881,40 @@ function wtShiftDay(m, anchor) {
   if (anchor != null && m < anchor) return m + 1440;
   return m;
 }
+// 將輸入嘅數字補齊成 HH:MM（唔夠分鐘補 00，過咗上限收緊），空值返回 ''
+function wtNormalizeTime(v) {
+  const d = String(v || '').replace(/\D/g, '').slice(0, 4);
+  if (!d) return '';
+  let hh = (d.length <= 2) ? d : d.slice(0, d.length - 2);
+  let mm = (d.length <= 2) ? '00' : d.slice(-2);
+  let h = parseInt(hh, 10); if (isNaN(h)) h = 0; if (h > 23) h = 23;
+  let m = parseInt(mm, 10); if (isNaN(m)) m = 0; if (m > 59) m = 59;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+// 將時間輸入框改成「打字入時間」：彈數字鍵盤，打四個數字自動變 HH:MM，離開時補齊
+function wtBindTimeInput(input) {
+  if (!input || input.dataset.wtBound) return;
+  input.dataset.wtBound = '1';
+  input.type = 'tel';
+  input.setAttribute('inputmode', 'numeric');
+  input.setAttribute('placeholder', '--:--');
+  input.setAttribute('autocomplete', 'off');
+  input.addEventListener('input', () => {
+    const d = input.value.replace(/\D/g, '').slice(0, 4);
+    let out = d;
+    if (d.length > 2) out = d.slice(0, d.length - 2) + ':' + d.slice(-2);
+    if (out !== input.value) input.value = out;
+  });
+  input.addEventListener('blur', () => { input.value = wtNormalizeTime(input.value); });
+  input.addEventListener('focus', () => input.select());
+}
 
 async function showWorktime() {
   const hb = await pingHeartbeat();
   if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
   showScreen('worktimeScreen');
   document.getElementById('wtEmpInfo').textContent = `${empData.name} | ${levelNames[empData.level] || empData.level}`;
+  ['wtScheduleIn', 'wtActualIn', 'wtOff'].forEach(id => wtBindTimeInput(document.getElementById(id)));
   try {
     const m = await fetch(API + '/api/worktime/meta', { credentials: 'include' }).then(r => r.json());
     if (m.success && m.types) wtTypes = m.types;
@@ -1971,21 +1999,25 @@ function wtAddJob(preset) {
   const box = document.getElementById('wtJobs');
   const div = document.createElement('div');
   div.className = 'wt-job';
-  div.style.cssText = 'border:1px solid #e0e0e0;border-radius:8px;padding:10px;margin:8px 0';
+  div.style.cssText = 'border:1px solid #e0e0e0;border-radius:8px;padding:12px;margin:8px 0';
   const typesHtml = wtTypes.map(t =>
-    `<label style="margin-right:10px;font-size:13px"><input type="checkbox" class="wt-type" value="${t}" ${preset.types && preset.types.includes(t) ? 'checked' : ''}> ${t}</label>`
+    `<label class="wt-type-chip"><input type="checkbox" class="wt-type" value="${t}" ${preset.types && preset.types.includes(t) ? 'checked' : ''}> ${t}</label>`
   ).join('');
   div.innerHTML = `
-    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
-      <span>單號 <input type="text" class="wt-client" value="${preset.client_no || ''}" placeholder="工作單號" style="width:140px"></span>
-      <span>開始 <input type="time" class="wt-start" step="60" value="${preset.start || ''}"></span>
-      <span>完結 <input type="time" class="wt-end" step="60" value="${preset.end || ''}"></span>
-      <button class="btn btn-xs btn-outline" onclick="this.closest('.wt-job').remove()">刪除</button>
+    <div class="wt-inline">
+      <span style="flex:1; min-width:130px">單號 <input type="text" class="wt-client" value="${preset.client_no || ''}" placeholder="工作單號" style="width:100%; min-width:110px; box-sizing:border-box"></span>
+      <span>開始 <input type="tel" inputmode="numeric" class="wt-time wt-start" value="${preset.start || ''}" placeholder="--:--"></span>
+      <span>完結 <input type="tel" inputmode="numeric" class="wt-time wt-end" value="${preset.end || ''}" placeholder="--:--"></span>
     </div>
-    <div style="margin-top:6px">工作類型：${typesHtml}</div>
-    <div style="margin-top:6px">備註 <input type="text" class="wt-remarks" value="${preset.remarks || ''}" style="width:320px"></div>
+    <div style="margin-top:8px">
+      <span style="font-size:14px; color:var(--text)">工作類型：</span>
+      <div class="wt-types">${typesHtml}</div>
+    </div>
+    <div class="wt-full" style="margin-top:8px">備註 <input type="text" class="wt-remarks wt-full" value="${preset.remarks || ''}"></div>
+    <div style="margin-top:8px; text-align:right"><button class="btn btn-xs btn-outline" onclick="this.closest('.wt-job').remove()">刪除</button></div>
   `;
   box.appendChild(div);
+  div.querySelectorAll('.wt-start, .wt-end').forEach(wtBindTimeInput);
 }
 
 function wtAddMember(selectedId) {
@@ -2029,9 +2061,9 @@ async function submitWorktime() {
   const isWorking = (day_status === '正常上班' || holiday_work);
   const payload = {
     date, day_status, holiday_work,
-    schedule_in: document.getElementById('wtScheduleIn').value,
-    actual_in: document.getElementById('wtActualIn').value,
-    off_time: document.getElementById('wtOff').value,
+    schedule_in: wtNormalizeTime(document.getElementById('wtScheduleIn').value),
+    actual_in: wtNormalizeTime(document.getElementById('wtActualIn').value),
+    off_time: wtNormalizeTime(document.getElementById('wtOff').value),
     remark: document.getElementById('wtRemark').value.trim()
   };
   payload.jobs = [];
@@ -2040,8 +2072,8 @@ async function submitWorktime() {
       const types = Array.from(div.querySelectorAll('.wt-type:checked')).map(c => c.value);
       payload.jobs.push({
         client_no: div.querySelector('.wt-client').value.trim(),
-        start: div.querySelector('.wt-start').value,
-        end: div.querySelector('.wt-end').value,
+        start: wtNormalizeTime(div.querySelector('.wt-start').value),
+        end: wtNormalizeTime(div.querySelector('.wt-end').value),
         types,
         remarks: div.querySelector('.wt-remarks').value.trim()
       });
@@ -2052,11 +2084,11 @@ async function submitWorktime() {
     });
     // 規則：下班時間比最尾一張單完結時間超過 1 小時 → 彈警告要求寫原因
     // 用「上班時間」做當日錨點，夜更跨午夜嘅下班/單完結時間，全部換算到同一刻度先比，避免誤判
-    const wtAnchor = wtParseHM(document.getElementById('wtScheduleIn').value) || 0;
-    const offM = wtShiftDay(wtParseHM(document.getElementById('wtOff').value), wtAnchor);
+    const wtAnchor = wtParseHM(payload.schedule_in) || 0;
+    const offM = wtShiftDay(wtParseHM(payload.off_time), wtAnchor);
     let lastEndM = null;
-    document.querySelectorAll('#wtJobs .wt-end').forEach(inp => {
-      const m = wtShiftDay(wtParseHM(inp.value), wtAnchor);
+    payload.jobs.forEach(j => {
+      const m = wtShiftDay(wtParseHM(j.end), wtAnchor);
       if (m != null && (lastEndM == null || m > lastEndM)) lastEndM = m;
     });
     if (offM != null && lastEndM != null) {

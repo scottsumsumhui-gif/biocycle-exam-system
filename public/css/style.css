@@ -554,6 +554,27 @@ h2 { font-size: 18px; color: var(--text-light); margin-bottom: 24px; }
 .essay-grade-form { display: flex; align-items: center; gap: 8px; }
 .essay-grade-form input { width: 60px; padding: 8px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; }
 
+/* ---- Worktime (Module 6) responsive ---- */
+.wt-job { text-align: left; }
+.wt-inline { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.wt-types { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.wt-type-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #f0f4f8; border: 1px solid var(--border);
+  border-radius: 20px; padding: 7px 14px;
+  font-size: 14px; cursor: pointer; user-select: none; white-space: nowrap;
+}
+.wt-type-chip input { margin: 0; accent-color: var(--primary); }
+.wt-type-chip:has(input:checked) { background: var(--primary); color: #fff; border-color: var(--primary); }
+.wt-time {
+  font-size: 15px; padding: 7px 8px; border: 2px solid var(--border);
+  border-radius: 8px; background: #fff; color: var(--text);
+  width: 92px; text-align: center; letter-spacing: 1px; box-sizing: border-box;
+}
+.wt-full { width: 100%; max-width: 100%; box-sizing: border-box; }
+#worktimeScreen label { font-size: 14px; color: var(--text); }
+#worktimeScreen .btn { touch-action: manipulation; }
+
 /* Responsive */
 @media (max-width: 600px) {
   .center-card { padding: 32px 24px; margin: 40px auto; }
@@ -566,6 +587,16 @@ h2 { font-size: 18px; color: var(--text-light); margin-bottom: 24px; }
   .nav-btn { padding: 8px 10px; font-size: 11px; }
   .data-table { font-size: 12px; }
   .data-table th, .data-table td { padding: 6px 8px; }
+
+  /* Worktime phone tweaks */
+  #worktimeScreen .center-card { padding: 24px 16px; margin: 16px auto; width: 96%; }
+  #worktimeScreen input, #worktimeScreen select { font-size: 16px; }
+  #worktimeScreen input[type="time"], #worktimeScreen input[type="date"] { padding: 9px 8px; min-height: 46px; }
+  #worktimeScreen .wt-time { font-size: 16px; padding: 9px 8px; min-height: 46px; }
+  .wt-inline { gap: 8px; }
+  .wt-types { gap: 6px; }
+  .wt-type-chip { font-size: 13px; padding: 7px 11px; }
+  .wt-client { width: 100% !important; }
 }
 
 /* Modal */
