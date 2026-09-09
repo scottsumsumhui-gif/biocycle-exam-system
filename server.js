@@ -1968,20 +1968,22 @@ function computeWorktimeOt({ day_status, date, schedule_in, actual_in, off_time 
   if (day_status === '大假' || day_status === '病假') return zero;
   const std = worktimeStandardHours(date);
   if (std === null) return zero; // Sunday
-  const round1 = x => Math.round(x * 10) / 10;
+  // OT 以 15 分鐘為一單位（員工入時間必為 15 分鐘位：18:00/18:15/18:30/18:45）
+  const snap15 = m => Math.round(m / 15) * 15;
+  const qh = m => snap15(m) / 60; // 精確 0.25h 單位
   // OT 由 20:00 分界拆做日間 OT(20:00 前) 與深夜 OT(20:00 後，另一價錢)
   const split = (otMin, effStart, off) => {
     const nightStart = Math.max(effStart, WORKTIME_NIGHT_CUT);
     const nightMin = Math.max(0, off - nightStart);
     const eveningMin = otMin - nightMin;
-    return { ot_evening_hours: round1(eveningMin / 60), ot_night_hours: round1(nightMin / 60) };
+    return { ot_evening_hours: qh(eveningMin), ot_night_hours: qh(nightMin) };
   };
   if (day_status === '公眾假期') {
     const a = parseHM(actual_in), o = parseHM(off_time);
     if (a == null || o == null) return zero;
     let off = o; if (off < a) off += 1440;
     const totalMin = off - a;
-    const total = round1(totalMin / 60);
+    const total = qh(totalMin);
     const splitOt = split(totalMin, a, off);
     return { total_duty_hours: total, standard_hours: 0, ot_hours: total, ...splitOt };
   }
@@ -1995,11 +1997,13 @@ function computeWorktimeOt({ day_status, date, schedule_in, actual_in, off_time 
   // OT = worked hours outside the standard window. If they start after the standard end
   // (e.g. a 22:00 night shift), count from their actual start, not the 19:00 standard end.
   const effStart = Math.max(standardEnd, actualStart);
-  const otMin = Math.max(0, off - effStart);
+  const otMin = snap15(Math.max(0, off - effStart)); // OT 跟 15 分鐘單位
   let totalMin = off - actualStart;
   if (totalMin < 0) totalMin = 0;
   const splitOt = split(otMin, effStart, off);
-  return { total_duty_hours: round1(totalMin / 60), standard_hours: std, ot_hours: round1(otMin / 60), ...splitOt };
+  // 總當值(total_duty_hours)按實際時間計（唔跟 15 分鐘）；OT 才跟 15 分鐘單位
+  const totalDuty = Math.round((totalMin / 60) * 10) / 10;
+  return { total_duty_hours: totalDuty, standard_hours: std, ot_hours: qh(otMin), ...splitOt };
 }
 
 // True if the work date is within the editable window (today or up to WORKTIME_EDIT_DAYS days ago).
@@ -2877,6 +2881,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
     for (const empId of Object.keys(byEmp)) {
       const emp = byEmp[empId];
       const round1 = v => Math.round((v || 0) * 10) / 10;
+      const fmtQH = v => Math.round((v || 0) * 100) / 100; // OT 以 0.25h 單位，2 位小數顯示
       const rows = [];
       rows.push(['技術員工時記錄 — ' + emp.name + ' (' + emp.number + ')']);
       rows.push(['週次', weekStart + ' 至 ' + weekEnd]);
@@ -2899,7 +2904,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
           const memText = rec.members.map(m => (m.emp_name && m.emp_number ? `${m.emp_name} (${m.emp_number})` : (m.emp_name || m.emp_number || ''))).join('、');
           rows.push(['隊員', memText]);
         }
-        rows.push(['總當值(h)', round1(rec.total_duty_hours), '標準(h)', round1(rec.standard_hours), 'OT(h)', round1(rec.ot_hours), '20:00前OT(h)', round1(rec.ot_evening_hours), '20:00後OT(h)', round1(rec.ot_night_hours)]);
+        rows.push(['總當值(h)', round1(rec.total_duty_hours), '標準(h)', round1(rec.standard_hours), 'OT(h)', fmtQH(rec.ot_hours), '20:00前OT(h)', fmtQH(rec.ot_evening_hours), '20:00後OT(h)', fmtQH(rec.ot_night_hours)]);
         if (rec.jobs && rec.jobs.length) {
           rows.push(['單號', '開始', '完結', '工作類型', '備註']);
           for (const j of rec.jobs) rows.push([j.client_no || '—', j.start || '—', j.end || '—', (j.types || []).join('/') || '—', j.remarks || '—']);
@@ -2907,7 +2912,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
         if (rec.remark) rows.push(['備註', rec.remark]);
         rows.push([]);
       }
-      rows.push(['本週合計', '總當值: ' + round1(weekDuty) + 'h', 'OT: ' + round1(weekOt) + 'h', '20:00前OT: ' + round1(weekEveningOt) + 'h', '20:00後OT: ' + round1(weekNightOt) + 'h']);
+      rows.push(['本週合計', '總當值: ' + round1(weekDuty) + 'h', 'OT: ' + fmtQH(weekOt) + 'h', '20:00前OT: ' + fmtQH(weekEveningOt) + 'h', '20:00後OT: ' + fmtQH(weekNightOt) + 'h']);
       const sheetName = (emp.name || emp.number || '員工').replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 28);
       const ws = XLSX.utils.aoa_to_sheet(rows);
       ws['!cols'] = [

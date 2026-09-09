@@ -2149,12 +2149,15 @@ async function submitWorktime() {
     wtMsg(data.updated ? '✅ 已更新' : '✅ 已儲存', true);
     document.getElementById('wtResult').innerHTML =
       `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;display:inline-block">
-        今日總當值 <b>${r.total_duty_hours}h</b> ｜ 標準 <b>${r.standard_hours}h</b> ｜ <span style="color:var(--warning)"><b>OT ${r.ot_hours}h</b></span>
-        <div style="margin-top:4px;color:#555;font-size:13px">OT 細分：20:00前 <b>${r.ot_evening_hours || 0}h</b> ｜ 20:00後 <b style="color:var(--accent-dark)">${r.ot_night_hours || 0}h</b></div>
+        今日總當值 <b>${r.total_duty_hours}h</b> ｜ 標準 <b>${r.standard_hours}h</b> ｜ <span style="color:var(--warning)"><b>OT ${fmtH(r.ot_hours)}h</b></span>
+        <div style="margin-top:4px;color:#555;font-size:13px">OT 細分：20:00前 <b>${fmtH(r.ot_evening_hours || 0)}h</b> ｜ 20:00後 <b style="color:var(--accent-dark)">${fmtH(r.ot_night_hours || 0)}h</b></div>
       </div>`;
     await loadWtWeek();
   } catch (e) { wtMsg('連接錯誤', false); }
 }
+
+// OT 以 0.25h（15 分鐘）為單位，2 位小數顯示，唔用 round1 以免變形
+function fmtH(x) { return Math.round((x || 0) * 100) / 100; }
 
 async function loadWtWeek() {
   const d = new Date(Date.now() + 8 * 3600000);
@@ -2183,13 +2186,13 @@ async function loadWtWeek() {
         <td>${r.schedule_in || '-'}</td><td>${r.actual_in || '-'}</td>
         <td>${r.off_time || '-'}</td>
         <td>${r.total_duty_hours}h</td>
-        <td><b style="color:var(--warning)">${r.ot_hours}h</b></td>
-        <td><b style="color:var(--accent-dark)">${r.ot_night_hours || 0}h</b></td>
+        <td><b style="color:var(--warning)">${fmtH(r.ot_hours)}h</b></td>
+        <td><b style="color:var(--accent-dark)">${fmtH(r.ot_night_hours || 0)}h</b></td>
         <td>${(r.jobs || []).length}</td>
         <td>${team}</td>
       </tr>`;
     }
-    html += `</tbody></table><p><b>本週 OT 合計：${Math.round(weekOt * 10) / 10}h（其中 20:00後 ${Math.round(weekNightOt * 10) / 10}h）</b></p>`;
+    html += `</tbody></table><p><b>本週 OT 合計：${fmtH(weekOt)}h（其中 20:00後 ${fmtH(weekNightOt)}h）</b></p>`;
     box.innerHTML = html;
   } catch (e) { document.getElementById('wtWeek').innerHTML = '載入失敗'; }
 }

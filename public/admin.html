@@ -1987,6 +1987,9 @@ async function loadWorktimeAdmin() {
   } catch (e) { body.innerHTML = '<p>載入失敗</p>'; }
 }
 
+// OT 以 0.25h（15 分鐘）為單位，2 位小數顯示
+function fmtH(x) { return Math.round((x || 0) * 100) / 100; }
+
 function renderWorktimeAdmin() {
   const recs = wtAdminCache.records;
   const empOpts = [];
@@ -2033,8 +2036,8 @@ function renderWorktimeRecordsAdmin(rows) {
     const team = (r.members || []).map(m => m.emp_name || m.emp_number).join('、') || '-';
     html += `<tr><td>${r.id}</td><td>${r.date}</td><td>${r.emp_name} (${r.emp_number})</td><td>${r.day_status}${r.holiday_work ? '（開工）' : ''}</td>
       <td>${r.schedule_in || '-'}</td><td>${r.actual_in || '-'}</td><td>${r.off_time || '-'}</td>
-      <td>${r.total_duty_hours}h</td><td>${r.standard_hours}h</td><td><b style="color:var(--warning)">${r.ot_hours}h</b></td>
-      <td><b style="color:var(--accent-dark)">${r.ot_night_hours || 0}h</b></td>
+      <td>${r.total_duty_hours}h</td><td>${r.standard_hours}h</td><td><b style="color:var(--warning)">${fmtH(r.ot_hours)}h</b></td>
+      <td><b style="color:var(--accent-dark)">${fmtH(r.ot_night_hours || 0)}h</b></td>
       <td>${(r.jobs || []).length}</td><td>${team}</td><td>${r.remark || ''}</td>
       <td><button class="btn btn-xs btn-outline" onclick="deleteWorktimeAdmin(${r.id})">刪除</button></td></tr>`;
   }
