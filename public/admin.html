@@ -190,7 +190,7 @@ function renderWarehouse(filterCat) {
 
   // --- Add item form ---
   let catOpts = whCache.categories.map(c => `<option value="${c}">`).join('');
-  html += `<div style="margin:12px 0; padding:12px; border:1px solid #ddd; border-radius:8px; display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap">
+  html += `<div style="margin:12px 0; padding:12px; border:1px solid var(--border); border-radius:8px; display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap">
     <div class="form-group" style="margin:0"><label>新增物資</label><input id="whAddName" placeholder="物資名稱"></div>
     <div class="form-group" style="margin:0"><label>單位</label><input id="whAddUnit" placeholder="支/盒" style="width:80px"></div>
     <div class="form-group" style="margin:0"><label>分類</label><input id="whAddCat" list="whAddCatList" placeholder="選或填" style="width:110px"><datalist id="whAddCatList">${catOpts}</datalist></div>
@@ -219,7 +219,7 @@ function renderWarehouse(filterCat) {
   else {
     html += '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>類型</th><th>物資</th><th>分類</th><th>數量</th><th>技術員</th><th>車號</th><th>備註</th><th>操作</th></tr></thead><tbody>';
     for (const t of txFiltered) {
-      const typeLabel = t.type === 'in' ? '<span style="color:#27ae60">入倉</span>' : '<span style="color:#e67e22">出倉</span>';
+      const typeLabel = t.type === 'in' ? '<span style="color:var(--success)">入倉</span>' : '<span style="color:var(--warning)">出倉</span>';
       html += `<tr><td>${t.id}</td><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.category || '—'}</td><td>${t.qty}</td><td>${t.emp_name}</td><td>${t.car_no || '—'}</td><td>${t.remark || ''}</td><td><button class="btn btn-sm btn-outline" onclick="deleteWarehouseTx(${t.id})">刪除</button></td></tr>`;
     }
     html += '</tbody></table>';
@@ -237,9 +237,9 @@ function renderWarehouse(filterCat) {
   else {
     html += `<table class="data-table"><thead><tr><th>ID</th><th>物資</th><th>分類</th><th>單位</th><th>現有存量</th><th>操作</th></tr></thead><tbody>`;
     for (const s of stockFiltered) {
-      const low = s.balance <= 0 ? ' style="color:#e74c3c;font-weight:bold"' : '';
+      const low = s.balance <= 0 ? ' style="color:var(--accent);font-weight:bold"' : '';
       const catDisplay = s.category || '—';
-      const cellStyle = 'cursor:pointer;text-decoration:underline;color:#2980b9';
+      const cellStyle = 'cursor:pointer;text-decoration:underline;color:var(--primary)';
       html += `<tr><td>${s.id}</td>
         <td style="${cellStyle}" onclick="inlineWhEdit(this,'name',${s.id},'${escapeHtml(s.name)}')">${s.name}</td>
         <td style="${cellStyle}" onclick="inlineWhEdit(this,'category',${s.id},'${escapeHtml(catDisplay)}')">${catDisplay}</td>
@@ -257,7 +257,7 @@ function renderWarehouse(filterCat) {
   html += '</div>';
 
   // --- Vehicle management (hidden by default) ---
-  html += `<div id="whVehiclesBox" style="display:none; margin-top:20px; padding:12px; border:1px dashed #aaa; border-radius:8px">
+  html += `<div id="whVehiclesBox" style="display:none; margin-top:20px; padding:12px; border:1px dashed var(--border); border-radius:8px">
     <h3 style="margin-top:0">🚚 車號名單管理</h3>
     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px">
       <input id="whNewVehicle" placeholder="新增車號，如 CAR 13 / Van 1">
@@ -593,10 +593,10 @@ function renderCommissionAdmin() {
   if (report && report.rows.length) {
     repHtml += `<table class="data-table"><thead><tr><th>隊員</th><th>總銷售件數</th><th>總安裝件數</th><th>總小計</th><th>累計應得佣金</th></tr></thead><tbody>`;
     for (const r of report.rows) {
-      repHtml += `<tr><td>${r.emp_name}</td><td>${r.sales}</td><td>${r.installs}</td><td>$${r.subtotal}</td><td style="color:#27ae60;font-weight:bold">$${r.commission}</td></tr>`;
+      repHtml += `<tr><td>${r.emp_name}</td><td>${r.sales}</td><td>${r.installs}</td><td>$${r.subtotal}</td><td style="color:var(--success);font-weight:bold">$${r.commission}</td></tr>`;
     }
     const t = report.team;
-    repHtml += `<tr style="background:#f5f5f5"><td><b>全隊合計</b></td><td>${t.sales}</td><td>${t.installs}</td><td>$${t.subtotal}</td><td><b>$${t.commission}</b></td></tr>`;
+    repHtml += `<tr style="background:var(--surface-2)"><td><b>全隊合計</b></td><td>${t.sales}</td><td>${t.installs}</td><td>$${t.subtotal}</td><td><b>$${t.commission}</b></td></tr>`;
     repHtml += '</tbody></table>';
   } else {
     repHtml += '<p>暫無數據</p>';
@@ -646,10 +646,10 @@ async function loadDashboard() {
     const data = await handled.json();
     
     let html = `<div class="dashboard-grid">`;
-    html += statCard('總員工數', data.totalEmployees, '#2980b9');
-    html += statCard('本月已考', data.totalTaken, '#27ae60');
+    html += statCard('總員工數', data.totalEmployees, 'var(--primary)');
+    html += statCard('本月已考', data.totalTaken, 'var(--success)');
     html += statCard('本月合格', data.passedCount, '#2ecc71');
-    html += statCard('通過率', data.passRate + '%', data.passRate >= 70 ? '#27ae60' : '#e74c3c');
+    html += statCard('通過率', data.passRate + '%', data.passRate >= 70 ? 'var(--success)' : 'var(--accent)');
     html += statCard('待評問答', data.pendingEssays, '#f39c12');
     html += `</div>`;
     
@@ -667,7 +667,7 @@ async function loadDashboard() {
       html += `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>職級</th><th>組別</th><th>主題</th><th>MC分數</th><th>合格</th><th>時間</th></tr></thead><tbody>`;
       for (const r of data.recentResults) {
         html += `<tr><td>${r.emp_number}</td><td>${r.emp_name}</td><td>${r.level_label || levelNames[r.level] || r.level}</td><td>${r.group_name}</td><td>${r.topic_name}</td><td>${r.mc_score}%</td>`;
-        html += `<td style="color:${r.passed?'#27ae60':'#e74c3c'}">${r.passed?'合格':'不合格'}</td><td>${r.submitted_at}</td></tr>`;
+        html += `<td style="color:${r.passed?'var(--success)':'var(--accent)'}">${r.passed?'合格':'不合格'}</td><td>${r.submitted_at}</td></tr>`;
       }
       html += `</tbody></table></div>`;
     }
@@ -744,7 +744,7 @@ async function loadEmployees() {
       html += `<table class="data-table"><thead><tr><th>名稱</th><th>操作</th></tr></thead><tbody>`;
       for (const l of currentJobLevels) {
         html += `<tr>`;
-        html += `<td>${l.label}${l.is_builtin ? ' <span style="font-size:11px;color:#888">(內建)</span>' : ''}</td>`;
+        html += `<td>${l.label}${l.is_builtin ? ' <span style="font-size:11px;color:var(--text-light)">(內建)</span>' : ''}</td>`;
         html += `<td>`;
         html += `<button class="btn btn-xs btn-outline" onclick="showEditJobLevel('${l.key}')">編輯</button> `;
         html += `<button class="btn btn-xs btn-danger" onclick="deleteJobLevel('${l.key}')">刪除</button>`;
@@ -957,17 +957,17 @@ async function loadAdmins() {
   html += `<h3>&#128272; 管理員管理</h3>`;
   html += `<button class="btn btn-sm btn-primary" onclick="showAddAdmin()">+ 新增管理員</button>`;
   html += `</div>`;
-  html += `<p style="color:#888; font-size:13px; margin-bottom:12px">超級管理員自動有全部權限；其他管理員可由超級管理員逐個啟用/關閉下方權限。</p>`;
+  html += `<p style="color:var(--text-light); font-size:13px; margin-bottom:12px">超級管理員自動有全部權限；其他管理員可由超級管理員逐個啟用/關閉下方權限。</p>`;
   html += `<table class="data-table"><thead><tr><th>用戶名</th><th>顯示名</th><th>類型</th><th>權限</th><th>創建時間</th><th>操作</th></tr></thead><tbody>`;
   for (const a of data.admins) {
     const canManage = adminData && adminData.isSuper;
     let permChips = '';
     if (a.is_super) {
-      permChips = '<span style="color:#27ae60; font-weight:600">全部權限 (Super)</span>';
+      permChips = '<span style="color:var(--success); font-weight:600">全部權限 (Super)</span>';
     } else {
       const ps = Array.isArray(a.permissions) ? a.permissions : [];
       permChips = ps.length === 0
-        ? '<span style="color:#888">無</span>'
+        ? '<span style="color:var(--text-light)">無</span>'
         : ps.map(p => `<span class="perm-chip">${allPerms[p] || p}</span>`).join(' ');
     }
     let ops = '';
@@ -1007,7 +1007,7 @@ function showEditPermissions(id, username) {
       form.innerHTML = `
         <div class="section-card">
         <h3>權限設定：${username}</h3>
-        <p style="color:#888; font-size:13px">剔選要授予此管理員嘅權限。</p>
+        <p style="color:var(--text-light); font-size:13px">剔選要授予此管理員嘅權限。</p>
         <div style="display:flex; flex-wrap:wrap; margin:12px 0">${checks}</div>
         <div style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="toggleAllPerms(true)">全部啟用</button> <button class="btn btn-outline btn-sm" onclick="toggleAllPerms(false)">全部關閉</button></div>
         <div style="margin-top:16px"><button class="btn btn-primary" onclick="savePermissions(${id})">儲存</button> <button class="btn btn-outline" onclick="document.getElementById('adminForm').style.display='none'">取消</button></div>
@@ -1047,7 +1047,7 @@ function showAddAdmin() {
       <div class="form-group"><label>密碼</label><input type="password" id="newAdminPw"></div>
       <div class="form-group"><label>顯示名</label><input id="newAdminDisp"></div>
     </div>
-    <p style="color:#888; font-size:13px">新增後可到該管理員嘅「權限」欄位設定可訪問嘅功能。</p>
+    <p style="color:var(--text-light); font-size:13px">新增後可到該管理員嘅「權限」欄位設定可訪問嘅功能。</p>
     <button class="btn btn-primary" onclick="addAdmin()">確認</button>
     <button class="btn btn-outline" onclick="document.getElementById('adminForm').style.display='none'">取消</button>
     </div>`;
@@ -1334,15 +1334,15 @@ async function filterResults() {
       html += `<tr><td>${r.emp_number}</td><td>${r.emp_name}</td><td>${r.level_label || levelNames[r.level] || r.level}</td><td>${r.group_name}</td><td>${r.topic_name}</td>`;
       html += `<td>${r.mc_score}%</td><td>${r.mc_correct}/${r.mc_total}</td>`;
       html += `<td>${r.essay_score}%</td><td>${r.total_score}%</td>`;
-      html += `<td style="color:${r.passed?'#27ae60':'#e74c3c'}">${r.passed?'合格':'不合格'}</td>`;
-      html += `<td>${r.essay_graded?'已評':'<span style="color:#f39c12">待評</span>'}</td>`;
+      html += `<td style="color:${r.passed?'var(--success)':'var(--accent)'}">${r.passed?'合格':'不合格'}</td>`;
+      html += `<td>${r.essay_graded?'已評':'<span style="color:var(--warning)">待評</span>'}</td>`;
       html += `<td>${r.submitted_at}</td>`;
       const safeName = (r.emp_name || '').replace(/'/g, "\\'");
       html += `<td><button class="btn btn-xs btn-danger" onclick="deleteResult(${r.id}, '${r.emp_number}', '${safeName}', '${r.submitted_at}')">刪除</button></td></tr>`;
     }
     html += `</tbody></table>`;
     if (data.results.length === 0) {
-      html = '<p style="color:#7f8c8d; margin:16px 0">沒有符合條件的成績記錄</p>';
+      html = '<p style="color:var(--text-light); margin:16px 0">沒有符合條件的成績記錄</p>';
     }
     tableDiv.innerHTML = html;
   } catch(e) { 
@@ -1392,7 +1392,7 @@ async function loadGrading() {
   html += `<h3>&#128221; 問答題評分 Essay Grading</h3>`;
   
   if (ungraded.length === 0) {
-    html += `<p style="color:#27ae60; margin:16px 0">&#10004; 沒有待評分的問答題</p>`;
+    html += `<p style="color:var(--success); margin:16px 0">&#10004; 沒有待評分的問答題</p>`;
   } else {
     html += `<h4>待評分 Pending (${ungraded.length})</h4>`;
     html += `<div class="grading-list">`;
@@ -1410,7 +1410,7 @@ async function loadGrading() {
     html += `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>主題</th><th>MC</th><th>問答</th><th>總分</th><th>合格</th><th>評分者</th></tr></thead><tbody>`;
     for (const r of graded) {
       html += `<tr><td>${r.emp_number}</td><td>${r.emp_name}</td><td>${r.topic_name}</td><td>${r.mc_score}%</td><td>${r.essay_score}%</td><td>${r.total_score}%</td>`;
-      html += `<td style="color:${r.passed?'#27ae60':'#e74c3c'}">${r.passed?'合格':'不合格'}</td><td>${r.graded_by}</td></tr>`;
+      html += `<td style="color:${r.passed?'var(--success)':'var(--accent)'}">${r.passed?'合格':'不合格'}</td><td>${r.graded_by}</td></tr>`;
     }
     html += `</tbody></table>`;
   }
@@ -1554,7 +1554,7 @@ async function loadQuestions(topicId) {
     // MC Questions
     html += `<div style="margin-bottom:24px">`;
     html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">`;
-    html += `<h4 style="color:#2c3e50">&#128204; 選擇題 (${data.mcCount} 題)</h4>`;
+    html += `<h4 style="color:var(--text)">&#128204; 選擇題 (${data.mcCount} 題)</h4>`;
     html += `<button class="btn btn-sm btn-primary" onclick="showQuestionForm('mc', ${topicId})">+ 新增選擇題</button>`;
     html += `</div>`;
     
@@ -1562,7 +1562,7 @@ async function loadQuestions(topicId) {
       html += `<div class="question-list">`;
       data.mc.forEach((q, idx) => {
         const questionPreview = q.question.length > 80 ? q.question.substring(0, 80) + '...' : q.question;
-        html += `<div class="question-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border:1px solid #e0e6ed; border-radius:8px; margin-bottom:8px; background:#f8f9fa">`;
+        html += `<div class="question-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border:1px solid var(--border); border-radius:8px; margin-bottom:8px; background:var(--surface-2)">`;
         html += `<div style="flex:1">`;
         html += `<strong>Q${idx + 1}.</strong> ${questionPreview}`;
         html += `</div>`;
@@ -1574,14 +1574,14 @@ async function loadQuestions(topicId) {
       });
       html += `</div>`;
     } else {
-      html += `<p style="color:#7f8c8d; font-style:italic">尚未有選擇題</p>`;
+      html += `<p style="color:var(--text-light); font-style:italic">尚未有選擇題</p>`;
     }
     html += `</div>`;
     
     // Essay Questions
     html += `<div>`;
     html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">`;
-    html += `<h4 style="color:#2c3e50">&#128221; 問答題 (${data.essayCount} 題)</h4>`;
+    html += `<h4 style="color:var(--text)">&#128221; 問答題 (${data.essayCount} 題)</h4>`;
     html += `<button class="btn btn-sm btn-primary" onclick="showQuestionForm('essay', ${topicId})">+ 新增問答題</button>`;
     html += `</div>`;
     
@@ -1589,7 +1589,7 @@ async function loadQuestions(topicId) {
       html += `<div class="question-list">`;
       data.essay.forEach((q, idx) => {
         const questionPreview = q.question.length > 80 ? q.question.substring(0, 80) + '...' : q.question;
-        html += `<div class="question-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border:1px solid #e0e6ed; border-radius:8px; margin-bottom:8px; background:#f8f9fa">`;
+        html += `<div class="question-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border:1px solid var(--border); border-radius:8px; margin-bottom:8px; background:var(--surface-2)">`;
         html += `<div style="flex:1">`;
         html += `<strong>Q${idx + 1}.</strong> ${questionPreview} <span style="color:#95a5a6">(${q.maxScore || 10}分)</span>`;
         html += `</div>`;
@@ -1601,7 +1601,7 @@ async function loadQuestions(topicId) {
       });
       html += `</div>`;
     } else {
-      html += `<p style="color:#7f8c8d; font-style:italic">尚未有問答題</p>`;
+      html += `<p style="color:var(--text-light); font-style:italic">尚未有問答題</p>`;
     }
     html += `</div>`;
     
@@ -1833,11 +1833,11 @@ function renderFleetAdmin() {
     <button class="btn btn-sm btn-primary" onclick="adminAddFleetVehicle()">新增</button>
   </div>`;
   if (!vehicles.length) {
-    html += '<p style="color:#888">暫無車輛</p>';
+    html += '<p style="color:var(--text-light)">暫無車輛</p>';
   } else {
     html += '<table class="data-table"><thead><tr><th>車牌</th><th>別名</th><th>狀態</th><th>出車</th><th>入油</th><th>保養</th><th>維修</th><th>操作</th></tr></thead><tbody>';
     for (const v of vehicles) {
-      html += `<tr><td>${v.plate}</td><td>${v.alias || '—'}</td><td>${v.is_out ? '<span style="color:#e74c3c">出車中</span>' : '停泊中'}</td><td>${v.trip_count}</td><td>${v.fuel_count}</td><td>${v.maint_count}</td><td>${v.repair_count}</td><td><button class="btn btn-xs btn-outline" onclick="adminEditFleetVehicle(${v.id})">改名</button> <button class="btn btn-xs btn-outline" onclick="adminDeleteFleetVehicle(${v.id})">刪除</button></td></tr>`;
+      html += `<tr><td>${v.plate}</td><td>${v.alias || '—'}</td><td>${v.is_out ? '<span style="color:var(--accent)">出車中</span>' : '停泊中'}</td><td>${v.trip_count}</td><td>${v.fuel_count}</td><td>${v.maint_count}</td><td>${v.repair_count}</td><td><button class="btn btn-xs btn-outline" onclick="adminEditFleetVehicle(${v.id})">改名</button> <button class="btn btn-xs btn-outline" onclick="adminDeleteFleetVehicle(${v.id})">刪除</button></td></tr>`;
     }
     html += '</tbody></table>';
   }
@@ -1887,12 +1887,12 @@ async function loadFleetRecordsAdmin() {
 function renderFleetRecordsAdmin(rows) {
   const box = document.getElementById('fleetRecBox');
   if (!box) return;
-  if (!rows.length) { box.innerHTML = '<p style="color:#888">暫無記錄</p>'; return; }
+  if (!rows.length) { box.innerHTML = '<p style="color:var(--text-light)">暫無記錄</p>'; return; }
   let html = '<table class="data-table"><thead><tr><th>編號</th><th>類型</th><th>日期</th><th>車牌</th><th>員工</th><th>詳情</th><th>操作</th></tr></thead><tbody>';
   for (const r of rows) {
     let detail = '';
     if (r.rec_type === 'trip') {
-      detail = `起始 ${r.start_mileage} → ${r.end_mileage == null ? '<span style="color:#e74c3c">未返回</span>' : r.end_mileage} km`
+      detail = `起始 ${r.start_mileage} → ${r.end_mileage == null ? '<span style="color:var(--accent)">未返回</span>' : r.end_mileage} km`
         + (r.daily_mileage != null ? `（${r.daily_mileage} km）` : '')
         + (r.note ? `<br>${r.note}` : '');
     } else if (r.rec_type === 'fuel') {
@@ -2026,15 +2026,15 @@ function loadWorktimeRecordsAdmin() {
 function renderWorktimeRecordsAdmin(rows) {
   const box = document.getElementById('wtAdminBox');
   if (!box) return;
-  if (!rows.length) { box.innerHTML = '<p style="color:#888">暫無記錄</p>'; return; }
+  if (!rows.length) { box.innerHTML = '<p style="color:var(--text-light)">暫無記錄</p>'; return; }
   rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id));
   let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>員工</th><th>狀態</th><th>上班</th><th>實際</th><th>下班</th><th>總當值</th><th>標準</th><th>OT</th><th>20:00後OT</th><th>單數</th><th>隊員</th><th>備註</th><th>操作</th></tr></thead><tbody>';
   for (const r of rows) {
     const team = (r.members || []).map(m => m.emp_name || m.emp_number).join('、') || '-';
     html += `<tr><td>${r.id}</td><td>${r.date}</td><td>${r.emp_name} (${r.emp_number})</td><td>${r.day_status}${r.holiday_work ? '（開工）' : ''}</td>
       <td>${r.schedule_in || '-'}</td><td>${r.actual_in || '-'}</td><td>${r.off_time || '-'}</td>
-      <td>${r.total_duty_hours}h</td><td>${r.standard_hours}h</td><td><b style="color:#e67e22">${r.ot_hours}h</b></td>
-      <td><b style="color:#c0392b">${r.ot_night_hours || 0}h</b></td>
+      <td>${r.total_duty_hours}h</td><td>${r.standard_hours}h</td><td><b style="color:var(--warning)">${r.ot_hours}h</b></td>
+      <td><b style="color:var(--accent-dark)">${r.ot_night_hours || 0}h</b></td>
       <td>${(r.jobs || []).length}</td><td>${team}</td><td>${r.remark || ''}</td>
       <td><button class="btn btn-xs btn-outline" onclick="deleteWorktimeAdmin(${r.id})">刪除</button></td></tr>`;
   }

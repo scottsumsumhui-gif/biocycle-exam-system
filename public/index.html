@@ -8,7 +8,11 @@
 </head>
 <body>
 <!-- LOGIN -->
-<div id="loginScreen" class="screen">
+<div id="loginScreen" class="screen login-bg">
+  <div class="brand-bar">
+    <div class="bb-logo">BIOCYCLE OPERATION SYSTEM</div>
+    <div class="bb-user">技術員平台</div>
+  </div>
   <div class="center-card">
     <div class="logo"><img src="img/biocycle-logo.png" alt="BIOCYCLE 生機源(香港)有限公司"></div>
     <h1>BIOCYCLE 技術員平台</h1>
@@ -27,10 +31,15 @@
 </div>
 
 <!-- HOME / MODULE DASHBOARD -->
-<div id="homeScreen" class="screen" style="display:none">
+<div id="homeScreen" class="screen app-shell" style="display:none">
+  <div class="brand-bar">
+    <div class="bb-logo">BIOCYCLE OPERATION SYSTEM</div>
+    <div class="bb-user">技術員平台</div>
+  </div>
+  <div class="app-main">
   <div class="center-card">
     <div id="homeHeader"></div>
-    <div style="display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin:24px 0">
+    <div class="module-grid" >
       <div class="module-card" onclick="showExamInfo()">
         <div class="module-icon">📝</div>
         <div class="module-title">在線考試</div>
@@ -57,10 +66,11 @@
         <div class="module-desc">每日上班 / 下班 / 工作單 / OT</div>
       </div>
     </div>
-    <div style="display:flex; gap:12px; justify-content:center">
+    <div class="h-center" >
       <button class="btn btn-outline btn-sm" onclick="showChangePw()">修改密碼</button>
       <button class="btn btn-outline btn-sm" onclick="logout()">登出</button>
     </div>
+  </div>
   </div>
 </div>
 
@@ -128,34 +138,34 @@
 <!-- COMMISSION HUB -->
 <div id="commissionHubScreen" class="screen" style="display:none">
   <div class="wide-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+    <div class="page-head" >
       <h2>💰 服務銷售佣金</h2>
       <button class="btn btn-outline btn-sm" onclick="showHome()">← 返回主板面</button>
     </div>
-    <p id="commHubEmpInfo" style="color:#666"></p>
-    <div style="display:flex; gap:6px; margin:10px 0; border-bottom:1px solid #ddd">
-      <button class="btn btn-sm btn-outline" id="commHubTabChannel" onclick="switchCommHubTab('channel')" style="border-radius:6px 6px 0 0">渠網銷售佣金</button>
-      <button class="btn btn-sm btn-outline" id="commHubTechTab" onclick="switchCommHubTab('tech')" style="border-radius:6px 6px 0 0">服務銷售佣金</button>
+    <p class="text-muted" id="commHubEmpInfo" ></p>
+    <div class="tab-strip" >
+      <button class="btn btn-sm btn-outline tab-btn" id="commHubTabChannel" onclick="switchCommHubTab('channel')" >渠網銷售佣金</button>
+      <button class="btn btn-sm btn-outline tab-btn" id="commHubTechTab" onclick="switchCommHubTab('tech')" >服務銷售佣金</button>
     </div>
 
     <!-- SUB-PAGE: 渠網 -->
     <div id="commChannelSub" class="comm-hub-sub">
-      <div style="margin:12px 0; padding:12px; border:1px solid #ddd; border-radius:8px">
+      <div class="panel" >
         <h3 style="margin-top:0">新增團隊銷售記錄</h3>
-        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px">
+        <div class="inline-row mb-10" >
           <label>日期：</label>
           <input type="date" id="commDate">
-          <label style="margin-left:6px">客戶編號：</label>
+          <label class="ml-6" >客戶編號：</label>
           <input type="text" id="commCustomerCode" placeholder="#85947" style="width:120px" maxlength="20">
-          <span style="color:#666; font-size:13px">佣金：銷售每件 $25，安裝每件額外 $20，全隊總額 30% 為總佣金，由 <b id="commMemberCount">2</b> 名隊員平均分配</span>
+          <span class="text-muted small" >佣金：銷售每件 $25，安裝每件額外 $20，全隊總額 30% 為總佣金，由 <b id="commMemberCount">2</b> 名隊員平均分配</span>
         </div>
         <div id="commMembers"></div>
         <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
           <button class="btn btn-sm btn-outline" id="commAddMemberBtn" onclick="addCommMemberRow()">+ 加多一名隊員</button>
           <button class="btn btn-sm btn-primary" onclick="submitCommission()">提交記錄</button>
         </div>
-        <div id="commPreview" style="margin-top:12px"></div>
-        <div id="commMsg" style="margin-top:8px"></div>
+        <div class="mt-12" id="commPreview" ></div>
+        <div class="mt-8" id="commMsg" ></div>
       </div>
       <h3>我的記錄</h3>
       <div id="commHistory"></div>
@@ -163,10 +173,10 @@
 
     <!-- SUB-PAGE: 服務銷售佣金 -->
     <div id="commTechSub" class="comm-hub-sub" style="display:none">
-      <div style="margin:12px 0; padding:12px; border:1px solid #ddd; border-radius:8px">
+      <div class="panel" >
         <h3 style="margin-top:0">新增服務銷售記錄</h3>
-        <p style="color:#666; font-size:13px; margin:0 0 10px">記錄客戶資料同服務類型，等 admin 知你介紹咗咩客人。系統唔計金額。</p>
-        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px">
+        <p style="color:var(--text-light); font-size:13px; margin:0 0 10px">記錄客戶資料同服務類型，等 admin 知你介紹咗咩客人。系統唔計金額。</p>
+        <div class="inline-row mb-10" >
           <label>日期：</label>
           <input type="date" id="leadDate">
         </div>
@@ -175,8 +185,8 @@
           <div><label>客戶姓名：</label><input type="text" id="leadCustomerName" style="width:100%" maxlength="40" placeholder="例：陳先生"></div>
           <div><label>客戶電話：</label><input type="text" id="leadCustomerPhone" style="width:100%" maxlength="30" placeholder="例：91234567"></div>
         </div>
-        <div style="margin-bottom:10px"><label>客戶地址：</label><input type="text" id="leadCustomerAddress" style="width:100%" maxlength="100" placeholder="例：九龍區 ..."></div>
-        <div style="margin-bottom:10px">
+        <div class="mb-10" ><label>客戶地址：</label><input type="text" id="leadCustomerAddress" style="width:100%" maxlength="100" placeholder="例：九龍區 ..."></div>
+        <div class="mb-10" >
           <label style="display:block; margin-bottom:6px">服務類型（可揀多個）：</label>
           <label class="lead-chip"><input type="checkbox" value="Aircon Cleaning" class="lead-svc"> Aircon Cleaning 洗冷氣服務</label>
           <label class="lead-chip"><input type="checkbox" value="Bedbug" class="lead-svc"> Bedbug 臭蟲處理</label>
@@ -191,16 +201,16 @@
           <label class="lead-chip"><input type="checkbox" value="Others" class="lead-svc" id="leadOtherChk" onchange="document.getElementById('leadCustomService').style.display=this.checked?'inline-block':'none'"> Others</label>
           <input type="text" id="leadCustomService" placeholder="其他（自填）" style="margin-left:6px; width:140px; maxlength:30; display:none">
         </div>
-        <div style="margin-bottom:10px">
+        <div class="mb-10" >
           <label style="display:block; margin-bottom:6px">隊員（1-3 名，自己為第 1 位）：</label>
           <div id="leadMembers"></div>
           <button class="btn btn-sm btn-outline" id="leadAddMemberBtn" onclick="addLeadMemberRow()" style="margin-top:6px">+ 加多一名隊員</button>
         </div>
-        <div style="margin-bottom:10px"><label>備註（介紹咗咩/推銷咗咩服務）：</label><textarea id="leadNotes" style="width:100%; min-height:60px" maxlength="500" placeholder="例：客人原本查滅蟲，主動向佢推銷咗年約 ..."></textarea></div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <div class="mb-10" ><label>備註（介紹咗咩/推銷咗咩服務）：</label><textarea id="leadNotes" style="width:100%; min-height:60px" maxlength="500" placeholder="例：客人原本查滅蟲，主動向佢推銷咗年約 ..."></textarea></div>
+        <div class="inline-row" >
           <button class="btn btn-sm btn-primary" onclick="submitTechLead()">提交記錄</button>
         </div>
-        <div id="leadMsg" style="margin-top:8px"></div>
+        <div class="mt-8" id="leadMsg" ></div>
       </div>
       <h3>我的記錄</h3>
       <div id="leadHistory"></div>
@@ -213,35 +223,35 @@
   <div class="wide-card">
     <h2>&#128203; 我的考試記錄 My Results</h2>
     <div id="myResultsContent"></div>
-    <button class="btn btn-outline btn-block" onclick="showHome()" style="margin-top:16px">返回主板面 Back</button>
+    <button class="btn btn-outline btn-block mt-16" onclick="showHome()" >返回主板面 Back</button>
   </div>
 </div>
 
 <!-- WAREHOUSE -->
 <div id="warehouseScreen" class="screen" style="display:none">
   <div class="wide-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+    <div class="page-head" >
       <h2>📦 物資倉存記錄</h2>
       <button class="btn btn-outline btn-sm" onclick="showHome()">← 返回主板面</button>
     </div>
-    <p id="whEmpInfo" style="color:#666"></p>
+    <p class="text-muted" id="whEmpInfo" ></p>
 
-    <h3 style="margin-top:18px">記錄出入倉</h3>
+    <h3 class="mt-18" >記錄出入倉</h3>
     <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end">
-      <div class="form-group" style="margin:0">
+      <div class="form-group mb-0" >
         <label>選擇分類</label>
         <select id="whCatSelect" style="min-width:140px" onchange="onWhCatChange()"><option value="">— 選擇分類 —</option></select>
       </div>
-      <div class="form-group" style="margin:0">
+      <div class="form-group mb-0" >
         <label>選擇物資</label>
         <select id="whItemSelect" style="min-width:220px" disabled><option value="">先選分類</option></select>
       </div>
-      <div class="form-group" style="margin:0">
+      <div class="form-group mb-0" >
         <label><input type="radio" name="whType" value="out" checked onchange="onWhTypeChange()"> 出倉</label>
         &nbsp;&nbsp;
         <label><input type="radio" name="whType" value="in" onchange="onWhTypeChange()"> 入倉</label>
       </div>
-      <div class="form-group" style="margin:0">
+      <div class="form-group mb-0" >
         <label>數量</label>
         <input type="number" id="whQty" min="1" value="1" style="width:90px">
       </div>
@@ -249,16 +259,16 @@
         <label>車號（出倉用）</label>
         <select id="whCarNo" style="width:120px"></select>
       </div>
-      <div class="form-group" style="margin:0">
+      <div class="form-group mb-0" >
         <label>備註（如工程/地點）</label>
         <input type="text" id="whRemark" placeholder="選填" style="width:200px">
       </div>
       <button class="btn btn-primary" onclick="submitWarehouseTx()">提交記錄</button>
     </div>
-    <div style="margin-top:8px">
+    <div class="mt-8" >
       <button class="btn btn-sm btn-outline" onclick="toggleWhAddNew()">+ 目錄中沒有的項目？新增物資</button>
     </div>
-    <div id="whAddNewBox" style="margin-top:10px; padding:10px; border:1px dashed #ccc; border-radius:8px; display:none">
+    <div id="whAddNewBox" style="margin-top:10px; padding:10px; border:1px dashed var(--border); border-radius:8px; display:none">
       <strong>新增物資：</strong>
       <input type="text" id="whNewName" placeholder="物資名稱">
       <input type="text" id="whNewUnit" placeholder="單位（如 支/盒/公斤）" style="width:130px">
@@ -266,17 +276,17 @@
       <datalist id="whCatList"></datalist>
       <button class="btn btn-sm btn-outline" onclick="addWarehouseItem()">新增</button>
     </div>
-    <div id="whMsg" style="margin-top:10px"></div>
+    <div class="mt-10" id="whMsg" ></div>
 
-    <h3 style="margin-top:18px">我的記錄</h3>
+    <h3 class="mt-18" >我的記錄</h3>
     <div id="whHistoryTable" style="overflow-x:auto"></div>
 
-    <h3 style="margin-top:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+    <h3 class="mt-18 page-head" >
       <span>即時庫存</span>
       <button class="btn btn-sm btn-outline" id="whStockToggle" onclick="toggleWhStock()">收起</button>
     </h3>
     <div id="whStockPanel">
-      <div style="margin-bottom:8px">
+      <div class="mb-8" >
         <label>分類篩選：</label>
         <select id="whStockCatFilter" onchange="renderWhStock(this.value)"><option value="">全部</option></select>
       </div>
@@ -288,25 +298,25 @@
 <!-- FLEET (車輛里數記錄) -->
 <div id="fleetScreen" class="screen" style="display:none">
   <div class="wide-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+    <div class="page-head" >
       <h2>🚐 車輛里數記錄</h2>
       <button class="btn btn-outline btn-sm" onclick="showHome()">← 返回主板面</button>
     </div>
-    <p id="fleetEmpInfo" style="color:#666"></p>
-    <div id="fleetMsg" style="margin:8px 0"></div>
+    <p class="text-muted" id="fleetEmpInfo" ></p>
+    <div class="my-8" id="fleetMsg" ></div>
 
     <!-- ========== LIST VIEW ========== -->
     <div id="fleetListView">
       <div id="fleetTodayStats" style="display:flex; gap:12px; flex-wrap:wrap; margin:10px 0"></div>
       <div id="fleetGrid" class="fleet-grid"></div>
 
-      <h3 style="margin-top:22px">📋 記錄</h3>
-      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:10px">
-        <div class="form-group" style="margin:0">
+      <h3 class="mt-22" >📋 記錄</h3>
+      <div class="field-row mb-10" >
+        <div class="form-group mb-0" >
           <label>車牌</label>
           <select id="fleetFilterPlate" onchange="loadFleetRecords()" style="min-width:130px"><option value="">全部車輛</option></select>
         </div>
-        <div class="form-group" style="margin:0">
+        <div class="form-group mb-0" >
           <label>類型</label>
           <select id="fleetFilterType" onchange="loadFleetRecords()" style="min-width:110px">
             <option value="">全部</option>
@@ -316,7 +326,7 @@
             <option value="repair">維修</option>
           </select>
         </div>
-        <div class="form-group" style="margin:0">
+        <div class="form-group mb-0" >
           <label>月份</label>
           <input type="month" id="fleetFilterMonth" onchange="loadFleetRecords()">
         </div>
@@ -327,20 +337,20 @@
     <!-- ========== DETAIL VIEW ========== -->
     <div id="fleetDetailView" style="display:none">
       <button class="btn btn-outline btn-sm" onclick="fleetBackToList()">← 返回車輛列表</button>
-      <h3 id="fleetDetailTitle" style="margin-top:12px"></h3>
+      <h3 class="mt-12" id="fleetDetailTitle" ></h3>
       <div id="fleetDetailStats" style="display:flex; gap:12px; flex-wrap:wrap; margin:10px 0"></div>
 
-      <div id="fleetActionBar" style="display:flex; gap:8px; flex-wrap:wrap; margin:12px 0"></div>
+      <div class="inline-row my-12" id="fleetActionBar" ></div>
 
       <!-- 出車 -->
       <div id="fleetDepartBox" class="fleet-form-box" style="display:none">
         <strong>🚗 出車</strong>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:8px">
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>起始里數</label>
             <input type="number" id="fleetDepartMileage" style="width:130px">
           </div>
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>備註（選填）</label>
             <input type="text" id="fleetDepartNote" placeholder="例：九龍區" style="width:200px">
           </div>
@@ -352,7 +362,7 @@
       <div id="fleetReturnBox" class="fleet-form-box" style="display:none">
         <strong>🏁 返回</strong>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:8px">
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>返回里數</label>
             <input type="number" id="fleetReturnMileage" style="width:130px">
           </div>
@@ -364,19 +374,19 @@
       <div id="fleetFuelBox" class="fleet-form-box" style="display:none">
         <strong>⛽ 入油</strong>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:8px">
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>當時里數</label>
             <input type="number" id="fleetFuelMileage" style="width:120px">
           </div>
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>入油量 (L)</label>
             <input type="number" id="fleetFuelLiters" step="0.01" style="width:110px">
           </div>
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>單價 ($/L)</label>
             <input type="number" id="fleetFuelPrice" step="0.01" style="width:110px">
           </div>
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>總油費 ($)</label>
             <input type="number" id="fleetFuelCost" step="0.01" style="width:120px">
           </div>
@@ -388,15 +398,15 @@
       <div id="fleetMaintBox" class="fleet-form-box" style="display:none">
         <strong>🔧 保養</strong>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:8px">
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>保養類型</label>
             <select id="fleetMaintType" style="min-width:130px"></select>
           </div>
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>當時里數</label>
             <input type="number" id="fleetMaintMileage" style="width:120px">
           </div>
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>備註（選填）</label>
             <input type="text" id="fleetMaintNote" placeholder="例：頭呔" style="width:200px">
           </div>
@@ -408,19 +418,19 @@
       <div id="fleetRepairBox" class="fleet-form-box" style="display:none">
         <strong>🛠️ 維修</strong>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:8px">
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>維修類型</label>
             <select id="fleetRepairType" style="min-width:130px"></select>
           </div>
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>當時里數</label>
             <input type="number" id="fleetRepairMileage" style="width:120px">
           </div>
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>維修廠 / 地點</label>
             <input type="text" id="fleetRepairLocation" placeholder="例：XX車行" style="width:200px">
           </div>
-          <div class="form-group" style="margin:0">
+          <div class="form-group mb-0" >
             <label>備註（選填）</label>
             <input type="text" id="fleetRepairNote" placeholder="例：更換波箱" style="width:200px">
           </div>
@@ -428,7 +438,7 @@
         </div>
       </div>
 
-      <div id="fleetDetailTables" style="margin-top:16px"></div>
+      <div class="mt-16" id="fleetDetailTables" ></div>
     </div>
   </div>
 </div>
@@ -436,13 +446,13 @@
 <!-- WORKTIME (技術員每日工時記錄) -->
 <div id="worktimeScreen" class="screen" style="display:none">
   <div class="center-card">
-    <div style="display:flex; justify-content:space-between; align-items:center">
+    <div class="h-between" >
       <h2>⏱️ 工時記錄 Work Time</h2>
       <button class="btn btn-outline btn-sm" onclick="showHome()">返回</button>
     </div>
-    <div id="wtEmpInfo" style="color:#666; font-size:13px"></div>
+    <div class="text-muted small" id="wtEmpInfo" ></div>
 
-    <div style="display:flex; flex-wrap:wrap; gap:14px; margin-top:12px; align-items:flex-end">
+    <div class="field-row field-row-lg mt-12" >
       <div><label>日期</label><br><input type="date" id="wtDate" onchange="wtDateChange()"></div>
       <div><label>狀態</label><br>
         <select id="wtStatus" onchange="wtStatusChange()">
@@ -452,7 +462,7 @@
           <option value="病假">病假</option>
         </select>
       </div>
-      <span id="wtSundayWarn" style="color:#e74c3c; display:none">星期日為休息日，無需填寫</span>
+      <span id="wtSundayWarn" style="color:var(--accent); display:none">星期日為休息日，無需填寫</span>
     </div>
 
     <div id="wtHolidayWorkBox" style="display:none; margin-top:10px">
@@ -460,34 +470,34 @@
     </div>
 
     <div id="wtTimesBox">
-      <div class="wt-inline" style="margin-top:12px">
+      <div class="wt-inline mt-12" >
         <div><label>上班時間</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtScheduleIn" placeholder="--:--"></div>
         <div><label>實際上班</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtActualIn" placeholder="--:--"></div>
         <div><label>下班時間</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtOff" placeholder="--:--"></div>
       </div>
-      <div style="margin-top:10px">
+      <div class="mt-10" >
         <label>今日隊員（2-4 人）</label>
         <div id="wtMembers" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px"></div>
         <button type="button" class="btn btn-xs btn-outline" onclick="wtAddMember()" style="margin-top:6px">+ 加隊員</button>
       </div>
-      <div class="wt-full" style="margin-top:8px"><label>備註（假期 / 備註）</label><br><input type="text" class="wt-full" id="wtRemark"></div>
+      <div class="wt-full mt-8" ><label>備註（假期 / 備註）</label><br><input type="text" class="wt-full" id="wtRemark"></div>
     </div>
 
-    <div id="wtJobsBox" style="margin-top:16px">
-      <div style="display:flex; justify-content:space-between; align-items:center">
-        <h3 style="margin:0">工作單</h3>
+    <div class="mt-16" id="wtJobsBox" >
+      <div class="h-between" >
+        <h3 class="mb-0" >工作單</h3>
         <button class="btn btn-outline btn-sm" onclick="wtAddJob()">+ 加單</button>
       </div>
       <div id="wtJobs"></div>
     </div>
 
-    <div style="margin-top:16px">
+    <div class="mt-16" >
       <button class="btn btn-primary" onclick="submitWorktime()">儲存</button>
-      <span id="wtMsg" style="margin-left:12px"></span>
+      <span class="ml-12" id="wtMsg" ></span>
     </div>
-    <div id="wtResult" style="margin-top:12px"></div>
+    <div class="mt-12" id="wtResult" ></div>
 
-    <hr style="margin:20px 0">
+    <hr class="my-20" >
     <h3>本週紀錄</h3>
     <div id="wtWeek"></div>
   </div>
@@ -543,26 +553,26 @@ async function showExamInfo() {
     
     let html = `<h1>你好，${empData.name}！</h1>`;
     html += `<p>職級: ${levelNames[empData.level]} | 組別: ${empData.group || '未分配'}</p>`;
-    html += `<div style="margin:24px 0; padding:20px; border-radius:12px; background:#f0f4f8">`;
+    html += `<div style="margin:24px 0; padding:20px; border-radius:12px; background:var(--surface)">`;
     
     if (data.available) {
-      html += `<h2 style="color:#27ae60">&#10004; 考試已開放</h2>`;
+      html += `<h2 style="color:var(--success)">&#10004; 考試已開放</h2>`;
       html += `<p>當月主題: ${data.config.topicName} (${data.config.topicNameEn})</p>`;
       html += `<p>考試日期: ${data.config.startDate} 至 ${data.config.endDate}</p>`;
       html += `<p>題目數量: ${data.mcCount}題MC ${data.hasEssay ? '+ ' + data.essayCount + '題問答' : ''}</p>`;
       html += `<p>合格標準: ${data.passingScore}% (最多錯${data.maxWrong}題)</p>`;
       html += `<button class="btn btn-primary btn-block" onclick="startExam()" style="margin-top:16px">&#9654; 開始考試 Start Exam</button>`;
     } else if (data.alreadyTaken) {
-      html += `<h2 style="color:#2980b9">&#10004; 已完成考試</h2>`;
+      html += `<h2 style="color:var(--primary)">&#10004; 已完成考試</h2>`;
       const r = data.existingResult;
       html += `<p>主題: ${data.config.topicName}</p>`;
       html += `<p>MC 分數: ${r.mc_score}% (${r.mc_correct}/${r.mc_total} 正確)</p>`;
-      html += `<p>結果: ${r.passed ? '<span style="color:#27ae60">合格 PASSED</span>' : '<span style="color:#e74c3c">不合格 FAILED</span>'}</p>`;
+      html += `<p>結果: ${r.passed ? '<span style="color:var(--success)">合格 PASSED</span>' : '<span style="color:var(--accent)">不合格 FAILED</span>'}</p>`;
       if (data.hasEssay && !r.essay_graded) {
-        html += `<p style="color:#f39c12">&#9203; 問答題待管理員評分</p>`;
+        html += `<p style="color:var(--warning)">&#9203; 問答題待管理員評分</p>`;
       }
     } else {
-      html += `<h2 style="color:#e74c3c">&#10060; 考試未開放</h2>`;
+      html += `<h2 style="color:var(--accent)">&#10060; 考試未開放</h2>`;
       html += `<p>${data.reason || '當月沒有開放的考試'}</p>`;
     }
     
@@ -587,7 +597,7 @@ function showHome() {
   document.getElementById('homeHeader').innerHTML =
     `<h1>你好，${empData.name}！</h1>` +
     `<p>職級: ${levelNames[empData.level] || empData.level} | 組別: ${empData.group || '未分配'}</p>` +
-    `<p style="color:#666">請選擇要進入的功能：</p>`;
+    `<p style="color:var(--text-light)">請選擇要進入的功能：</p>`;
   showScreen('homeScreen');
 }
 
@@ -789,7 +799,7 @@ async function submitTechLead() {
     });
     const data = await res.json();
     if (data.success) {
-      document.getElementById('leadMsg').innerHTML = '<span style="color:#27ae60">✅ 已提交！記錄編號 #' + data.record.id + '</span>';
+      document.getElementById('leadMsg').innerHTML = '<span style="color:var(--success)">✅ 已提交！記錄編號 #' + data.record.id + '</span>';
       // 清空表單
       document.getElementById('leadCustomerCode').value = '';
       document.getElementById('leadCustomerName').value = '';
@@ -816,7 +826,7 @@ async function loadLeadHistory() {
   try {
     const res = await fetch(API + '/api/tech-leads/records', { credentials: 'include' });
     const records = await res.json();
-    if (!records.length) { tbl.innerHTML = '<p style="color:#888">你暫無記錄</p>'; return; }
+    if (!records.length) { tbl.innerHTML = '<p style="color:var(--text-light)">你暫無記錄</p>'; return; }
     let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶</th><th>隊員</th><th>服務類型</th><th>備註</th><th>操作</th></tr></thead><tbody>';
     for (const r of records) {
       const svc = (r.services || []).join('、');
@@ -838,7 +848,7 @@ async function deleteMyLead(id) {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { alert(data.error || '刪除失敗'); return; }
     await loadLeadHistory();
-    document.getElementById('leadMsg').innerHTML = '<span style="color:#27ae60">✅ 記錄已刪除</span>';
+    document.getElementById('leadMsg').innerHTML = '<span style="color:var(--success)">✅ 記錄已刪除</span>';
   } catch (e) { alert('刪除失敗'); }
 }
 
@@ -863,7 +873,7 @@ async function submitCommission() {
     const res = await fetch(API + '/api/commission/records', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ record_date: date, customer_code, members }) });
     const data = await res.json();
     if (data.success) {
-      document.getElementById('commMsg').innerHTML = '<span style="color:#27ae60">✅ 已提交！每人應得佣金 $' + data.record.per_person_commission + '（全隊總佣金 $' + data.record.total_commission + '）</span>';
+      document.getElementById('commMsg').innerHTML = '<span style="color:var(--success)">✅ 已提交！每人應得佣金 $' + data.record.per_person_commission + '（全隊總佣金 $' + data.record.total_commission + '）</span>';
       await loadCommissionHistory();
       commMemberSeq = 0;
       document.getElementById('commMembers').innerHTML = commMemberRowHtml() + commMemberRowHtml();
@@ -881,7 +891,7 @@ async function loadCommissionHistory() {
   try {
     const res = await fetch(API + '/api/commission/records', { credentials: 'include' });
     const records = await res.json();
-    if (!records.length) { tbl.innerHTML = '<p style="color:#888">你暫無記錄</p>'; return; }
+    if (!records.length) { tbl.innerHTML = '<p style="color:var(--text-light)">你暫無記錄</p>'; return; }
     let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶編號</th><th>隊員</th><th>全隊總額</th><th>全隊總佣金</th><th>每人應得</th><th>操作</th></tr></thead><tbody>';
     for (const r of records) {
       const names = r.members.map(m => m.emp_name).join('、');
@@ -900,7 +910,7 @@ async function deleteMyCommission(id) {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { alert(data.error || '刪除失敗'); return; }
     await loadCommissionHistory();
-    document.getElementById('commMsg').innerHTML = '<span style="color:#27ae60">✅ 記錄已刪除</span>';
+    document.getElementById('commMsg').innerHTML = '<span style="color:var(--success)">✅ 記錄已刪除</span>';
   } catch (e) { alert('刪除失敗'); }
 }
 
@@ -1055,12 +1065,12 @@ function renderWhStock(filterCat) {
   const tbl = document.getElementById('whStockTable');
   const stock = filterCat ? whStockData.filter(s => s.category === filterCat) : whStockData;
   if (!stock.length) {
-    tbl.innerHTML = '<p style="color:#888">暫無物資記錄</p>';
+    tbl.innerHTML = '<p style="color:var(--text-light)">暫無物資記錄</p>';
     return;
   }
   let html = '<table class="data-table"><thead><tr><th>物資</th><th>分類</th><th>單位</th><th>現有存量</th></tr></thead><tbody>';
   for (const s of stock) {
-    const low = s.balance <= 0 ? ' style="color:#e74c3c;font-weight:bold"' : '';
+    const low = s.balance <= 0 ? ' style="color:var(--accent);font-weight:bold"' : '';
     html += `<tr><td>${s.name}</td><td>${s.category}</td><td>${s.unit}</td><td${low}>${s.balance}</td></tr>`;
   }
   html += '</tbody></table>';
@@ -1088,17 +1098,17 @@ async function submitWarehouseTx() {
     });
     const data = await res.json();
     if (data.success) {
-      msg.style.color = '#27ae60';
+      msg.style.color = 'var(--success)';
       msg.textContent = `✅ 已記錄：${type === 'in' ? '入倉' : '出倉'} ${qty} 件`;
       document.getElementById('whRemark').value = '';
       await loadWarehouseStock();
       await loadWarehouseHistory();
     } else {
-      msg.style.color = '#e74c3c';
+      msg.style.color = 'var(--accent)';
       msg.textContent = '❌ ' + (data.error || '記錄失敗');
     }
   } catch (e) {
-    msg.style.color = '#e74c3c';
+    msg.style.color = 'var(--accent)';
     msg.textContent = '❌ 網絡錯誤';
   }
 }
@@ -1108,12 +1118,12 @@ async function loadWarehouseHistory() {
   const tx = await res.json();
   const tbl = document.getElementById('whHistoryTable');
   if (!tx.length) {
-    tbl.innerHTML = '<p style="color:#888">你暫無記錄</p>';
+    tbl.innerHTML = '<p style="color:var(--text-light)">你暫無記錄</p>';
     return;
   }
   let html = '<table class="data-table"><thead><tr><th>日期</th><th>類型</th><th>物資</th><th>分類</th><th>數量</th><th>同事</th><th>車號</th><th>備註</th><th>操作</th></tr></thead><tbody>';
   for (const t of tx) {
-    const typeLabel = t.type === 'in' ? '<span style="color:#27ae60">入倉</span>' : '<span style="color:#e67e22">出倉</span>';
+    const typeLabel = t.type === 'in' ? '<span style="color:var(--success)">入倉</span>' : '<span style="color:var(--warning)">出倉</span>';
     html += `<tr><td>${t.created_at}</td><td>${typeLabel}</td><td>${t.item_name}</td><td>${t.category || '—'}</td><td>${t.qty}</td><td>${t.emp_name}</td><td>${t.car_no || '—'}</td><td>${t.remark || ''}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyWarehouseTx(${t.id})">刪除</button></td></tr>`;
   }
   html += '</tbody></table>';
@@ -1131,7 +1141,7 @@ async function deleteMyWarehouseTx(id) {
     }
     await loadWarehouseHistory();
     await loadWarehouseStock();
-    document.getElementById('whMsg').innerHTML = '<span style="color:#27ae60">✅ 記錄已刪除</span>';
+    document.getElementById('whMsg').innerHTML = '<span style="color:var(--success)">✅ 記錄已刪除</span>';
   } catch (e) {
     alert('刪除失敗，請稍後再試');
   }
@@ -1407,7 +1417,7 @@ function showResult(result) {
   html += `<h2 class="result-title">${result.totalPassed ? '\u2714 合格 PASSED' : '\u2718 不合格 FAILED'}</h2>`;
   
   if (result.hasEssay && !result.totalPassed) {
-    html += `<p style="color:#f39c12">&#9203; 問答題待管理員評分後才能確定最終結果</p>`;
+    html += `<p style="color:var(--warning)">&#9203; 問答題待管理員評分後才能確定最終結果</p>`;
   }
   
   html += `<div class="score-details">`;
@@ -1420,12 +1430,12 @@ function showResult(result) {
   // 答题详情回顾
   if (result.questionDetails && result.questionDetails.length > 0) {
     html += `<div class="review-section" style="margin-top:32px; text-align:left">`;
-    html += `<h3 style="color:#2c3e50; margin-bottom:16px">&#128209; 答題回顧 Review</h3>`;
+    html += `<h3 style="color:var(--text); margin-bottom:16px">&#128209; 答題回顧 Review</h3>`;
     
     result.questionDetails.forEach((q, idx) => {
       const statusClass = q.isCorrect ? 'correct' : 'wrong';
       const statusIcon = q.isCorrect ? '\u2714' : '\u2718';
-      const statusColor = q.isCorrect ? '#27ae60' : '#e74c3c';
+      const statusColor = q.isCorrect ? 'var(--success)' : 'var(--accent)';
       
       html += `<div class="review-question" style="background:${q.isCorrect ? '#f0f9f4' : '#fef5f5'}; border-left:4px solid ${statusColor}; padding:16px; margin-bottom:12px; border-radius:8px">`;
       html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">`;
@@ -1434,7 +1444,7 @@ function showResult(result) {
       html += `</div>`;
       
       // 题目
-      html += `<div style="margin-bottom:8px; color:#2c3e50; white-space:pre-wrap; font-family:inherit">${q.questionText}</div>`;
+      html += `<div style="margin-bottom:8px; color:var(--text); white-space:pre-wrap; font-family:inherit">${q.questionText}</div>`;
       
       // 选项
       html += `<div style="padding-left:16px">`;
@@ -1442,25 +1452,25 @@ function showResult(result) {
         const isUserAns = q.userAnswer === i;
         const isCorrectAns = q.correctAnswer === i;
         let optStyle = '';
-        if (isCorrectAns) optStyle = 'color:#27ae60; font-weight:bold';
-        if (isUserAns && !isCorrectAns) optStyle = 'color:#e74c3c; font-weight:bold';
+        if (isCorrectAns) optStyle = 'color:var(--success); font-weight:bold';
+        if (isUserAns && !isCorrectAns) optStyle = 'color:var(--accent); font-weight:bold';
         
         html += `<div style="${optStyle}; padding:4px 0">`;
         html += `${String.fromCharCode(65+i)}. ${opt}`;
-        if (isUserAns && isCorrectAns) html += ` <span style="color:#27ae60">（你的答案 / 正確答案）</span>`;
-        else if (isUserAns) html += ` <span style="color:#3498db">（你的答案）</span>`;
-        else if (isCorrectAns) html += ` <span style="color:#27ae60">（正確答案）</span>`;
+        if (isUserAns && isCorrectAns) html += ` <span style="color:var(--success)">（你的答案 / 正確答案）</span>`;
+        else if (isUserAns) html += ` <span style="color:var(--primary-light)">（你的答案）</span>`;
+        else if (isCorrectAns) html += ` <span style="color:var(--success)">（正確答案）</span>`;
         html += `</div>`;
       });
       html += `</div>`;
       
       // 如果用户没回答这道题
       if (q.userAnswer === null || q.userAnswer === undefined) {
-        html += `<div style="color:#f39c12; margin-top:8px; font-size:13px">&#9888; 你沒有回答此題 | You did not answer this question</div>`;
+        html += `<div style="color:var(--warning); margin-top:8px; font-size:13px">&#9888; 你沒有回答此題 | You did not answer this question</div>`;
       }
       
       // 显示正确答案的说明
-      html += `<div style="margin-top:8px; font-size:13px; color:#7f8c8d">正確答案：${String.fromCharCode(65 + q.correctAnswer)}</div>`;
+      html += `<div style="margin-top:8px; font-size:13px; color:var(--text-light)">正確答案：${String.fromCharCode(65 + q.correctAnswer)}</div>`;
       
       html += `</div>`;
     });
@@ -1517,7 +1527,7 @@ async function showMyResults() {
       for (const r of data.results) {
         html += `<tr><td>${r.topic_name}</td><td>${r.mc_score}%</td><td>${r.mc_correct}/${r.mc_total}</td>`;
         html += `<td>${r.essay_graded ? r.essay_score + '%' : '待評分'}</td>`;
-        html += `<td style="color:${r.passed?'#27ae60':'#e74c3c'}">${r.passed?'合格':'不合格'}</td>`;
+        html += `<td style="color:${r.passed?'var(--success)':'var(--accent)'}">${r.passed?'合格':'不合格'}</td>`;
         html += `<td>${r.submitted_at}</td></tr>`;
       }
       html += '</tbody></table>';
@@ -1571,7 +1581,7 @@ function fleetBackToList() {
 }
 
 function fleetMsg(text, ok) {
-  document.getElementById('fleetMsg').innerHTML = `<span style="color:${ok ? '#27ae60' : '#e74c3c'}">${text}</span>`;
+  document.getElementById('fleetMsg').innerHTML = `<span style="color:${ok ? 'var(--success)' : 'var(--accent)'}">${text}</span>`;
 }
 
 async function loadFleetVehicles() {
@@ -1596,7 +1606,7 @@ async function loadFleetVehicles() {
 
 function renderFleetGrid() {
   const grid = document.getElementById('fleetGrid');
-  if (!fleetVehicles.length) { grid.innerHTML = '<p style="color:#888">暫無車輛，請聯絡管理員新增。</p>'; return; }
+  if (!fleetVehicles.length) { grid.innerHTML = '<p style="color:var(--text-light)">暫無車輛，請聯絡管理員新增。</p>'; return; }
   const outCount = fleetVehicles.filter(v => v.is_out).length;
   const todayKm = fleetVehicles.reduce((s, v) => s + (v.today_km || 0), 0);
   document.getElementById('fleetTodayStats').innerHTML = `
@@ -1664,33 +1674,33 @@ function renderFleetDetailTables(data) {
   let html = '';
   const v = data.vehicle;
   if (v.is_out && v.active_trip) {
-    html += `<p style="background:#fdf0ee;border-left:4px solid #e74c3c;padding:8px 12px;border-radius:4px">
+    html += `<p style="background:var(--accent-bg);border-left:4px solid #e74c3c;padding:8px 12px;border-radius:4px">
       <strong>出車中</strong> — ${v.active_trip.emp_name} 於 ${v.active_trip.date} 出車，起始里數 ${v.active_trip.start_mileage} km</p>`;
   }
   const tTrips = (data.trips || []).slice(0, 10);
   html += '<h4 style="margin:14px 0 6px">出車記錄（最近 10 次）</h4>';
   html += tTrips.length
     ? '<table class="data-table"><thead><tr><th>日期</th><th>員工</th><th>起始</th><th>返回</th><th>行車</th><th>備註</th></tr></thead><tbody>' +
-      tTrips.map(t => `<tr><td>${t.date}</td><td>${t.emp_name || '—'}</td><td>${t.start_mileage}</td><td>${t.end_mileage == null ? '<span style="color:#e74c3c">未返回</span>' : t.end_mileage}</td><td>${t.daily_mileage == null ? '—' : t.daily_mileage + ' km'}</td><td>${t.note || '—'}</td></tr>`).join('') + '</tbody></table>'
-    : '<p style="color:#888">暫無記錄</p>';
+      tTrips.map(t => `<tr><td>${t.date}</td><td>${t.emp_name || '—'}</td><td>${t.start_mileage}</td><td>${t.end_mileage == null ? '<span style="color:var(--accent)">未返回</span>' : t.end_mileage}</td><td>${t.daily_mileage == null ? '—' : t.daily_mileage + ' km'}</td><td>${t.note || '—'}</td></tr>`).join('') + '</tbody></table>'
+    : '<p style="color:var(--text-light)">暫無記錄</p>';
   const tFuels = (data.fuels || []).slice(0, 10);
   html += '<h4 style="margin:14px 0 6px">入油記錄（最近 10 次）</h4>';
   html += tFuels.length
     ? '<table class="data-table"><thead><tr><th>日期</th><th>員工</th><th>里數</th><th>油量</th><th>單價</th><th>總油費</th></tr></thead><tbody>' +
       tFuels.map(f => `<tr><td>${f.date}</td><td>${f.emp_name || '—'}</td><td>${f.mileage}</td><td>${f.liters == null ? '—' : f.liters + ' L'}</td><td>${f.price_per_liter == null ? '—' : '$' + f.price_per_liter}</td><td>$${f.total_cost}</td></tr>`).join('') + '</tbody></table>'
-    : '<p style="color:#888">暫無記錄</p>';
+    : '<p style="color:var(--text-light)">暫無記錄</p>';
   const tMaint = (data.maintenance || []).slice(0, 10);
   html += '<h4 style="margin:14px 0 6px">保養記錄（最近 10 次）</h4>';
   html += tMaint.length
     ? '<table class="data-table"><thead><tr><th>日期</th><th>員工</th><th>類型</th><th>里數</th><th>備註</th></tr></thead><tbody>' +
       tMaint.map(m => `<tr><td>${m.date}</td><td>${m.emp_name || '—'}</td><td>${m.type}</td><td>${m.mileage == null ? '—' : m.mileage}</td><td>${m.note || '—'}</td></tr>`).join('') + '</tbody></table>'
-    : '<p style="color:#888">暫無記錄</p>';
+    : '<p style="color:var(--text-light)">暫無記錄</p>';
   const tRepairs = (data.repairs || []).slice(0, 10);
   html += '<h4 style="margin:14px 0 6px">維修記錄（最近 10 次）</h4>';
   html += tRepairs.length
     ? '<table class="data-table"><thead><tr><th>日期</th><th>員工</th><th>類型</th><th>里數</th><th>維修廠/地點</th><th>備註</th></tr></thead><tbody>' +
       tRepairs.map(r => `<tr><td>${r.date}</td><td>${r.emp_name || '—'}</td><td>${r.type}</td><td>${r.mileage == null ? '—' : r.mileage}</td><td>${r.location || '—'}</td><td>${r.note || '—'}</td></tr>`).join('') + '</tbody></table>'
-    : '<p style="color:#888">暫無記錄</p>';
+    : '<p style="color:var(--text-light)">暫無記錄</p>';
   document.getElementById('fleetDetailTables').innerHTML = html;
 }
 
@@ -1827,7 +1837,7 @@ async function loadFleetRecords() {
 
 function renderFleetRecords(rows) {
   const box = document.getElementById('fleetRecords');
-  if (!rows.length) { box.innerHTML = '<p style="color:#888">暫無記錄</p>'; return; }
+  if (!rows.length) { box.innerHTML = '<p style="color:var(--text-light)">暫無記錄</p>'; return; }
   let html = '<table class="data-table"><thead><tr><th>日期</th><th>車牌</th><th>類型</th><th>員工</th><th>內容</th><th>操作</th></tr></thead><tbody>';
   for (const r of rows) {
     let detail = '';
@@ -1992,7 +2002,7 @@ async function wtDateChange() {
       if (rec.jobs_synced_from && rec.jobs_synced_from.emp_name) {
         loadNote += `<br><span style="color:#8e44ad">ℹ️ 工作單由隊員 ${rec.jobs_synced_from.emp_name} 同步過嚟，你儲存會覆蓋返全隊。</span>`;
       }
-      document.getElementById('wtResult').innerHTML = `<span style="color:#2980b9">${loadNote}</span>`;
+      document.getElementById('wtResult').innerHTML = `<span style="color:var(--primary)">${loadNote}</span>`;
     } else {
       wtLoadedHadJobs = false;
       wtAddJob();
@@ -2006,7 +2016,7 @@ function wtAddJob(preset) {
   const box = document.getElementById('wtJobs');
   const div = document.createElement('div');
   div.className = 'wt-job';
-  div.style.cssText = 'border:1px solid #e0e0e0;border-radius:8px;padding:12px;margin:8px 0';
+  div.style.cssText = 'border:1px solid var(--border);border-radius:8px;padding:12px;margin:8px 0';
   const typesHtml = wtTypes.map(t =>
     `<label class="wt-type-chip"><input type="checkbox" class="wt-type" value="${t}" ${preset.types && preset.types.includes(t) ? 'checked' : ''}> ${t}</label>`
   ).join('');
@@ -2063,7 +2073,7 @@ function wtAddMember(selectedId) {
 }
 
 function wtMsg(t, ok) {
-  document.getElementById('wtMsg').innerHTML = `<span style="color:${ok ? '#27ae60' : '#e74c3c'}">${t}</span>`;
+  document.getElementById('wtMsg').innerHTML = `<span style="color:${ok ? 'var(--success)' : 'var(--accent)'}">${t}</span>`;
 }
 
 async function submitWorktime() {
@@ -2138,9 +2148,9 @@ async function submitWorktime() {
     const r = data.record;
     wtMsg(data.updated ? '✅ 已更新' : '✅ 已儲存', true);
     document.getElementById('wtResult').innerHTML =
-      `<div style="background:#f4f8fb;border:1px solid #d6e4f0;border-radius:8px;padding:10px;display:inline-block">
-        今日總當值 <b>${r.total_duty_hours}h</b> ｜ 標準 <b>${r.standard_hours}h</b> ｜ <span style="color:#e67e22"><b>OT ${r.ot_hours}h</b></span>
-        <div style="margin-top:4px;color:#555;font-size:13px">OT 細分：20:00前 <b>${r.ot_evening_hours || 0}h</b> ｜ 20:00後 <b style="color:#c0392b">${r.ot_night_hours || 0}h</b></div>
+      `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;display:inline-block">
+        今日總當值 <b>${r.total_duty_hours}h</b> ｜ 標準 <b>${r.standard_hours}h</b> ｜ <span style="color:var(--warning)"><b>OT ${r.ot_hours}h</b></span>
+        <div style="margin-top:4px;color:#555;font-size:13px">OT 細分：20:00前 <b>${r.ot_evening_hours || 0}h</b> ｜ 20:00後 <b style="color:var(--accent-dark)">${r.ot_night_hours || 0}h</b></div>
       </div>`;
     await loadWtWeek();
   } catch (e) { wtMsg('連接錯誤', false); }
@@ -2158,7 +2168,7 @@ async function loadWtWeek() {
     const res = await fetch(API + `/api/worktime/records?from=${from}&to=${to}`, { credentials: 'include' });
     const data = await res.json();
     const box = document.getElementById('wtWeek');
-    if (!data.success || !data.records.length) { box.innerHTML = '<p style="color:#888">本週暫無記錄</p>'; return; }
+    if (!data.success || !data.records.length) { box.innerHTML = '<p style="color:var(--text-light)">本週暫無記錄</p>'; return; }
     const dowName = ['日', '一', '二', '三', '四', '五', '六'];
     data.records.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     let html = '<table class="data-table"><thead><tr><th>日期</th><th>狀態</th><th>上班</th><th>實際</th><th>下班</th><th>總當值</th><th>OT</th><th>20:00後OT</th><th>單數</th><th>隊員</th></tr></thead><tbody>';
@@ -2173,8 +2183,8 @@ async function loadWtWeek() {
         <td>${r.schedule_in || '-'}</td><td>${r.actual_in || '-'}</td>
         <td>${r.off_time || '-'}</td>
         <td>${r.total_duty_hours}h</td>
-        <td><b style="color:#e67e22">${r.ot_hours}h</b></td>
-        <td><b style="color:#c0392b">${r.ot_night_hours || 0}h</b></td>
+        <td><b style="color:var(--warning)">${r.ot_hours}h</b></td>
+        <td><b style="color:var(--accent-dark)">${r.ot_night_hours || 0}h</b></td>
         <td>${(r.jobs || []).length}</td>
         <td>${team}</td>
       </tr>`;
