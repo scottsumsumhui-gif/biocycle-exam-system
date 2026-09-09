@@ -623,6 +623,9 @@ h2 { font-size: 18px; color: var(--text-light); margin-bottom: 24px; }
 #worktimeScreen label { font-size: 14px; color: var(--text); }
 #worktimeScreen .btn { touch-action: manipulation; }
 
+/* Horizontal scroll wrapper for wide tables on small screens */
+.table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
 /* Responsive */
 @media (max-width: 600px) {
   .center-card { padding: 32px 24px; margin: 40px auto; }
@@ -635,6 +638,40 @@ h2 { font-size: 18px; color: var(--text-light); margin-bottom: 24px; }
   .nav-btn { padding: 8px 10px; font-size: 11px; }
   .data-table { font-size: 12px; }
   .data-table th, .data-table td { padding: 6px 8px; }
+  .results-table { font-size: 12px; }
+  .results-table th, .results-table td { padding: 6px 8px; }
+
+  /* Module grid -> 2 columns on phone */
+  .module-grid { flex-direction: row; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .module-card {
+    width: calc(50% - 8px);
+    max-width: calc(50% - 8px);
+    flex: 0 0 calc(50% - 8px);
+    padding: 20px 10px;
+    box-sizing: border-box;
+  }
+  .module-icon { width: 44px; height: 44px; font-size: 22px; margin-bottom: 8px; box-shadow: 0 4px 10px rgba(27,122,75,0.22); }
+  .module-title { font-size: 15px; }
+  .module-desc { font-size: 11px; }
+
+  /* Tab strip -> horizontal scroll instead of squashing */
+  .tab-strip { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+  .tab-btn { flex: 0 0 auto; }
+
+  /* Card rows -> stack vertically */
+  .card-row { flex-direction: column; align-items: stretch; gap: 8px; }
+
+  /* Prevent iOS auto-zoom on focus: inputs >= 16px */
+  .form-group input, .form-group select { font-size: 16px; }
+
+  /* Modal near full-width */
+  .modal-content { width: 95%; max-width: 95%; }
+
+  /* Tighter main padding */
+  .app-main { padding: 12px 8px; }
+
+  /* Tables: let the direct container scroll horizontally instead of breaking layout */
+  div:has(> table) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
   /* Worktime phone tweaks */
   #worktimeScreen .center-card { padding: 24px 16px; margin: 16px auto; width: 96%; }
