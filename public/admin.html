@@ -64,7 +64,20 @@
 <script>
 const API = '';
 let adminData = null;
-const levelNames = { junior: '初級技術員', senior: '高級技術員', supervisor: '技術員主管' };
+const levelNames = {
+  e: '見習技術員',
+  junior: '初級技術員',
+  f: '見習高級技術員',
+  senior: '高級技術員',
+  h: '見習技術員副主管',
+  d: '技術員副主管',
+  i: '見習技術員主管',
+  supervisor: '技術員主管',
+  a: 'Assistant Accounting Manager',
+  b: '技術員經理',
+  c: 'DGM',
+  g: 'GM'
+};
 function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // Global error handler - if session expires, redirect to login

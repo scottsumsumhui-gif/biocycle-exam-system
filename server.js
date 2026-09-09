@@ -489,6 +489,33 @@ function selectExamQuestions(mcQuestions, essayQs, emp, tid, monthVal, mcCount, 
   return { selectedMC, selectedEssay };
 }
 
+// 考試合格邏輯：按職級 key 對應考試準則（或不用考試）
+// 對應表（2026-09-09）：
+//   初級標準：見習技術員(e)、初級技術員(junior) → 20 MC，最多錯 4
+//   高級標準：見習高級技術員(f)、高級技術員(senior)、見習技術員副主管(h)、技術員副主管(d) → 20 MC，最多錯 2
+//   不用考試：見習技術員主管(i)、技術員主管(supervisor)、管理層(a/b/c/g)
+function getExamCriteria(level) {
+  switch (level) {
+    case 'e':
+    case 'junior':
+      return { mcCount: 20, maxWrong: 4, hasEssay: false, essayCount: 0, exempt: false, criteriaLabel: '初級技術員' };
+    case 'f':
+    case 'senior':
+    case 'h':
+    case 'd':
+      return { mcCount: 20, maxWrong: 2, hasEssay: false, essayCount: 0, exempt: false, criteriaLabel: '高級技術員' };
+    case 'i':
+    case 'supervisor':
+    case 'a':
+    case 'b':
+    case 'c':
+    case 'g':
+      return { mcCount: 0, maxWrong: 0, hasEssay: false, essayCount: 0, exempt: true, criteriaLabel: '不用考試' };
+    default:
+      return { mcCount: 20, maxWrong: 4, hasEssay: false, essayCount: 0, exempt: false, criteriaLabel: '初級技術員' };
+  }
+}
+
 app.get('/api/exam/current', authRequired('employee'), async (req, res) => {
   const employees = await loadJSON('employees.json', []);
   const emp = employees.find(e => e.id === req.session.user_id);
@@ -522,13 +549,11 @@ app.get('/api/exam/current', authRequired('employee'), async (req, res) => {
     r.employee_id === emp.id && r.topic_id === config.topic_id && r.month === currentMonth && r.year === currentYear
   );
 
-  let mcCount = 20, maxWrong = 4, hasEssay = false, essayCount = 0;
-  switch (emp.level) {
-    // 'd' = 技術員副主管：合格邏輯同 senior 一樣 (20 MC, 最多錯 2, 冇問答)
-    case 'senior':
-    case 'd': mcCount = 20; maxWrong = 2; break;
-    case 'supervisor': mcCount = 20; maxWrong = 2; hasEssay = true; essayCount = 3; break;
+  const criteria = getExamCriteria(emp.level);
+  if (criteria.exempt) {
+    return res.json({ available: false, reason: '此職級不用考試', exempt: true });
   }
+  const { mcCount, maxWrong, hasEssay, essayCount } = criteria;
 
   const topics = await loadJSON('topics.json', []);
   const topic = topics.find(t => t.id === config.topic_id);
@@ -562,13 +587,9 @@ app.get('/api/exam/questions/:topicId', authRequired('employee'), async (req, re
   const mcQuestions = await loadQuestions('mc', tid);
   if (!mcQuestions || mcQuestions.length === 0) return res.json({ error: '題庫尚未準備好' });
 
-  let mcCount = 20, essayCount = 0;
-  switch (emp.level) {
-    // 'd' = 技術員副主管：同 senior 一樣 (20 MC, 冇問答)
-    case 'senior':
-    case 'd': mcCount = 20; break;
-    case 'supervisor': mcCount = 20; essayCount = 3; break;
-  }
+  const criteria = getExamCriteria(emp.level);
+  if (criteria.exempt) return res.json({ error: '此職級不用考試', exempt: true });
+  const mcCount = criteria.mcCount, essayCount = criteria.essayCount;
 
   const group = emp.group_name || 'A';
   const now = new Date();
@@ -609,13 +630,9 @@ app.post('/api/exam/submit', authRequired('employee'), async (req, res) => {
   const mcQuestions = await loadQuestions('mc', tid);
   if (!mcQuestions || mcQuestions.length === 0) return res.json({ success: false, error: '題庫不存在' });
 
-  let mcCount = 20, maxWrong = 4, hasEssay = false;
-  switch (emp.level) {
-    // 'd' = 技術員副主管：同 senior 一樣 (20 MC, 最多錯 2, 冇問答)
-    case 'senior':
-    case 'd': mcCount = 20; maxWrong = 2; break;
-    case 'supervisor': mcCount = 20; maxWrong = 2; hasEssay = true; break;
-  }
+  const criteria = getExamCriteria(emp.level);
+  if (criteria.exempt) return res.json({ success: false, error: '此職級不用考試' });
+  const { mcCount, maxWrong, hasEssay } = criteria;
 
   const group = emp.group_name || 'A';
 
@@ -740,10 +757,11 @@ app.get('/api/admin/dashboard', authRequired('admin'), async (req, res) => {
   const pendingEssays = monthResults.filter(r => r.essay_graded === 0).length;
 
   const levelStats = {};
-  for (const level of ['junior', 'senior', 'supervisor']) {
+  for (const level of ['junior', 'senior']) {
+    const label = level === 'junior' ? '初級技術員' : '高級技術員';
     const lr = monthResults.filter(r => {
       const e = employees.find(em => em.id === r.employee_id);
-      return e && e.level === level;
+      return e && getExamCriteria(e.level).criteriaLabel === label;
     });
     const lp = lr.filter(r => r.passed === 1).length;
     levelStats[level] = {
@@ -1140,8 +1158,9 @@ app.post('/api/admin/grade-essay/:resultId', authRequired('admin'), requirePermi
 
   const employees = await loadJSON('employees.json', []);
   const emp = employees.find(e => e.id === result.employee_id);
-  // maxWrong 對齊：supervisor/senior/副主管(d) 都係 2，其餘（junior、自訂）係 4
-  const maxWrong = (emp?.level === 'supervisor' || emp?.level === 'senior' || emp?.level === 'd') ? 2 : 4;
+  // maxWrong 對齊新職級表：高級標準(f/senior/h/d) 錯 2；初級標準(e/junior) 錯 4；不用考試職級按 0 計
+  const criteria = getExamCriteria(emp?.level);
+  const maxWrong = criteria.exempt ? 0 : criteria.maxWrong;
   const mcPassed = result.mc_correct >= (result.mc_total - maxWrong);
 
   const essayPassPercent = essayMaxTotal > 0 ? (essayTotal / essayMaxTotal * 100) : 100;
@@ -1200,7 +1219,20 @@ app.get('/api/admin/export-csv', authRequired('admin'), requirePermission('resul
   const employees = await loadJSON('employees.json', []);
   const topics = await loadJSON('topics.json', []);
 
-  const levelNames = { junior: '初級技術員', senior: '高級技術員', supervisor: '技術員主管' };
+  const levelNames = {
+    e: '見習技術員',
+    junior: '初級技術員',
+    f: '見習高級技術員',
+    senior: '高級技術員',
+    h: '見習技術員副主管',
+    d: '技術員副主管',
+    i: '見習技術員主管',
+    supervisor: '技術員主管',
+    a: 'Assistant Accounting Manager',
+    b: '技術員經理',
+    c: 'DGM',
+    g: 'GM'
+  };
 
   results = results.map(r => {
     const e = employees.find(em => em.id === r.employee_id);
@@ -3055,6 +3087,10 @@ app.get('/api/admin/worktime/monthly-ot/export', authRequired('admin'), requireP
       rows.push(['Total OT HKD', r.total_ot_hkd]);
       const sheetName = (r.emp_name || r.emp_number || '員工').replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 28);
       const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [
+        { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
+        { wch: 30 }, { wch: 14 }, { wch: 32 }, { wch: 14 }, { wch: 20 }
+      ];
       ws['!merges'] = [
         { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
         { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } }
