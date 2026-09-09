@@ -2025,6 +2025,85 @@ function ensureWorktimeOtSplit(rec) {
   return { ...rec, ot_hours: ot.ot_hours, ot_evening_hours: ot.ot_evening_hours, ot_night_hours: ot.ot_night_hours, total_duty_hours: ot.total_duty_hours, standard_hours: ot.standard_hours };
 }
 
+// ===== OT 出糧設定 =====
+// 各職級 OT 時薪：normal = 20:00 前 (Normal Hours)；special = 20:00 後 (Special Hours)
+const OT_RATES = {
+  e:          { normal: 60, special: 66 }, // 見習技術員
+  junior:     { normal: 70, special: 81 }, // 初級技術員
+  f:          { normal: 70, special: 81 }, // 見習高級技術員
+  senior:     { normal: 80, special: 88 }, // 高級技術員
+  h:          { normal: 80, special: 88 }, // 見習技術員副主管
+  d:          { normal: 85, special: 94 }, // 技術員副主管
+  i:          { normal: 85, special: 94 }, // 見習技術員主管
+  supervisor: { normal: 88, special: 97 }, // 技術員主管
+};
+// 管理層職級：不計算 OT 出糧（Assistant Accounting Manager / 技術員經理 / DGM / GM）
+const OT_EXCLUDE_LEVELS = new Set(['a', 'b', 'c', 'g']);
+// Extra % 加成：按當月 Total OT 小時分層（參考 OT 津貼表）
+function otExtraPct(totalHours) {
+  if (totalHours >= 75) return 0.20;
+  if (totalHours >= 65) return 0.14;
+  if (totalHours >= 55) return 0.10;
+  if (totalHours >= 45) return 0.07;
+  if (totalHours >= 35) return 0.05;
+  return 0;
+}
+
+// 計算指定月份 (YYYY-MM) 嘅全員 OT 出糧報表。
+// Normal Hours = ot_evening_hours (20:00 前)；Special Hours = ot_night_hours (20:00 後)。
+async function buildMonthlyOt(month) {
+  const prefix = month + '-';
+  const all = (await loadJSON(WORKTIME_FILE, [])).map(ensureWorktimeOtSplit).filter(r => (r.date || '').startsWith(prefix));
+  const employees = await loadJSON('employees.json', []);
+  const jobLevels = await getJobLevels();
+  const labelOf = k => (jobLevels.find(l => l.key === k) || {}).label || k;
+  const dowName = ['日', '一', '二', '三', '四', '五', '六'];
+  const reports = [];
+  for (const e of employees) {
+    if (OT_EXCLUDE_LEVELS.has(e.level)) continue;       // 管理層跳過
+    const rate = OT_RATES[e.level];
+    if (!rate) continue;                                // 無 rate 職級跳過
+    const recs = all.filter(r => r.emp_id === e.id).sort((x, y) => (x.date < y.date ? -1 : 1));
+    const days = [];
+    let tNormal = 0, tSpecial = 0, gross = 0;
+    for (const r of recs) {
+      const d = parseDateUTC(r.date);
+      if (!d || d.getUTCDay() === 0) continue;          // 週日休息日，無 OT
+      const normal = r.ot_evening_hours || 0;
+      const special = r.ot_night_hours || 0;
+      const dayTotal = normal * rate.normal + special * rate.special;
+      tNormal += normal; tSpecial += special; gross += dayTotal;
+      days.push({
+        date: r.date,
+        dow: dowName[d.getUTCDay()],
+        from: r.schedule_in || (r.actual_in || '—'),
+        to: r.off_time || '—',
+        normal_hours: Math.round(normal * 100) / 100,
+        normal_rate: rate.normal,
+        special_hours: Math.round(special * 100) / 100,
+        special_rate: rate.special,
+        day_total: Math.round(dayTotal * 100) / 100
+      });
+    }
+    const totalHours = Math.round((tNormal + tSpecial) * 100) / 100;
+    const pct = otExtraPct(totalHours);
+    const extra = Math.round(gross * pct * 100) / 100;
+    const totalHkd = Math.round((gross + extra) * 100) / 100;
+    reports.push({
+      emp_id: e.id, emp_number: e.emp_number, emp_name: e.name,
+      level: e.level, level_label: labelOf(e.level),
+      days,
+      total_normal_hours: Math.round(tNormal * 100) / 100,
+      total_special_hours: Math.round(tSpecial * 100) / 100,
+      total_hours: totalHours,
+      gross_ot_hkd: Math.round(gross * 100) / 100,
+      extra_pct: pct, extra_ot_hkd: extra, total_ot_hkd: totalHkd
+    });
+  }
+  reports.sort((a, b) => (a.emp_number || '').localeCompare(b.emp_number || ''));
+  return reports;
+}
+
 function fleetNextId(rows) { return rows.length ? Math.max(...rows.map(r => r.id || 0)) + 1 : 1; }
 function fleetIsOut(trips, plate) { return trips.some(t => t.plate === plate && t.end_mileage == null); }
 function fleetActiveTrip(trips, plate) { return trips.find(t => t.plate === plate && t.end_mileage == null) || null; }
@@ -2937,6 +3016,58 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
     res.send(buf);
   } catch (e) {
     res.status(500).json({ success: false, error: '匯出失敗' });
+  }
+});
+
+// ===== 月度 OT 出糧表 =====
+app.get('/api/admin/worktime/monthly-ot', authRequired('admin'), requirePermission('worktime'), async (req, res) => {
+  try {
+    let month = (req.query.month || '').toString().trim();
+    if (!month) month = todayHK().slice(0, 7); // 預設當月 YYYY-MM
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ success: false, error: '月份格式錯誤 (YYYY-MM)' });
+    const reports = await buildMonthlyOt(month);
+    res.json({ success: true, month, reports });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '計算失敗' });
+  }
+});
+
+app.get('/api/admin/worktime/monthly-ot/export', authRequired('admin'), requirePermission('worktime'), async (req, res) => {
+  try {
+    let month = (req.query.month || '').toString().trim();
+    if (!month) month = todayHK().slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).send('月份格式錯誤 (YYYY-MM)');
+    const reports = await buildMonthlyOt(month);
+    const wb = XLSX.utils.book_new();
+    for (const r of reports) {
+      const rows = [];
+      rows.push(['月度 OT 出糧表 — ' + r.emp_name + ' (' + r.emp_number + ')']);
+      rows.push(['職級', r.level_label, '月份', month]);
+      rows.push([]);
+      rows.push(['日期', '星期', '上班', '下班', 'Normal Hours(20:00前)', 'Normal Rate', 'Special Hours(20:00後)', 'Special Rate', 'Total OT (HKD)']);
+      for (const d of r.days) {
+        rows.push([d.date, d.dow, d.from, d.to, d.normal_hours, d.normal_rate, d.special_hours, d.special_rate, d.day_total]);
+      }
+      rows.push([]);
+      rows.push(['合計', '', '', '', r.total_normal_hours, '', r.total_special_hours, '', r.gross_ot_hkd]);
+      rows.push(['當月 OT 總時數', r.total_hours, 'Gross OT HKD', r.gross_ot_hkd]);
+      rows.push(['Extra % (' + Math.round(r.extra_pct * 100) + '%)', '', 'Extra OT HKD', r.extra_ot_hkd]);
+      rows.push(['Total OT HKD', r.total_ot_hkd]);
+      const sheetName = (r.emp_name || r.emp_number || '員工').replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 28);
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } }
+      ];
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    }
+    if (reports.length === 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['本月無 OT 記錄', month]]), '無記錄');
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="monthly_ot_${month}.xlsx"`);
+    res.send(buf);
+  } catch (e) {
+    res.status(500).send('匯出失敗');
   }
 });
 

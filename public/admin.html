@@ -55,6 +55,7 @@
     <button class="nav-btn" data-tab="fleet" onclick="showTab('fleet')" id="tabFleet">&#128663; 車輛管理</button>
     <button class="nav-btn" data-tab="worktime" onclick="showTab('worktime')" id="tabWorktime">&#9201; 工時記錄</button>
     <button class="nav-btn" data-tab="feedback" onclick="showTab('feedback')" id="tabFeedback">&#128172; 意見箱</button>
+    <button class="nav-btn" data-tab="monthlyOt" onclick="showTab('monthlyOt')" id="tabMonthlyOt">&#128176; 月度OT出糧</button>
   </nav>
   
   <main class="admin-body" id="adminBody"></main>
@@ -125,7 +126,8 @@ const TAB_PERMISSION_MAP = {
   commission: 'commission',
   fleet: 'fleet',
   worktime: 'worktime',
-  feedback: 'feedback'
+  feedback: 'feedback',
+  monthlyOt: 'worktime'
 };
 function hasPerm(key) {
   if (!adminData) return false;
@@ -161,6 +163,7 @@ function showTab(tab) {
     case 'fleet': loadFleetAdmin(); break;
     case 'worktime': loadWorktimeAdmin(); break;
     case 'feedback': loadFeedbackAdmin(); break;
+    case 'monthlyOt': loadMonthlyOtAdmin(); break;
   }
 }
 
@@ -2132,6 +2135,75 @@ async function deleteFeedback(id) {
     if (data.success) loadFeedbackAdmin();
     else alert(data.error || '刪除失敗');
   } catch (e) { alert('刪除失敗'); }
+}
+
+// ===== 月度 OT 出糧表 =====
+function loadMonthlyOtAdmin() {
+  const body = document.getElementById('adminBody');
+  const now = new Date();
+  const ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  body.innerHTML = `
+    <h2>&#128176; 月度 OT 出糧表</h2>
+    <p class="text-muted">按職級 OT 時薪計算（20:00 前 = Normal，20:00 後 = Special）；管理層 (a/b/c/g) 不計。Extra % 按當月總 OT 時數分層加成。</p>
+    <div class="ot-controls" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+      <label>月份：<input type="month" id="otMonth" value="${ym}"></label>
+      <button class="btn btn-primary" onclick="renderMonthlyOt()">計算</button>
+      <a id="otExportLink" class="btn btn-outline" style="margin-left:8px" target="_blank">匯出 Excel</a>
+    </div>
+    <div id="otResult"><p class="text-muted">選擇月份後按「計算」。</p></div>
+  `;
+}
+
+async function renderMonthlyOt() {
+  const month = document.getElementById('otMonth').value;
+  if (!/^\d{4}-\d{2}$/.test(month)) { alert('月份格式錯誤'); return; }
+  const res = document.getElementById('otResult');
+  res.innerHTML = '<div class="loading">計算中...</div>';
+  try {
+    const r = await fetch(API + '/api/admin/worktime/monthly-ot?month=' + encodeURIComponent(month), { credentials: 'include' });
+    const data = await r.json();
+    if (!data.success) { res.innerHTML = '<p>' + esc(data.error || '載入失敗') + '</p>'; return; }
+    const rep = data.reports || [];
+    document.getElementById('otExportLink').href = API + '/api/admin/worktime/monthly-ot/export?month=' + encodeURIComponent(month);
+    if (!rep.length) { res.innerHTML = '<p style="color:var(--text-light)">本月無 OT 記錄</p>'; return; }
+    let html = '<div class="table-scroll"><table class="data-table"><thead><tr>'
+      + '<th>員工編號</th><th>姓名</th><th>職級</th><th>Total OT(h)</th><th>Gross OT(HKD)</th><th>Extra%</th><th>Extra(HKD)</th><th>Total OT(HKD)</th><th></th>'
+      + '</tr></thead><tbody>';
+    let gGross = 0, gExtra = 0, gTotal = 0;
+    for (const e of rep) {
+      gGross += e.gross_ot_hkd; gExtra += e.extra_ot_hkd; gTotal += e.total_ot_hkd;
+      html += '<tr>'
+        + '<td>' + esc(e.emp_number) + '</td>'
+        + '<td>' + esc(e.emp_name) + '</td>'
+        + '<td>' + esc(e.level_label) + '</td>'
+        + '<td>' + e.total_hours.toFixed(2) + '</td>'
+        + '<td>' + e.gross_ot_hkd.toFixed(2) + '</td>'
+        + '<td>' + (e.extra_pct * 100).toFixed(0) + '%</td>'
+        + '<td>' + e.extra_ot_hkd.toFixed(2) + '</td>'
+        + '<td><b>' + e.total_ot_hkd.toFixed(2) + '</b></td>'
+        + '<td><button class="btn btn-xs btn-outline" onclick="toggleOtDetail(\'' + e.emp_id + '\')">明細</button></td>'
+        + '</tr>'
+        + '<tr id="otDetail-' + e.emp_id + '" style="display:none"><td colspan="9">' + renderOtDetail(e) + '</td></tr>';
+    }
+    html += '</tbody><tfoot><tr><td colspan="4"><b>全員合計</b></td><td><b>' + gGross.toFixed(2) + '</b></td><td></td><td><b>' + gExtra.toFixed(2) + '</b></td><td><b>' + gTotal.toFixed(2) + '</b></td><td></td></tr></tfoot></table></div>';
+    res.innerHTML = html;
+  } catch (e) { res.innerHTML = '<p>載入失敗</p>'; }
+}
+
+function renderOtDetail(e) {
+  if (!e.days.length) return '<p class="text-muted">無每日記錄（可能全為休息日）</p>';
+  let h = '<div class="table-scroll"><table class="data-table"><thead><tr><th>日期</th><th>星期</th><th>上班</th><th>下班</th><th>Normal H(20:00前)</th><th>Normal Rate</th><th>Special H(20:00後)</th><th>Special Rate</th><th>Total OT(HKD)</th></tr></thead><tbody>';
+  for (const d of e.days) {
+    h += '<tr><td>' + esc(d.date) + '</td><td>' + esc(d.dow) + '</td><td>' + esc(d.from) + '</td><td>' + esc(d.to) + '</td><td>' + d.normal_hours.toFixed(2) + '</td><td>' + d.normal_rate + '</td><td>' + d.special_hours.toFixed(2) + '</td><td>' + d.special_rate + '</td><td>' + d.day_total.toFixed(2) + '</td></tr>';
+  }
+  h += '<tr><td colspan="4"><b>合計</b></td><td><b>' + e.total_normal_hours.toFixed(2) + '</b></td><td></td><td><b>' + e.total_special_hours.toFixed(2) + '</b></td><td></td><td><b>' + e.gross_ot_hkd.toFixed(2) + '</b></td></tr>';
+  h += '</tbody></table></div>';
+  return h;
+}
+
+function toggleOtDetail(id) {
+  const el = document.getElementById('otDetail-' + id);
+  if (el) el.style.display = (el.style.display === 'none') ? '' : 'none';
 }
 
 // Keep the admin session alive while the panel is open (long-lived 30-day TTL,
