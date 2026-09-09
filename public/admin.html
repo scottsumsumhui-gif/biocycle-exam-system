@@ -54,6 +54,7 @@
     <button class="nav-btn" data-tab="commission" onclick="showTab('commission')" id="tabCommission">&#128176; 服務銷售佣金</button>
     <button class="nav-btn" data-tab="fleet" onclick="showTab('fleet')" id="tabFleet">&#128663; 車輛管理</button>
     <button class="nav-btn" data-tab="worktime" onclick="showTab('worktime')" id="tabWorktime">&#9201; 工時記錄</button>
+    <button class="nav-btn" data-tab="feedback" onclick="showTab('feedback')" id="tabFeedback">&#128172; 意見箱</button>
   </nav>
   
   <main class="admin-body" id="adminBody"></main>
@@ -63,6 +64,7 @@
 const API = '';
 let adminData = null;
 const levelNames = { junior: '初級技術員', senior: '高級技術員', supervisor: '技術員主管' };
+function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // Global error handler - if session expires, redirect to login
 async function handleApiError(res, fallbackMsg = '操作失敗') {
@@ -122,7 +124,8 @@ const TAB_PERMISSION_MAP = {
   warehouse: 'warehouse',
   commission: 'commission',
   fleet: 'fleet',
-  worktime: 'worktime'
+  worktime: 'worktime',
+  feedback: 'feedback'
 };
 function hasPerm(key) {
   if (!adminData) return false;
@@ -140,7 +143,7 @@ function applyNavPermissions() {
 
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet', worktime:'tabWorktime' };
+  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet', worktime:'tabWorktime', feedback:'tabFeedback' };
   const tabEl = document.getElementById(tabIdMap[tab]);
   if (tabEl) tabEl.classList.add('active');
   
@@ -157,6 +160,7 @@ function showTab(tab) {
     case 'commission': loadCommissionAdmin(); break;
     case 'fleet': loadFleetAdmin(); break;
     case 'worktime': loadWorktimeAdmin(); break;
+    case 'feedback': loadFeedbackAdmin(); break;
   }
 }
 
@@ -2061,6 +2065,72 @@ async function deleteWorktimeAdmin(id) {
     if (!res.ok) { alert(data.error || '刪除失敗'); return; }
     wtAdminCache.records = wtAdminCache.records.filter(r => r.id !== id);
     loadWorktimeRecordsAdmin();
+  } catch (e) { alert('刪除失敗'); }
+}
+
+// ===== FEEDBACK BOX ADMIN =====
+async function loadFeedbackAdmin() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = '<div class="loading">載入中...</div>';
+  try {
+    const res = await fetch(API + '/api/admin/feedback', { credentials: 'include' });
+    const data = await res.json();
+    if (!data.success) { body.innerHTML = '<p>' + esc(data.error || '載入失敗') + '</p>'; return; }
+    renderFeedbackAdmin(data.feedback || []);
+  } catch (e) { body.innerHTML = '<p>載入失敗</p>'; }
+}
+
+function renderFeedbackAdmin(list) {
+  const body = document.getElementById('adminBody');
+  let html = '<h2>&#128172; 意見箱 Feedback Box</h2>';
+  html += '<p class="text-muted">以下全部為匿名意見，員工編號/姓名不會記錄。</p>';
+  if (!list.length) {
+    html += '<p style="color:var(--text-light)">暫無意見</p>';
+    body.innerHTML = html;
+    return;
+  }
+  const unread = list.filter(x => !x.is_read).length;
+  html += `<p><b>${list.length}</b> 則意見，<b style="color:var(--warning)">${unread}</b> 則未讀</p>`;
+  html += '<div class="feedback-list">';
+  for (const item of list) {
+    const cls = item.is_read ? 'feedback-item feedback-read' : 'feedback-item feedback-unread';
+    const status = item.is_read ? '<span class="badge badge-read">已讀</span>' : '<span class="badge badge-unread">未讀</span>';
+    const readBtn = `<button class="btn btn-xs btn-outline" onclick="setFeedbackRead(${item.id}, ${!item.is_read})">${item.is_read ? '標記未讀' : '標記已讀'}</button>`;
+    html += `<div class="${cls}">
+      <div class="feedback-head">
+        <span class="feedback-category">${esc(item.category)}</span>
+        ${status}
+        <span class="feedback-date">${esc(item.created_at)}</span>
+        <span style="flex:1"></span>
+        ${readBtn}
+        <button class="btn btn-xs btn-outline" style="margin-left:6px" onclick="deleteFeedback(${item.id})">刪除</button>
+      </div>
+      <div class="feedback-body"><pre>${esc(item.content)}</pre></div>
+    </div>`;
+  }
+  html += '</div>';
+  body.innerHTML = html;
+}
+
+async function setFeedbackRead(id, isRead) {
+  try {
+    const res = await fetch(API + '/api/admin/feedback/' + id, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+      body: JSON.stringify({ is_read: isRead })
+    });
+    const data = await res.json();
+    if (data.success) loadFeedbackAdmin();
+    else alert(data.error || '更新失敗');
+  } catch (e) { alert('更新失敗'); }
+}
+
+async function deleteFeedback(id) {
+  if (!confirm('確定刪除呢則意見？')) return;
+  try {
+    const res = await fetch(API + '/api/admin/feedback/' + id, { method: 'DELETE', credentials: 'include' });
+    const data = await res.json();
+    if (data.success) loadFeedbackAdmin();
+    else alert(data.error || '刪除失敗');
   } catch (e) { alert('刪除失敗'); }
 }
 

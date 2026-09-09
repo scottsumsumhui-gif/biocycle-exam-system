@@ -65,6 +65,11 @@
         <div class="module-title">工時記錄</div>
         <div class="module-desc">每日上班 / 下班 / 工作單 / OT</div>
       </div>
+      <div class="module-card" onclick="showFeedbackBox()">
+        <div class="module-icon">💬</div>
+        <div class="module-title">意見箱</div>
+        <div class="module-desc">匿名發表意見 / 建議</div>
+      </div>
     </div>
     <div class="h-center" >
       <button class="btn btn-outline btn-sm" onclick="showChangePw()">修改密碼</button>
@@ -132,6 +137,29 @@
     <button class="btn btn-primary btn-block" onclick="changePassword()">確認修改 Confirm</button>
     <button class="btn btn-outline btn-block" onclick="showHome()">返回主板面 Back</button>
     <div id="changePwError" class="error-msg" style="display:none"></div>
+  </div>
+</div>
+
+<!-- FEEDBACK BOX (意見箱) -->
+<div id="feedbackScreen" class="screen" style="display:none">
+  <div class="center-card">
+    <div class="h-between">
+      <h2>💬 意見箱 Feedback</h2>
+      <button class="btn btn-outline btn-sm" onclick="showHome()">返回主板面</button>
+    </div>
+    <p class="text-muted small">你的意見將以不記名方式提交，admin 會檢閱處理。</p>
+    <div class="form-group">
+      <label>分類 Category</label>
+      <select id="fbCategory"></select>
+    </div>
+    <div class="form-group">
+      <label>意見內容 Feedback</label>
+      <textarea id="fbContent" rows="6" placeholder="請輸入你的意見或建議（3-2000字）"></textarea>
+    </div>
+    <div class="h-center">
+      <button class="btn btn-primary" onclick="submitFeedback()">提交意見</button>
+    </div>
+    <div id="fbMsg" class="mt-12"></div>
   </div>
 </div>
 
@@ -505,6 +533,7 @@
 
 <script>
 const API = '';
+function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 let empData = null;
 let examQuestions = null;
 let currentTopicId = null;
@@ -1487,6 +1516,51 @@ function showResult(result) {
 }
 
 function showChangePw() { showScreen('changePwScreen'); }
+
+// ===== FEEDBACK BOX =====
+function showFeedbackBox() {
+  showScreen('feedbackScreen');
+  loadFeedbackCategories();
+  document.getElementById('fbMsg').innerHTML = '';
+  document.getElementById('fbContent').value = '';
+}
+
+async function loadFeedbackCategories() {
+  const sel = document.getElementById('fbCategory');
+  if (sel.dataset.loaded) return;
+  try {
+    const res = await fetch(API + '/api/feedback/categories', { credentials: 'include' });
+    const data = await res.json();
+    sel.innerHTML = (Array.isArray(data) ? data : []).map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    sel.dataset.loaded = '1';
+  } catch (e) {
+    sel.innerHTML = '<option value="一般意見">一般意見</option><option value="其他">其他</option>';
+  }
+}
+
+async function submitFeedback() {
+  const category = document.getElementById('fbCategory').value;
+  const content = document.getElementById('fbContent').value.trim();
+  const msgEl = document.getElementById('fbMsg');
+  if (!content || content.length < 3) { msgEl.innerHTML = '<span style="color:var(--accent)">意見內容至少 3 個字</span>'; return; }
+  try {
+    const res = await fetch(API + '/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ category, content })
+    });
+    const data = await res.json();
+    if (data.success) {
+      msgEl.innerHTML = '<span style="color:var(--success)">✅ 已匿名提交，多謝意見！</span>';
+      document.getElementById('fbContent').value = '';
+    } else {
+      msgEl.innerHTML = '<span style="color:var(--accent)">' + esc(data.error || '提交失敗') + '</span>';
+    }
+  } catch (e) {
+    msgEl.innerHTML = '<span style="color:var(--accent)">提交失敗，請稍後再試</span>';
+  }
+}
 
 async function changePassword() {
   const cur = document.getElementById('currentPw').value;

@@ -36,7 +36,8 @@ const ADMIN_PERMISSIONS = {
   commission:  '渠網銷售佣金 Channel Commission',
   leads:       '服務銷售 Technician Leads',
   fleet:       '車隊記錄 Fleet Records',
-  worktime:    '工時記錄 Worktime Records'
+  worktime:    '工時記錄 Worktime Records',
+  feedback:    '意見箱 Feedback Box'
 };
 const ALL_PERMISSION_KEYS = Object.keys(ADMIN_PERMISSIONS);
 
@@ -1926,6 +1927,7 @@ const FLEET_FILES = { trip: FLEET_TRIPS_FILE, fuel: FLEET_FUELS_FILE, maintenanc
 // Digitised version of the paper "Technician Work Time Report".
 // One record per employee per date, with nested job rows. OT is computed server-side.
 const WORKTIME_FILE = 'worktime.json';
+const FEEDBACK_FILE = 'feedback.json';
 const WORKTIME_TYPES = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除'];
 const WORKTIME_STATUSES = ['正常上班', '公眾假期', '大假', '病假'];
 const WORKTIME_EDIT_DAYS = 7; // technicians may edit/delete their own record within 7 days
@@ -2935,6 +2937,77 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
     res.send(buf);
   } catch (e) {
     res.status(500).json({ success: false, error: '匯出失敗' });
+  }
+});
+
+// ===== FEEDBACK BOX (意見箱) =====
+// Employee: submit anonymous feedback. No employee id/name is stored.
+const FEEDBACK_CATEGORIES = ['一般意見', '系統問題', '工作流程', '設備物資', '管理建議', '其他'];
+app.post('/api/feedback', authRequired('employee'), async (req, res) => {
+  try {
+    const category = (req.body.category || '').toString().trim();
+    const content = (req.body.content || '').toString().trim();
+    if (!category || !FEEDBACK_CATEGORIES.includes(category)) {
+      return res.json({ success: false, error: '請選擇有效分類' });
+    }
+    if (!content || content.length < 3) {
+      return res.json({ success: false, error: '意見內容至少 3 個字' });
+    }
+    if (content.length > 2000) {
+      return res.json({ success: false, error: '意見內容不可超過 2000 字' });
+    }
+    const list = await loadJSON(FEEDBACK_FILE, []);
+    const id = list.length ? Math.max(...list.map(x => x.id)) + 1 : 1;
+    list.push({ id, category, content, is_read: false, created_at: nowStr() });
+    await saveJSON(FEEDBACK_FILE, list);
+    res.json({ success: true, id });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '提交失敗，請稍後再試' });
+  }
+});
+
+app.get('/api/feedback/categories', authRequired('employee'), async (req, res) => {
+  res.json(FEEDBACK_CATEGORIES);
+});
+
+// Admin: list all feedback entries (newest first)
+app.get('/api/admin/feedback', authRequired('admin'), requirePermission('feedback'), async (req, res) => {
+  try {
+    const list = await loadJSON(FEEDBACK_FILE, []);
+    list.sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+    res.json({ success: true, feedback: list });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '載入失敗' });
+  }
+});
+
+// Admin: mark feedback as read/unread
+app.put('/api/admin/feedback/:id', authRequired('admin'), requirePermission('feedback'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const list = await loadJSON(FEEDBACK_FILE, []);
+    const item = list.find(x => x.id === id);
+    if (!item) return res.status(404).json({ success: false, error: '找不到該意見' });
+    if (typeof req.body.is_read === 'boolean') item.is_read = req.body.is_read;
+    await saveJSON(FEEDBACK_FILE, list);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '更新失敗' });
+  }
+});
+
+// Admin: delete a feedback entry
+app.delete('/api/admin/feedback/:id', authRequired('admin'), requirePermission('feedback'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    let list = await loadJSON(FEEDBACK_FILE, []);
+    const before = list.length;
+    list = list.filter(x => x.id !== id);
+    if (list.length === before) return res.status(404).json({ success: false, error: '找不到該意見' });
+    await saveJSON(FEEDBACK_FILE, list);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '刪除失敗' });
   }
 });
 
