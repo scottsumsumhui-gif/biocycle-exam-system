@@ -2876,6 +2876,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
     const wb = XLSX.utils.book_new();
     for (const empId of Object.keys(byEmp)) {
       const emp = byEmp[empId];
+      const round1 = v => Math.round((v || 0) * 10) / 10;
       const rows = [];
       rows.push(['技術員工時記錄 — ' + emp.name + ' (' + emp.number + ')']);
       rows.push(['週次', weekStart + ' 至 ' + weekEnd]);
@@ -2886,27 +2887,39 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
         const d = parseDateUTC(date);
         const label = (d.getUTCMonth() + 1) + '/' + d.getUTCDate() + '(' + dowName[d.getUTCDay()] + ')';
         if (!rec) {
-          if (d.getUTCDay() !== 0) rows.push([label, '—', '無記錄']);
+          if (d.getUTCDay() !== 0) rows.push(['日期', label, '狀態', '無記錄']);
           continue;
         }
-        if (d.getUTCDay() === 0) { rows.push([label, '休息日']); continue; }
+        if (d.getUTCDay() === 0) { rows.push(['日期', label, '狀態', '休息日']); continue; }
         weekOt += rec.ot_hours || 0; weekDuty += rec.total_duty_hours || 0;
         weekEveningOt += rec.ot_evening_hours || 0; weekNightOt += rec.ot_night_hours || 0;
-        rows.push([label, '狀態', rec.day_status]);
-        rows.push(['上班', rec.schedule_in || '', '實際', rec.actual_in || '', '下班', rec.off_time || '']);
-        if (rec.members && rec.members.length)
-          rows.push(['隊員', rec.members.map(m => m.emp_name || m.emp_number).join('、')]);
-        rows.push(['總當值(h)', rec.total_duty_hours, '標準(h)', rec.standard_hours, 'OT(h)', rec.ot_hours, '20:00前OT', rec.ot_evening_hours || 0, '20:00後OT', rec.ot_night_hours || 0]);
+        rows.push(['日期', label, '狀態', rec.day_status]);
+        rows.push(['上班時間', rec.schedule_in || '—', '實際上班', rec.actual_in || '—', '下班時間', rec.off_time || '—']);
+        if (rec.members && rec.members.length) {
+          const memText = rec.members.map(m => (m.emp_name && m.emp_number ? `${m.emp_name} (${m.emp_number})` : (m.emp_name || m.emp_number || ''))).join('、');
+          rows.push(['隊員', memText]);
+        }
+        rows.push(['總當值(h)', round1(rec.total_duty_hours), '標準(h)', round1(rec.standard_hours), 'OT(h)', round1(rec.ot_hours), '20:00前OT(h)', round1(rec.ot_evening_hours), '20:00後OT(h)', round1(rec.ot_night_hours)]);
         if (rec.jobs && rec.jobs.length) {
           rows.push(['單號', '開始', '完結', '工作類型', '備註']);
-          for (const j of rec.jobs) rows.push([j.client_no || '', j.start || '', j.end || '', (j.types || []).join('/'), j.remarks || '']);
+          for (const j of rec.jobs) rows.push([j.client_no || '—', j.start || '—', j.end || '—', (j.types || []).join('/') || '—', j.remarks || '—']);
         }
         if (rec.remark) rows.push(['備註', rec.remark]);
         rows.push([]);
       }
-      rows.push(['本週合計', '總當值 ' + Math.round(weekDuty * 10) / 10 + 'h', 'OT ' + Math.round(weekOt * 10) / 10 + 'h', '20:00前OT ' + Math.round(weekEveningOt * 10) / 10 + 'h', '20:00後OT ' + Math.round(weekNightOt * 10) / 10 + 'h']);
+      rows.push(['本週合計', '總當值: ' + round1(weekDuty) + 'h', 'OT: ' + round1(weekOt) + 'h', '20:00前OT: ' + round1(weekEveningOt) + 'h', '20:00後OT: ' + round1(weekNightOt) + 'h']);
       const sheetName = (emp.name || emp.number || '員工').replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 28);
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), sheetName);
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [
+        { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
+        { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
+        { wch: 14 }, { wch: 32 }
+      ];
+      ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } }
+      ];
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
     }
     if (Object.keys(byEmp).length === 0) {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['本週無工時記錄', weekStart + ' 至 ' + weekEnd]]), '無記錄');
