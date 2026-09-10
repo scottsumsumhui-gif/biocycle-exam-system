@@ -2285,8 +2285,9 @@ function renderGuaranteedPay(data) {
   const pLabel = Number(data.prevMonth.slice(5, 7)) + ' 月';
   html += '<div style="background:#e3f2fd;border-left:4px solid #1976d2;border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#0d3c61;line-height:1.8">'
     + '<b>&#128197; 時間軸：</b>同事喺 <b style="color:#c62828">' + data.prevMonth + '（' + pLabel + '）</b> 發生違規 &rarr; 你喺呢頁批示 &rarr; 影響 <b style="color:#c62828">' + data.month + '（' + mLabel + '）</b> 出糧'
-    + '<br>&#10145; 即係：<b>' + pLabel + '出事 &rarr; ' + mLabel + '停發</b>。下面每張卡寫住嘅違規全部係 <b>' + data.prevMonth + '</b> 嘅記錄。'
+    + '<br>&#10145; 即係：<b>' + pLabel + '出事 &rarr; ' + mLabel + '停發</b>。卡上橙色標籤就係影響本頁出糧嘅 <b>' + data.prevMonth + '</b> 違規；灰色標籤屬其他月份，可以撳「去 X 批示」跳去對應頁。'
     + '<br>&#9200; 停發只影響 <b>' + data.month + '</b> 一個月，<b>' + nM + '</b> 自動恢復有包薪（唔使手動解除）。'
+    + '<br>&#9997; 記錄違規時可以揀<b>發生月份</b>（預設本月）。記錄永遠影響「發生月 + 1」出糧 —— 例如今日 9 月記 9 月嘅事 → 影響 10 月出糧，記得跳去 10 月頁批示。'
     + '<br>&#128274; <b>考試唔合格係自動停 3 個月</b>（由出事下個月停到補考嗰個月），補考合格後下個月自動恢復 —— 唔使人手批示。'
     + '<br>&#9997; 遲到 / 病假 / 客戶投訴 / 損壞物品 / 交通意外等 <b>仍然係人手批示，停 1 個月</b>。'
     + '<br>&#128161; 參考數據（遲到 / 病假）由系統自動計，只供提示，<b>唔會自動判定</b>。'
@@ -2327,18 +2328,36 @@ function renderGuaranteedPay(data) {
       if (r.override_granted) html += '<div style="background:#fff8e1;border-left:4px solid #f9a825;border-radius:6px;padding:6px 12px;margin-top:6px;font-size:12px;color:#e65100">&#9888; 你人手批示為「有包薪」，覆寫咗系統建議嘅停發</div>';
     }
     if (r.incidents.length) {
-      html += '<div style="font-size:12px;color:#e65100;margin-top:8px">&#9888; ' + data.prevMonth + ' 違規記錄（影響 ' + data.month + ' 出糧）：</div>';
-      html += '<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px">';
-      for (const i of r.incidents) {
-        html += '<span style="background:' + (i.source === 'auto' ? '#fff8e1' : '#fff3e0') + ';color:#e65100;font-size:12px;padding:3px 9px;border-radius:999px">' + (i.source === 'auto' ? '&#9889; ' : '') + esc(i.category) + (i.note ? ' &middot; ' + esc(i.note) : '')
-          + ' <a href="javascript:void(0)" onclick="gpDeleteIncident(' + i.id + ')" style="color:#c62828;text-decoration:none">&times;</a></span>';
+      const forThis = r.incidents.filter(i => i.month === data.prevMonth);
+      const others = r.incidents.filter(i => i.month !== data.prevMonth);
+      if (forThis.length) {
+        html += '<div style="font-size:12px;color:#e65100;margin-top:8px">&#9888; ' + data.prevMonth + ' 違規記錄（影響 ' + data.month + ' 出糧）：</div>';
+        html += '<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px">';
+        for (const i of forThis) {
+          html += '<span style="background:' + (i.source === 'auto' ? '#fff8e1' : '#fff3e0') + ';color:#e65100;font-size:12px;padding:3px 9px;border-radius:999px">' + (i.source === 'auto' ? '&#9889; ' : '') + esc(i.category) + (i.note ? ' &middot; ' + esc(i.note) : '')
+            + ' <a href="javascript:void(0)" onclick="gpDeleteIncident(' + i.id + ')" style="color:#c62828;text-decoration:none">&times;</a></span>';
+        }
+        html += '</div>';
       }
-      html += '</div>';
+      if (others.length) {
+        html += '<div style="font-size:12px;color:#777;margin-top:8px">&#128203; 其他月份違規記錄（未對應本頁 ' + data.month + ' 出糧）：</div>';
+        html += '<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px">';
+        for (const i of others) {
+          const pay = gpShiftMonth(i.month, 1);
+          html += '<span style="background:#f5f5f5;color:#666;font-size:12px;padding:3px 9px;border-radius:999px">' + esc(i.month) + ' ' + esc(i.category) + (i.note ? ' &middot; ' + esc(i.note) : '')
+            + ' <a href="javascript:void(0)" onclick="window._gpMonth=\'' + pay + '\';loadGuaranteedPayAdmin()" style="color:#1976d2;text-decoration:none">去 ' + pay + ' 批示 &rarr;</a>'
+            + ' <a href="javascript:void(0)" onclick="gpDeleteIncident(' + i.id + ')" style="color:#c62828;text-decoration:none">&times;</a></span>';
+        }
+        html += '</div>';
+      }
     }
     html += '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+      + '<span style="font-size:12px;color:#666">發生月份：</span>'
+      + '<select id="gpIncMonth_' + r.emp_number + '" style="padding:4px;font-size:13px">' + gpMonthOptions() + '</select>'
       + '<select id="gpCat_' + r.emp_number + '" style="padding:4px;font-size:13px">' + data.categories.map(c => '<option>' + esc(c) + '</option>').join('') + '</select>'
       + '<input id="gpNote_' + r.emp_number + '" placeholder="備註（可留空）" style="padding:4px;font-size:13px;width:170px">'
-      + '<button class="btn btn-xs btn-outline" onclick="gpAddIncident(\'' + r.emp_number + '\')">加入 ' + data.prevMonth + ' 違規</button></div>';
+      + '<button class="btn btn-xs btn-outline" onclick="gpAddIncident(\'' + r.emp_number + '\')">+ 加入違規</button>'
+      + '<span style="font-size:11px;color:#999">記錄會影響「發生月 + 1」出糧</span></div>';
     html += '<div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">'
       + '<span style="font-size:12px;color:#666">批示 ' + data.month + '：</span>'
       + '<input id="gpDecNote_' + r.emp_number + '" placeholder="批示備註" value="' + esc(r.decision_note || '') + '" style="padding:4px;font-size:13px;width:190px">'
@@ -2355,9 +2374,27 @@ function renderGuaranteedPay(data) {
 async function gpAddIncident(empNo) {
   const cat = document.getElementById('gpCat_' + empNo).value;
   const note = document.getElementById('gpNote_' + empNo).value;
-  const r = await fetch(API + '/api/admin/guaranteed-pay/incidents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ emp_number: empNo, month: _gpData.prevMonth, category: cat, note }) });
+  const mEl = document.getElementById('gpIncMonth_' + empNo);
+  const incMonth = (mEl && mEl.value) || _gpData.prevMonth;
+  const r = await fetch(API + '/api/admin/guaranteed-pay/incidents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ emp_number: empNo, month: incMonth, category: cat, note }) });
   const j = await r.json();
-  if (j.success) loadGuaranteedPayAdmin(); else alert(j.error || '新增失敗');
+  if (!j.success) { alert(j.error || '新增失敗'); return; }
+  const payMonth = gpShiftMonth(incMonth, 1);
+  if (payMonth !== _gpData.month) {
+    if (confirm('已記錄 ' + empNo + ' 喺 ' + incMonth + ' 嘅「' + cat + '」違規。\n\n呢條記錄影響 ' + payMonth + ' 出糧，唔係而家睇緊嘅 ' + _gpData.month + '。\n\n要唔要跳去 ' + payMonth + ' 批示？')) {
+      window._gpMonth = payMonth;
+    }
+  }
+  loadGuaranteedPayAdmin();
+}
+
+// 產生「發生月份」下拉：近 6 個月（新到舊），預設本月
+function gpMonthOptions() {
+  const hk = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Hong_Kong' }));
+  let ym = hk.getFullYear() + '-' + String(hk.getMonth() + 1).padStart(2, '0');
+  const opts = [];
+  for (let k = 0; k < 6; k++) { opts.push(ym); ym = gpShiftMonth(ym, -1); }
+  return opts.map((o, idx) => '<option value="' + o + '"' + (idx === 0 ? ' selected' : '') + '>' + o + (idx === 0 ? '（本月）' : (idx === 1 ? '（上月）' : '')) + '</option>').join('');
 }
 
 async function gpMarkMakeup(empNo, topic, month, passed) {

@@ -3372,9 +3372,13 @@ app.get('/api/admin/guaranteed-pay', authRequired('admin'), requirePermission('g
       const autoSusp = !!examHit;
       const status = dec ? dec.status : (autoSusp ? 'suspended' : 'granted');
       const overrideGranted = !!(dec && dec.status === 'granted' && autoSusp); // 人手放行（系統本來建議停）
-      const inc = gp.incidents.filter(i => String(i.emp_number) === empNo && i.month === prevMonth);
+      // 該員工所有違規記錄（任何月份）——UI 會分辨邊啲屬於本頁參考月、邊啲屬其他月
+      const inc = gp.incidents
+        .filter(i => String(i.emp_number) === empNo)
+        .sort((a, b) => String(b.month || '').localeCompare(String(a.month || '')) || (b.id - a.id));
+      const incPrev = inc.filter(i => i.month === prevMonth);
       if (status === 'suspended') { nSuspended++; if (!dec) nAuto++; } else nGranted++;
-      if (!dec && inc.length) nPending++;
+      if (!dec && incPrev.length) nPending++;
       rows.push({
         emp_number: empNo, name: emp.name, level: emp.level,
         level_label: GP_LEVEL_LABELS[emp.level] || emp.level,
