@@ -3399,6 +3399,46 @@ app.delete('/api/admin/guaranteed-pay/incidents/:id', authRequired('admin'), req
   } catch (e) { res.status(500).json({ success: false, error: '刪除失敗' }); }
 });
 
+// 一鍵帶入：將 prevMonth 參考數據（考試唔合格 / 遲到 / 病假）自動建立違規記錄
+app.post('/api/admin/guaranteed-pay/auto-incidents', authRequired('admin'), requirePermission('guaranteed_pay'), async (req, res) => {
+  try {
+    const b = req.body || {};
+    let month = String(b.month || '').trim();
+    if (!month) month = todayHK().slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ success: false, error: '月份格式錯誤 (YYYY-MM)' });
+    const prevMonth = shiftYM(month, -1);
+    const gp = await loadGp();
+    const employees = await loadJSON('employees.json', []);
+    const refs = await computeGpRefs(prevMonth);
+    const examFails = await computeGpExamFails(prevMonth);
+    let nextId = gp.incidents.length ? Math.max(...gp.incidents.map(x => Number(x.id) || 0)) + 1 : 1;
+    const by = req.session ? (req.session.username || '') : '';
+    const added = [], skipped = [];
+    for (const emp of employees) {
+      if (!GP_LEVELS.includes(emp.level)) continue;
+      if (String(emp.emp_number || '').startsWith('TEST')) continue;
+      const empNo = String(emp.emp_number);
+      const r = refs[empNo] || {};
+      const fails = examFails[empNo] || [];
+      const items = [];
+      if (fails.length) items.push({ category: '考試不合格', note: fails.join('、') });
+      if (r.lateCount) items.push({ category: '遲到', note: r.lateCount + ' 次' });
+      if (r.sickDays) items.push({ category: '病假', note: r.sickDays + ' 日' });
+      for (const it of items) {
+        const dup = gp.incidents.find(i => String(i.emp_number) === empNo && i.month === prevMonth && i.category === it.category);
+        if (dup) { skipped.push({ emp_number: empNo, name: emp.name, category: it.category, reason: '已存在' }); continue; }
+        gp.incidents.push({ id: nextId++, emp_number: empNo, month: prevMonth, category: it.category, note: String(it.note || '').slice(0, 300), source: 'auto', by, at: new Date().toISOString() });
+        added.push({ emp_number: empNo, name: emp.name, category: it.category, detail: String(it.note || '') });
+      }
+    }
+    await saveJSON(GP_FILE, gp);
+    res.json({ success: true, month, prevMonth, added, skipped, addedCount: added.length, skippedCount: skipped.length });
+  } catch (e) {
+    console.error('[guaranteed-pay] auto-incidents failed', e && e.message);
+    res.status(500).json({ success: false, error: '帶入失敗' });
+  }
+});
+
 app.post('/api/admin/guaranteed-pay/decisions', authRequired('admin'), requirePermission('guaranteed_pay'), async (req, res) => {
   try {
     const b = req.body || {};

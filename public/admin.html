@@ -2276,6 +2276,7 @@ function renderGuaranteedPay(data) {
     + '<input id="gpMonthInput" type="month" value="' + data.month + '" style="padding:6px">'
     + '<button class="btn btn-sm btn-primary" onclick="window._gpMonth=document.getElementById(\'gpMonthInput\').value; loadGuaranteedPayAdmin()">查看</button>'
     + '<button class="btn btn-sm btn-outline" onclick="gpExportExcel()">&#128229; 匯出 Excel</button>'
+    + '<button class="btn btn-sm btn-outline" onclick="gpAutoIncidents()" style="background:#fff8e1;border-color:#f9a825;color:#e65100">&#9889; 一鍵帶入參考數據</button>'
     + '<button class="btn btn-sm btn-outline" onclick="gpToggleSettings()">&#9881; 包薪線 / 駕駛資格設定</button></div>';
   html += '<div style="font-size:13px;color:#777;margin-bottom:12px">批示影響 <b>' + data.month + '</b>，參考 <b>' + data.prevMonth + '</b> 記錄。停發固定 1 個月，下個月自動恢復。參考數據只供提示，唔會自動判定。</div>';
   html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:12px">'
@@ -2302,7 +2303,7 @@ function renderGuaranteedPay(data) {
     if (r.incidents.length) {
       html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">';
       for (const i of r.incidents) {
-        html += '<span style="background:#fff3e0;color:#e65100;font-size:12px;padding:3px 9px;border-radius:999px">' + esc(i.category) + (i.note ? ' &middot; ' + esc(i.note) : '')
+        html += '<span style="background:' + (i.source === 'auto' ? '#fff8e1' : '#fff3e0') + ';color:#e65100;font-size:12px;padding:3px 9px;border-radius:999px">' + (i.source === 'auto' ? '&#9889; ' : '') + esc(i.category) + (i.note ? ' &middot; ' + esc(i.note) : '')
           + ' <a href="javascript:void(0)" onclick="gpDeleteIncident(' + i.id + ')" style="color:#c62828;text-decoration:none">&times;</a></span>';
       }
       html += '</div>';
@@ -2328,6 +2329,33 @@ async function gpAddIncident(empNo) {
   const r = await fetch(API + '/api/admin/guaranteed-pay/incidents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ emp_number: empNo, month: _gpData.prevMonth, category: cat, note }) });
   const j = await r.json();
   if (j.success) loadGuaranteedPayAdmin(); else alert(j.error || '新增失敗');
+}
+
+async function gpAutoIncidents() {
+  const monthInput = document.getElementById('gpMonthInput');
+  const month = (monthInput && monthInput.value) || _gpData.month;
+  const cands = (_gpData.rows || []).filter(r => (r.refs.examFails && r.refs.examFails.length) || r.refs.lateCount || r.refs.sickDays);
+  if (!cands.length) { alert('參考月份 ' + _gpData.prevMonth + ' 冇人有數字（考試唔合格 / 遲到 / 病假），唔使帶入。'); return; }
+  const lines = cands.map(r => {
+    const t = [];
+    if (r.refs.examFails && r.refs.examFails.length) t.push('考試唔合格 (' + r.refs.examFails.join('、') + ')');
+    if (r.refs.lateCount) t.push('遲到 ' + r.refs.lateCount + ' 次');
+    if (r.refs.sickDays) t.push('病假 ' + r.refs.sickDays + ' 日');
+    return r.emp_number + ' ' + r.name + ' → ' + t.join('、');
+  });
+  const msg = '將依據 ' + _gpData.prevMonth + ' 參考數據，自動加入 ' + _gpData.prevMonth + ' 違規記錄：\n\n'
+    + lines.join('\n')
+    + '\n\n共 ' + cands.length + ' 位同事。相同月份 + 相同類別已存在嘅會自動跳過，唔會重複。\n'
+    + '帶入後仍需你自己撳「停 1 個月」先會停發包薪。\n\n確定帶入？';
+  if (!confirm(msg)) return;
+  try {
+    const r = await fetch(API + '/api/admin/guaranteed-pay/auto-incidents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ month }) });
+    const j = await r.json();
+    if (!j.success) { alert(j.error || '帶入失敗'); return; }
+    alert('已帶入：新增 ' + j.addedCount + ' 條違規記錄，跳過 ' + j.skippedCount + ' 條（已存在）。\n\n如需停發，請逐個撳「停 1 個月」批示。');
+    window._gpMonth = month;
+    loadGuaranteedPayAdmin();
+  } catch (e) { alert('帶入失敗'); }
 }
 
 async function gpDeleteIncident(id) {
