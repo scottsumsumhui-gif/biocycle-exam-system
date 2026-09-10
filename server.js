@@ -3099,7 +3099,7 @@ app.get('/api/admin/allowance', authRequired('admin'), requirePermission('dashbo
         const r = recs[t];
         if (r && r.suspensions) {
           for (const s of r.suspensions) {
-            if (s.makeup_month && !s.makeup_done_month && AAL.monthsBetween(s.makeup_month, month) >= 0) {
+            if (s.makeup_month && !s.makeup_done_month && AAL.monthsBetween(month, s.makeup_month) >= 0) {
               makeupDue.push({ emp_number: emp.emp_number, name: emp.name, topic: t, topic_name: ALLOWANCE_TOPIC_NAMES[t], makeup_month: s.makeup_month, suspended_window: s.start + '~' + s.end });
             }
           }
