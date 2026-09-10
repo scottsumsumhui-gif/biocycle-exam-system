@@ -709,7 +709,7 @@ app.post('/api/exam/submit', authRequired('employee'), async (req, res) => {
   // 自動 mark 津貼（非作文級別，交卷即知合格）：load 現有 store → apply 事件 → save
   if (!hasEssay) {
     const examYM = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-    await applyAllowanceEvent(emp.emp_number, tid, examYM, mcPassed);
+    await applyAllowanceEvent(emp.emp_number, tid, examYM, mcPassed, 'exam-submit', emp.emp_number);
   }
 
   res.json({
@@ -1187,7 +1187,7 @@ app.post('/api/admin/grade-essay/:resultId', authRequired('admin'), requirePermi
 
   // 自動 mark 津貼（作文級別，批改後先知合格）：apply 對應考試月事件
   const examYM = `${result.year}-${String(result.month).padStart(2, '0')}`;
-  await applyAllowanceEvent(emp.emp_number, result.topic_id, examYM, totalPassed);
+  await applyAllowanceEvent(emp.emp_number, result.topic_id, examYM, totalPassed, 'grade-essay', admin?.username || 'admin');
 
   res.json({ success: true, totalPassed, totalScore, essayScore: Math.round(essayPassPercent), mcPassed });
 });
@@ -3087,7 +3087,7 @@ function inWin(ym, start, end) { const i = ymIndex(ym); return ymIndex(start) <=
 // 按 (員工 emp_number, 卷, 考試月) 增量更新 allowance store。
 // 唔 reseed —— 直接 load 線上/本地現有 store（已經係 seed baseline），apply 事件，save。
 // 同一 (考試月, 結果) 已 apply 過就 skip，避免 double-apply（提交 dedup + admin 重批改都安全）。
-async function applyAllowanceEvent(empNumber, topicId, examYM, passed) {
+async function applyAllowanceEvent(empNumber, topicId, examYM, passed, source, actor) {
   try {
     if (!AAL.ALLOWANCE_TOPICS.includes(Number(topicId))) return; // 技術員手冊(5)/Old Topic 6(6) 唔計津貼
     const store = await loadJSON('allowance.json', {});
@@ -3098,6 +3098,12 @@ async function applyAllowanceEvent(empNumber, topicId, examYM, passed) {
       return; // 已 apply 過，skip
     }
     AAL.applyExamEvent(store, empNumber, topicId, examYM, passed);
+    // 記 audit 痕跡：邊個卷咩時候 mark 咗（來源 + 操作者 + 真實時間）
+    const r2 = store[empNumber][topicId];
+    const nowIso = new Date().toISOString();
+    r2.last_auto_update = nowIso;
+    r2.audit = r2.audit || [];
+    r2.audit.push({ at: nowIso, source: source || 'unknown', actor: actor || '', exam_month: examYM, result: passed ? 'pass' : 'fail' });
     await saveJSON('allowance.json', store);
   } catch (e) {
     console.error('[allowance] auto-mark failed', empNumber, topicId, examYM, e && e.message);
@@ -3113,15 +3119,29 @@ app.get('/api/admin/allowance', authRequired('admin'), requirePermission('dashbo
     const employees = await loadJSON('employees.json', []);
     const rows = [];
     let grandTotal = 0;
+    let lastAutoUpdate = null;
     const makeupDue = [];
     for (const emp of employees) {
       if (ALLOWANCE_EXEMPT.has(emp.level)) continue;
       if (String(emp.emp_number || '').startsWith('TEST')) continue;
       const recs = store[emp.emp_number] || {};
       const am = AAL.allowanceForMonth(store, emp.emp_number, month);
-      const breakdown = am.lines.map(l => {
-        const r = recs[l.topic];
-        return { topic: l.topic, name: ALLOWANCE_TOPIC_NAMES[l.topic], window: (r ? r.active_start : '') + '~' + (r ? r.active_end : '') };
+      // 6 卷全部列埋 mark 痕跡（包括 suspended 卷），唔只 active 卷
+      const breakdown = ALLOWANCE_TOPICS.map(t => {
+        const r = recs[t];
+        const lastAudit = (r && r.audit && r.audit.length) ? r.audit[r.audit.length - 1] : null;
+        const lastHist = (r && r.history && r.history.length) ? r.history[r.history.length - 1] : null;
+        if (r && r.last_auto_update && (!lastAutoUpdate || r.last_auto_update > lastAutoUpdate)) lastAutoUpdate = r.last_auto_update;
+        return {
+          topic: t, name: ALLOWANCE_TOPIC_NAMES[t],
+          window: (r ? r.active_start : '') + '~' + (r ? r.active_end : ''),
+          active: am.lines.some(l => l.topic === t),
+          markedAt: lastAudit ? lastAudit.at : (r && r.last_auto_update) || null,
+          markedSource: lastAudit ? lastAudit.source : null,
+          markedActor: lastAudit ? lastAudit.actor : null,
+          lastExamMonth: lastHist ? lastHist.exam_month : null,
+          lastResult: lastHist ? lastHist.result : null
+        };
       });
       grandTotal += am.total;
       rows.push({ emp_number: emp.emp_number, name: emp.name, level: emp.level, total: am.total, activeCount: am.activeCount, breakdown });
@@ -3139,7 +3159,7 @@ app.get('/api/admin/allowance', authRequired('admin'), requirePermission('dashbo
     }
     rows.sort((a, b) => b.total - a.total);
     makeupDue.sort((a, b) => (a.makeup_month || '').localeCompare(b.makeup_month || ''));
-    res.json({ success: true, month, rows, grandTotal, makeupDue, topicNames: ALLOWANCE_TOPIC_NAMES });
+    res.json({ success: true, month, rows, grandTotal, makeupDue, lastAutoUpdate, topicNames: ALLOWANCE_TOPIC_NAMES });
   } catch (e) {
     res.status(500).json({ success: false, error: '計算失敗' });
   }
