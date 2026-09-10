@@ -3273,11 +3273,23 @@ async function computeGpRefs(prevMonth) {
   const ensure = (n) => { if (!refs[n]) refs[n] = { lateCount: 0, sickDays: 0 }; return refs[n]; };
   let wt = [];
   try { wt = await loadJSON('worktime.json', []); } catch (e) { wt = []; }
-  for (const rec of wt) {
-    if (!rec || !rec.date || String(rec.date).slice(0, 7) !== prevMonth) continue;
+  const monthRecs = wt.filter(r => r && r.date && String(r.date).slice(0, 7) === prevMonth);
+  // 工時模組係「每人每日一條記錄」，每條記錄嘅 members[] 只係記低同組同事（成員本身冇自己時間）。
+  // 所以遲到 / 病假一定要用「本人自己嗰條記錄」嘅時間，唔可以將 submitter 嘅時間套落全組人度。
+  // 只有當某位成員喺同一日完全冇自己嘅記錄時，先 fallback 借用嗰條記錄嘅時間。
+  const owners = new Set();
+  for (const rec of monthRecs) {
+    if (rec.emp_number) owners.add(String(rec.emp_number) + '|' + String(rec.date).slice(0, 10));
+  }
+  for (const rec of monthRecs) {
+    const dateKey = String(rec.date).slice(0, 10);
     const nums = new Set();
     if (rec.emp_number) nums.add(String(rec.emp_number));
-    if (Array.isArray(rec.members)) for (const mm of rec.members) if (mm && mm.emp_number) nums.add(String(mm.emp_number));
+    if (Array.isArray(rec.members)) for (const mm of rec.members) {
+      if (!mm || !mm.emp_number) continue;
+      const n = String(mm.emp_number);
+      if (!owners.has(n + '|' + dateKey)) nums.add(n); // 冇自己記錄先借用
+    }
     const sched = hhmmToMin(rec.schedule_in);
     const actual = hhmmToMin(rec.actual_in);
     const isLate = sched != null && actual != null && actual > sched;
