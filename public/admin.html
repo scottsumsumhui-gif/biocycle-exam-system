@@ -57,6 +57,7 @@
     <button class="nav-btn" data-tab="feedback" onclick="showTab('feedback')" id="tabFeedback">&#128172; 意見箱</button>
     <button class="nav-btn" data-tab="monthlyOt" onclick="showTab('monthlyOt')" id="tabMonthlyOt">&#128176; 月度OT出糧</button>
     <button class="nav-btn" data-tab="allowance" onclick="showTab('allowance')" id="tabAllowance">&#128176; 津貼 Allowance</button>
+    <button class="nav-btn" data-tab="guaranteedPay" onclick="showTab('guaranteedPay')" id="tabGuaranteedPay">&#128737; 包薪 Guaranteed Pay</button>
   </nav>
   
   <main class="admin-body" id="adminBody"></main>
@@ -142,7 +143,8 @@ const TAB_PERMISSION_MAP = {
   worktime: 'worktime',
   feedback: 'feedback',
   monthlyOt: 'worktime',
-  allowance: 'dashboard'
+  allowance: 'dashboard',
+  guaranteedPay: 'guaranteed_pay'
 };
 function hasPerm(key) {
   if (!adminData) return false;
@@ -160,7 +162,7 @@ function applyNavPermissions() {
 
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet', worktime:'tabWorktime', feedback:'tabFeedback', allowance:'tabAllowance' };
+  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet', worktime:'tabWorktime', feedback:'tabFeedback', allowance:'tabAllowance', guaranteedPay:'tabGuaranteedPay' };
   const tabEl = document.getElementById(tabIdMap[tab]);
   if (tabEl) tabEl.classList.add('active');
   
@@ -180,6 +182,7 @@ function showTab(tab) {
     case 'feedback': loadFeedbackAdmin(); break;
     case 'monthlyOt': loadMonthlyOtAdmin(); break;
     case 'allowance': loadAllowanceAdmin(); break;
+    case 'guaranteedPay': loadGuaranteedPayAdmin(); break;
   }
 }
 
@@ -2224,6 +2227,149 @@ async function exportAllowanceExcel() {
   const m = window._allowanceMonth || '';
   const url = API + '/api/admin/allowance/export' + (m ? ('?month=' + encodeURIComponent(m)) : '');
   window.open(url, '_blank');
+}
+
+// ===== Module 7: 保證薪酬 / 包薪 (Guaranteed Pay) =====
+let _gpData = null;
+
+async function loadGuaranteedPayAdmin() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = '<div class="loading">載入中...</div>';
+  const m = window._gpMonth || '';
+  const url = API + '/api/admin/guaranteed-pay' + (m ? ('?month=' + encodeURIComponent(m)) : '');
+  try {
+    const res = await fetch(url, { credentials: 'include' });
+    const data = await res.json();
+    if (!data.success) { body.innerHTML = '<p>' + esc(data.error || '載入失敗') + '</p>'; return; }
+    _gpData = data;
+    renderGuaranteedPay(data);
+  } catch (e) { body.innerHTML = '<p>載入失敗</p>'; }
+}
+
+function gpSettingsHtml(data) {
+  let h = '<div style="background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:14px;margin-bottom:14px">';
+  h += '<h3 style="margin-top:0">包薪線金額（職級 &times; 駕駛資格）</h3>';
+  h += '<table class="data-table"><thead><tr><th>職級</th><th>無駕駛資格</th><th>有駕駛資格</th></tr></thead><tbody>';
+  for (const lv of ['junior', 'senior', 'supervisor']) {
+    const v0 = data.levels[lv + ':0'];
+    const v1 = data.levels[lv + ':1'];
+    h += '<tr><td>' + esc(data.levelLabels[lv] || lv) + '</td>'
+      + '<td><input type="number" id="gpLv_' + lv + '_0" value="' + (v0 === undefined || v0 === null ? '' : v0) + '" style="width:130px;padding:4px"></td>'
+      + '<td><input type="number" id="gpLv_' + lv + '_1" value="' + (v1 === undefined || v1 === null ? '' : v1) + '" style="width:130px;padding:4px"></td></tr>';
+  }
+  h += '</tbody></table><button class="btn btn-sm btn-primary" onclick="gpSaveLevels()">儲存金額</button>';
+  h += '<h3 style="margin-top:18px">駕駛資格（有牌 &rarr; 包薪線較高）</h3><div style="display:flex;flex-wrap:wrap;gap:8px">';
+  for (const r of data.rows) {
+    h += '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid #ddd;border-radius:6px;padding:4px 9px;font-size:13px;background:#fff">'
+      + '<input type="checkbox" ' + (r.has_driving ? 'checked' : '') + ' onchange="gpToggleDriving(\'' + r.emp_number + '\', this.checked)"> '
+      + esc(r.emp_number) + ' ' + esc(r.name) + '</label>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
+function renderGuaranteedPay(data) {
+  const body = document.getElementById('adminBody');
+  let html = '<h2>&#128737; 保證薪酬 / 包薪 (Guaranteed Pay)</h2>';
+  html += '<div style="margin:12px 0; display:flex; gap:10px; align-items:center; flex-wrap:wrap">'
+    + '<label>出糧月份：</label>'
+    + '<input id="gpMonthInput" type="month" value="' + data.month + '" style="padding:6px">'
+    + '<button class="btn btn-sm btn-primary" onclick="window._gpMonth=document.getElementById(\'gpMonthInput\').value; loadGuaranteedPayAdmin()">查看</button>'
+    + '<button class="btn btn-sm btn-outline" onclick="gpExportExcel()">&#128229; 匯出 Excel</button>'
+    + '<button class="btn btn-sm btn-outline" onclick="gpToggleSettings()">&#9881; 包薪線 / 駕駛資格設定</button></div>';
+  html += '<div style="font-size:13px;color:#777;margin-bottom:12px">批示影響 <b>' + data.month + '</b>，參考 <b>' + data.prevMonth + '</b> 記錄。停發固定 1 個月，下個月自動恢復。參考數據只供提示，唔會自動判定。</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:12px">'
+    + '<div style="background:#f5f5f5;border-radius:8px;padding:12px"><div style="font-size:13px;color:#666">有包薪</div><div style="font-size:22px;font-weight:500">' + data.stats.granted + ' 人</div></div>'
+    + '<div style="background:#f5f5f5;border-radius:8px;padding:12px"><div style="font-size:13px;color:#666">本月停發</div><div style="font-size:22px;font-weight:500;color:#c62828">' + data.stats.suspended + ' 人</div></div>'
+    + '<div style="background:#f5f5f5;border-radius:8px;padding:12px"><div style="font-size:13px;color:#666">待批示</div><div style="font-size:22px;font-weight:500;color:#e65100">' + data.stats.pending + ' 人</div></div>'
+    + '</div>';
+  html += '<div id="gpSettings" style="display:none">' + gpSettingsHtml(data) + '</div>';
+  if (!data.rows.length) {
+    html += '<p style="color:#999">冇 eligible 技術員（只計 junior / senior / supervisor）。</p>';
+  }
+  for (const r of data.rows) {
+    const suspended = r.status === 'suspended';
+    html += '<div style="border:1px solid ' + (suspended ? '#d32f2f' : '#e0e0e0') + ';border-radius:8px;padding:12px 14px;margin-bottom:10px;background:' + (suspended ? '#fff8f8' : '#fff') + '">';
+    html += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+      + '<div><b>' + esc(r.name) + '</b> <span style="color:#666;font-size:13px">' + esc(r.emp_number) + ' &middot; ' + esc(r.level_label) + ' &middot; ' + (r.has_driving ? '有駕駛資格' : '無駕駛資格') + '</span></div>'
+      + '<div style="margin-left:auto"><span style="background:' + (suspended ? '#fdecea' : '#e8f5e9') + ';color:' + (suspended ? '#a32d2d' : '#2e7d32') + ';font-size:12px;padding:4px 12px;border-radius:999px">' + (suspended ? '停發' : '有包薪') + '</span></div></div>';
+    html += '<div style="font-size:13px;color:#555;margin-top:6px">包薪線：' + (r.guaranteed_amount ? ('HKD $' + Number(r.guaranteed_amount).toLocaleString()) : '<span style="color:#c62828">未設定</span>') + '</div>';
+    const ref = [];
+    if (r.refs.examFails.length) ref.push('考試唔合格：' + r.refs.examFails.join('、'));
+    if (r.refs.lateCount) ref.push('遲到 ' + r.refs.lateCount + ' 次');
+    if (r.refs.sickDays) ref.push('病假 ' + r.refs.sickDays + ' 日');
+    html += '<div style="font-size:12px;color:#888;margin-top:4px">' + data.prevMonth + ' 參考：' + (ref.length ? ref.join(' &middot; ') : '無') + '</div>';
+    if (r.incidents.length) {
+      html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">';
+      for (const i of r.incidents) {
+        html += '<span style="background:#fff3e0;color:#e65100;font-size:12px;padding:3px 9px;border-radius:999px">' + esc(i.category) + (i.note ? ' &middot; ' + esc(i.note) : '')
+          + ' <a href="javascript:void(0)" onclick="gpDeleteIncident(' + i.id + ')" style="color:#c62828;text-decoration:none">&times;</a></span>';
+      }
+      html += '</div>';
+    }
+    html += '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+      + '<select id="gpCat_' + r.emp_number + '" style="padding:4px;font-size:13px">' + data.categories.map(c => '<option>' + esc(c) + '</option>').join('') + '</select>'
+      + '<input id="gpNote_' + r.emp_number + '" placeholder="備註（可留空）" style="padding:4px;font-size:13px;width:170px">'
+      + '<button class="btn btn-xs btn-outline" onclick="gpAddIncident(\'' + r.emp_number + '\')">加入 ' + data.prevMonth + ' 違規</button></div>';
+    html += '<div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">'
+      + '<input id="gpDecNote_' + r.emp_number + '" placeholder="批示備註" value="' + esc(r.decision_note || '') + '" style="padding:4px;font-size:13px;width:190px">'
+      + '<button class="btn btn-xs btn-outline" onclick="gpDecide(\'' + r.emp_number + '\',\'granted\')">有包薪</button>'
+      + '<button class="btn btn-xs btn-outline" onclick="gpDecide(\'' + r.emp_number + '\',\'suspended\')">停 1 個月</button>'
+      + (r.decided_at ? '<span style="font-size:12px;color:#999">' + esc(r.decided_by || '') + ' ' + new Date(r.decided_at).toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong' }) + '</span>' : '')
+      + '</div>';
+    html += '</div>';
+  }
+  body.innerHTML = html;
+}
+
+async function gpAddIncident(empNo) {
+  const cat = document.getElementById('gpCat_' + empNo).value;
+  const note = document.getElementById('gpNote_' + empNo).value;
+  const r = await fetch(API + '/api/admin/guaranteed-pay/incidents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ emp_number: empNo, month: _gpData.prevMonth, category: cat, note }) });
+  const j = await r.json();
+  if (j.success) loadGuaranteedPayAdmin(); else alert(j.error || '新增失敗');
+}
+
+async function gpDeleteIncident(id) {
+  if (!confirm('確定刪除呢條違規記錄？')) return;
+  const r = await fetch(API + '/api/admin/guaranteed-pay/incidents/' + id, { method: 'DELETE', credentials: 'include' });
+  const j = await r.json();
+  if (j.success) loadGuaranteedPayAdmin(); else alert(j.error || '刪除失敗');
+}
+
+async function gpDecide(empNo, status) {
+  const el = document.getElementById('gpDecNote_' + empNo);
+  const note = el ? el.value : '';
+  const r = await fetch(API + '/api/admin/guaranteed-pay/decisions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ emp_number: empNo, month: _gpData.month, status, note }) });
+  const j = await r.json();
+  if (j.success) loadGuaranteedPayAdmin(); else alert(j.error || '批示失敗');
+}
+
+async function gpToggleDriving(empNo, val) {
+  const r = await fetch(API + '/api/admin/guaranteed-pay/driving', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ emp_number: empNo, has_driving: val }) });
+  const j = await r.json();
+  if (j.success) loadGuaranteedPayAdmin(); else alert(j.error || '儲存失敗');
+}
+
+async function gpSaveLevels() {
+  const levels = {};
+  for (const lv of ['junior', 'senior', 'supervisor']) for (const d of [0, 1]) {
+    const el = document.getElementById('gpLv_' + lv + '_' + d);
+    if (el) levels[lv + ':' + d] = el.value;
+  }
+  const r = await fetch(API + '/api/admin/guaranteed-pay/levels', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ levels }) });
+  const j = await r.json();
+  if (j.success) { alert('包薪線已儲存'); loadGuaranteedPayAdmin(); } else alert(j.error || '儲存失敗');
+}
+
+function gpToggleSettings() {
+  const el = document.getElementById('gpSettings');
+  if (el) el.style.display = (el.style.display === 'none') ? '' : 'none';
+}
+
+function gpExportExcel() {
+  const m = window._gpMonth || '';
+  window.open(API + '/api/admin/guaranteed-pay/export' + (m ? ('?month=' + encodeURIComponent(m)) : ''), '_blank');
 }
 
 function loadMonthlyOtAdmin() {

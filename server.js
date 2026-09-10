@@ -37,7 +37,8 @@ const ADMIN_PERMISSIONS = {
   leads:       '服務銷售 Technician Leads',
   fleet:       '車隊記錄 Fleet Records',
   worktime:    '工時記錄 Worktime Records',
-  feedback:    '意見箱 Feedback Box'
+  feedback:    '意見箱 Feedback Box',
+  guaranteed_pay: '保證薪酬 Guaranteed Pay'
 };
 const ALL_PERMISSION_KEYS = Object.keys(ADMIN_PERMISSIONS);
 
@@ -3228,6 +3229,221 @@ app.get('/api/admin/allowance/export', authRequired('admin'), requirePermission(
   } catch (e) {
     res.status(500).send('匯出失敗');
   }
+});
+
+// ===== Module 7: 保證薪酬 / 包薪 (Guaranteed Pay) =====
+const GP_FILE = 'guaranteed_pay.json';
+const GP_CATEGORIES = ['考試不合格', '遲到', '病假', '客戶投訴', '損壞物品', '交通意外', '其他'];
+const GP_LEVELS = ['junior', 'senior', 'supervisor'];
+const GP_LEVEL_LABELS = { junior: '初級 Junior', senior: '高級 Senior', supervisor: '主管 Supervisor' };
+
+function gpKey(level, driving) { return level + ':' + (driving ? '1' : '0'); }
+function shiftYM(ym, delta) {
+  const [y, m] = ym.split('-').map(Number);
+  const idx = y * 12 + (m - 1) + delta;
+  return Math.floor(idx / 12) + '-' + String((idx % 12) + 1).padStart(2, '0');
+}
+function hhmmToMin(v) {
+  if (typeof v !== 'string') return null;
+  const m = v.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+}
+async function loadGp() {
+  const g = await loadJSON(GP_FILE, {});
+  return {
+    levels: g.levels && typeof g.levels === 'object' ? g.levels : {},
+    driving_qual: g.driving_qual && typeof g.driving_qual === 'object' ? g.driving_qual : {},
+    incidents: Array.isArray(g.incidents) ? g.incidents : [],
+    decisions: Array.isArray(g.decisions) ? g.decisions : []
+  };
+}
+// 參考數據（只供 Admin 參考，唔會自動判定）：遲到次數 + 病假天數，由 worktime 計
+async function computeGpRefs(prevMonth) {
+  const refs = {};
+  const ensure = (n) => { if (!refs[n]) refs[n] = { lateCount: 0, sickDays: 0 }; return refs[n]; };
+  let wt = [];
+  try { wt = await loadJSON('worktime.json', []); } catch (e) { wt = []; }
+  for (const rec of wt) {
+    if (!rec || !rec.date || String(rec.date).slice(0, 7) !== prevMonth) continue;
+    const nums = new Set();
+    if (rec.emp_number) nums.add(String(rec.emp_number));
+    if (Array.isArray(rec.members)) for (const mm of rec.members) if (mm && mm.emp_number) nums.add(String(mm.emp_number));
+    const sched = hhmmToMin(rec.schedule_in);
+    const actual = hhmmToMin(rec.actual_in);
+    const isLate = sched != null && actual != null && actual > sched;
+    const isSick = rec.day_status === '病假';
+    if (!isLate && !isSick) continue;
+    for (const n of nums) {
+      const r = ensure(n);
+      if (isLate) r.lateCount++;
+      if (isSick) r.sickDays++;
+    }
+  }
+  return refs;
+}
+// 參考數據：上月考試唔合格邊份卷（由 allowance store 讀）
+async function computeGpExamFails(prevMonth) {
+  const fails = {};
+  let store = {};
+  try { store = await loadJSON('allowance.json', {}); } catch (e) { store = {}; }
+  for (const [empNo, recs] of Object.entries(store || {})) {
+    for (const [topic, r] of Object.entries(recs || {})) {
+      if (!r || !Array.isArray(r.history)) continue;
+      for (const h of r.history) {
+        if (h && h.exam_month === prevMonth && String(h.result).startsWith('fail')) {
+          (fails[empNo] = fails[empNo] || []).push(ALLOWANCE_TOPIC_NAMES[topic] || ('Topic ' + topic));
+        }
+      }
+    }
+  }
+  return fails;
+}
+
+app.get('/api/admin/guaranteed-pay', authRequired('admin'), requirePermission('guaranteed_pay'), async (req, res) => {
+  try {
+    let month = (req.query.month || '').toString().trim();
+    if (!month) month = todayHK().slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ success: false, error: '月份格式錯誤 (YYYY-MM)' });
+    const prevMonth = shiftYM(month, -1);
+    const gp = await loadGp();
+    const employees = await loadJSON('employees.json', []);
+    const refs = await computeGpRefs(prevMonth);
+    const examFails = await computeGpExamFails(prevMonth);
+    const rows = [];
+    let nGranted = 0, nSuspended = 0, nPending = 0;
+    for (const emp of employees) {
+      if (ALLOWANCE_EXEMPT.has(emp.level)) continue;
+      if (!GP_LEVELS.includes(emp.level)) continue;
+      if (String(emp.emp_number || '').startsWith('TEST')) continue;
+      const empNo = String(emp.emp_number);
+      const hasDriving = !!gp.driving_qual[empNo];
+      const amount = gp.levels[gpKey(emp.level, hasDriving)] || null;
+      const dec = gp.decisions.find(d => String(d.emp_number) === empNo && d.month === month);
+      const status = dec ? dec.status : 'granted';
+      const inc = gp.incidents.filter(i => String(i.emp_number) === empNo && i.month === prevMonth);
+      if (status === 'suspended') nSuspended++; else nGranted++;
+      if (!dec && inc.length) nPending++;
+      rows.push({
+        emp_number: empNo, name: emp.name, level: emp.level,
+        level_label: GP_LEVEL_LABELS[emp.level] || emp.level,
+        has_driving: hasDriving,
+        guaranteed_amount: amount,
+        status, decision_note: dec ? (dec.note || '') : '', decided_by: dec ? dec.by : null, decided_at: dec ? dec.at : null,
+        incidents: inc,
+        refs: { lateCount: (refs[empNo] || {}).lateCount || 0, sickDays: (refs[empNo] || {}).sickDays || 0, examFails: examFails[empNo] || [] }
+      });
+    }
+    rows.sort((a, b) => (a.status === b.status ? a.emp_number.localeCompare(b.emp_number) : (a.status === 'suspended' ? -1 : 1)));
+    res.json({ success: true, month, prevMonth, levels: gp.levels, categories: GP_CATEGORIES, levelLabels: GP_LEVEL_LABELS, rows, stats: { granted: nGranted, suspended: nSuspended, pending: nPending } });
+  } catch (e) {
+    console.error('[guaranteed-pay] list failed', e && e.message);
+    res.status(500).json({ success: false, error: '載入失敗' });
+  }
+});
+
+app.post('/api/admin/guaranteed-pay/levels', authRequired('admin'), requirePermission('guaranteed_pay'), async (req, res) => {
+  try {
+    const levels = req.body && req.body.levels;
+    if (!levels || typeof levels !== 'object') return res.status(400).json({ success: false, error: 'levels 格式錯誤' });
+    const gp = await loadGp();
+    for (const lv of GP_LEVELS) for (const d of [0, 1]) {
+      const k = gpKey(lv, d === 1);
+      const v = levels[k];
+      if (v === '' || v === null || v === undefined) delete gp.levels[k];
+      else gp.levels[k] = Number(v) || 0;
+    }
+    await saveJSON(GP_FILE, gp);
+    res.json({ success: true, levels: gp.levels });
+  } catch (e) { res.status(500).json({ success: false, error: '儲存失敗' }); }
+});
+
+app.post('/api/admin/guaranteed-pay/driving', authRequired('admin'), requirePermission('guaranteed_pay'), async (req, res) => {
+  try {
+    const empNo = String((req.body && req.body.emp_number) || '');
+    const val = !!(req.body && req.body.has_driving);
+    if (!empNo) return res.status(400).json({ success: false, error: '缺少員工編號' });
+    const gp = await loadGp();
+    gp.driving_qual[empNo] = val;
+    await saveJSON(GP_FILE, gp);
+    res.json({ success: true, emp_number: empNo, has_driving: val });
+  } catch (e) { res.status(500).json({ success: false, error: '儲存失敗' }); }
+});
+
+app.post('/api/admin/guaranteed-pay/incidents', authRequired('admin'), requirePermission('guaranteed_pay'), async (req, res) => {
+  try {
+    const b = req.body || {};
+    const empNo = String(b.emp_number || '');
+    const month = String(b.month || '');
+    const category = String(b.category || '');
+    if (!empNo || !/^\d{4}-\d{2}$/.test(month) || !GP_CATEGORIES.includes(category)) {
+      return res.status(400).json({ success: false, error: '資料不完整或類別無效' });
+    }
+    const gp = await loadGp();
+    const id = gp.incidents.length ? Math.max(...gp.incidents.map(x => x.id)) + 1 : 1;
+    gp.incidents.push({ id, emp_number: empNo, month, category, note: String(b.note || '').slice(0, 300), by: req.session ? (req.session.username || '') : '', at: new Date().toISOString() });
+    await saveJSON(GP_FILE, gp);
+    res.json({ success: true, id });
+  } catch (e) { res.status(500).json({ success: false, error: '新增失敗' }); }
+});
+
+app.delete('/api/admin/guaranteed-pay/incidents/:id', authRequired('admin'), requirePermission('guaranteed_pay'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const gp = await loadGp();
+    gp.incidents = gp.incidents.filter(i => i.id !== id);
+    await saveJSON(GP_FILE, gp);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ success: false, error: '刪除失敗' }); }
+});
+
+app.post('/api/admin/guaranteed-pay/decisions', authRequired('admin'), requirePermission('guaranteed_pay'), async (req, res) => {
+  try {
+    const b = req.body || {};
+    const empNo = String(b.emp_number || '');
+    const month = String(b.month || '');
+    const status = (b.status === 'suspended') ? 'suspended' : 'granted';
+    if (!empNo || !/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ success: false, error: '資料不完整' });
+    const gp = await loadGp();
+    const existing = gp.decisions.find(d => String(d.emp_number) === empNo && d.month === month);
+    const payload = { emp_number: empNo, month, status, note: String(b.note || '').slice(0, 300), by: req.session ? (req.session.username || '') : '', at: new Date().toISOString() };
+    if (existing) Object.assign(existing, payload);
+    else gp.decisions.push(Object.assign({ id: gp.decisions.length ? Math.max(...gp.decisions.map(x => x.id)) + 1 : 1 }, payload));
+    await saveJSON(GP_FILE, gp);
+    res.json({ success: true, status });
+  } catch (e) { res.status(500).json({ success: false, error: '批示失敗' }); }
+});
+
+app.get('/api/admin/guaranteed-pay/export', authRequired('admin'), requirePermission('guaranteed_pay'), async (req, res) => {
+  try {
+    let month = (req.query.month || '').toString().trim();
+    if (!month) month = todayHK().slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).send('月份格式錯誤 (YYYY-MM)');
+    const prevMonth = shiftYM(month, -1);
+    const gp = await loadGp();
+    const employees = await loadJSON('employees.json', []);
+    const aoa = [['保證薪酬（包薪）批示表 — ' + month], [], ['員工編號', '姓名', '職級', '駕駛資格', '包薪線(HKD)', month + ' 包薪狀態', '參考：' + prevMonth + ' 違規', '備註']];
+    for (const emp of employees) {
+      if (ALLOWANCE_EXEMPT.has(emp.level)) continue;
+      if (!GP_LEVELS.includes(emp.level)) continue;
+      if (String(emp.emp_number || '').startsWith('TEST')) continue;
+      const empNo = String(emp.emp_number);
+      const hasDriving = !!gp.driving_qual[empNo];
+      const amount = gp.levels[gpKey(emp.level, hasDriving)] || '';
+      const dec = gp.decisions.find(d => String(d.emp_number) === empNo && d.month === month);
+      const status = dec ? dec.status : 'granted';
+      const inc = gp.incidents.filter(i => String(i.emp_number) === empNo && i.month === prevMonth);
+      aoa.push([empNo, emp.name, GP_LEVEL_LABELS[emp.level] || emp.level, hasDriving ? '有' : '無', amount, status === 'suspended' ? '停發' : '有包薪', inc.map(i => i.category + (i.note ? '(' + i.note + ')' : '')).join('、') || '', dec ? (dec.note || '') : '']);
+    }
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{ wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 12 }, { wch: 14 }, { wch: 16 }, { wch: 40 }, { wch: 30 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'GuaranteedPay ' + month);
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Disposition', 'attachment; filename="guaranteed_pay_' + month + '.xlsx"');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buf);
+  } catch (e) { res.status(500).send('匯出失敗'); }
 });
 
 // 初始化/匯入津貼數據：只寫 allowance.json 一個 key，唔影響其他數據。
