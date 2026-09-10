@@ -2285,11 +2285,14 @@ function renderGuaranteedPay(data) {
     + '<b>&#128197; 時間軸：</b>同事喺 <b style="color:#c62828">' + data.prevMonth + '（' + pLabel + '）</b> 發生違規 &rarr; 你喺呢頁批示 &rarr; 影響 <b style="color:#c62828">' + data.month + '（' + mLabel + '）</b> 出糧'
     + '<br>&#10145; 即係：<b>' + pLabel + '出事 &rarr; ' + mLabel + '停發</b>。下面每張卡寫住嘅違規全部係 <b>' + data.prevMonth + '</b> 嘅記錄。'
     + '<br>&#9200; 停發只影響 <b>' + data.month + '</b> 一個月，<b>' + nM + '</b> 自動恢復有包薪（唔使手動解除）。'
-    + '<br>&#128161; 參考數據（遲到 / 病假 / 考試唔合格）由系統自動計，只供提示，<b>唔會自動判定</b>，要你自己剔選 + 批示。'
+    + '<br>&#128274; <b>考試唔合格係自動停 3 個月</b>（由出事下個月停到補考嗰個月），補考合格後下個月自動恢復 —— 唔使人手批示。'
+    + '<br>&#9997; 遲到 / 病假 / 客戶投訴 / 損壞物品 / 交通意外等 <b>仍然係人手批示，停 1 個月</b>。'
+    + '<br>&#128161; 參考數據（遲到 / 病假）由系統自動計，只供提示，<b>唔會自動判定</b>。'
     + '</div>';
   html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:12px">'
     + '<div style="background:#f5f5f5;border-radius:8px;padding:12px"><div style="font-size:13px;color:#666">有包薪</div><div style="font-size:22px;font-weight:500">' + data.stats.granted + ' 人</div></div>'
-    + '<div style="background:#f5f5f5;border-radius:8px;padding:12px"><div style="font-size:13px;color:#666">本月停發</div><div style="font-size:22px;font-weight:500;color:#c62828">' + data.stats.suspended + ' 人</div></div>'
+    + '<div style="background:#f5f5f5;border-radius:8px;padding:12px"><div style="font-size:13px;color:#666">本月停發</div><div style="font-size:22px;font-weight:500;color:#c62828">' + data.stats.suspended + ' 人</div>'
+    + '<div style="font-size:11px;color:#999;margin-top:2px">其中 ' + (data.stats.auto || 0) + ' 人係考試規則自動</div></div>'
     + '<div style="background:#f5f5f5;border-radius:8px;padding:12px"><div style="font-size:13px;color:#666">待批示</div><div style="font-size:22px;font-weight:500;color:#e65100">' + data.stats.pending + ' 人</div></div>'
     + '</div>';
   html += '<div id="gpSettings" style="display:none">' + gpSettingsHtml(data) + '</div>';
@@ -2308,6 +2311,19 @@ function renderGuaranteedPay(data) {
     if (r.refs.lateCount) ref.push('遲到 ' + r.refs.lateCount + ' 次');
     if (r.refs.sickDays) ref.push('病假 ' + r.refs.sickDays + ' 日');
     html += '<div style="font-size:12px;color:#888;margin-top:4px">' + data.prevMonth + ' 參考：' + (ref.length ? ref.join(' &middot; ') : '無') + '</div>';
+    const auto = r.exam_auto;
+    if (auto) {
+      html += '<div style="background:#fdecea;border-left:4px solid #c62828;border-radius:6px;padding:8px 12px;margin-top:8px;font-size:12px;color:#a32d2d;line-height:1.7">'
+        + '&#128274; <b>考試規則自動停發：</b>' + esc(auto.topic_name) + ' ' + auto.exam_month + ' 唔合格'
+        + '<br>&#128683; 停用區間 <b>' + auto.start_pay + ' ~ ' + auto.end_pay + '</b>（即係補考嗰個月都停）'
+        + (auto.makeup_done_month
+          ? '<br>&#10003; ' + auto.makeup_done_month + ' 補考合格 → <b>' + gpShiftMonth(auto.end_pay, 1) + '</b> 起自動恢復'
+          : '<br>&#9200; 補考月份：<b>' + (auto.makeup_month || '待定') + '</b>，合格後下個月自動恢復')
+        + (!auto.makeup_done_month && auto.makeup_month && data.month > auto.makeup_month
+          ? '<br>&#9888; 補考月份已過但未登記結果 —— 如果補考<b>唔合格</b>，請喺津貼 tab 標記「補考唔合格」繼續停發' : '')
+        + '</div>';
+      if (r.override_granted) html += '<div style="background:#fff8e1;border-left:4px solid #f9a825;border-radius:6px;padding:6px 12px;margin-top:6px;font-size:12px;color:#e65100">&#9888; 你人手批示為「有包薪」，覆寫咗系統建議嘅停發</div>';
+    }
     if (r.incidents.length) {
       html += '<div style="font-size:12px;color:#e65100;margin-top:8px">&#9888; ' + data.prevMonth + ' 違規記錄（影響 ' + data.month + ' 出糧）：</div>';
       html += '<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px">';

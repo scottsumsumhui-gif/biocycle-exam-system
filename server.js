@@ -3096,7 +3096,18 @@ async function applyAllowanceEvent(empNumber, topicId, examYM, passed, source, a
       h.exam_month === examYM && (passed ? String(h.result).startsWith('pass') : h.result === 'fail'))) {
       return; // 已 apply 過，skip
     }
-    AAL.applyExamEvent(store, empNumber, topicId, examYM, passed);
+    // 補考辨識：若呢個考試月啱啱係某個未完成 suspension 嘅補考月 → 當補考處理
+    // （合格 → 解除停津貼 + 標記 makeup_done_month；唔合格 → 再停 3 個月 + 再排補考）
+    const existingRec = store[empNumber][topicId];
+    const openSus = (existingRec && Array.isArray(existingRec.suspensions))
+      ? existingRec.suspensions.filter(s => s && !s.makeup_done_month && s.makeup_month === examYM)
+      : [];
+    if (openSus.length) {
+      if (passed) AAL.applyMakeupPass(store, empNumber, topicId, examYM);
+      else AAL.applyMakeupFail(store, empNumber, topicId, examYM);
+    } else {
+      AAL.applyExamEvent(store, empNumber, topicId, examYM, passed);
+    }
     // 記 audit 痕跡：邊個卷咩時候 mark 咗（來源 + 操作者 + 真實時間）
     const r2 = store[empNumber][topicId];
     const nowIso = new Date().toISOString();
@@ -3298,6 +3309,32 @@ async function computeGpExamFails(prevMonth) {
   return fails;
 }
 
+// 考試唔合格 → 包薪自動停用區間（公司規則）：
+//   出事下一個月起停，一直停到「補考嗰個月」為止（即 Fail 月+1 ~ Fail 月+3）
+//   補考合格 → 記錄 makeup_done_month，由「補考月+1」起自動恢復
+//   補考再唔合格 → 由 applyMakeupFail 產生新 suspension，無縫接住繼續停
+async function computeGpExamBlocks() {
+  const blocks = {};
+  let store = {};
+  try { store = await loadJSON('allowance.json', {}); } catch (e) { store = {}; }
+  for (const [empNo, recs] of Object.entries(store || {})) {
+    for (const [topic, r] of Object.entries(recs || {})) {
+      if (!r || !Array.isArray(r.suspensions)) continue;
+      for (const s of r.suspensions) {
+        if (!s || !s.start) continue;
+        const startPay = shiftYM(s.start, 1);                                   // 出事下一個月先開始停
+        const endPay = s.makeup_done_month ? s.makeup_done_month : (s.makeup_month || shiftYM(s.end || s.start, 1));
+        (blocks[empNo] = blocks[empNo] || []).push({
+          topic: Number(topic), topic_name: ALLOWANCE_TOPIC_NAMES[topic] || ('Topic ' + topic),
+          exam_month: s.start, makeup_month: s.makeup_month, makeup_done_month: s.makeup_done_month || null,
+          start_pay: startPay, end_pay: endPay
+        });
+      }
+    }
+  }
+  return blocks;
+}
+
 app.get('/api/admin/guaranteed-pay', authRequired('admin'), requirePermission('guaranteed_pay'), async (req, res) => {
   try {
     let month = (req.query.month || '').toString().trim();
@@ -3308,8 +3345,9 @@ app.get('/api/admin/guaranteed-pay', authRequired('admin'), requirePermission('g
     const employees = await loadJSON('employees.json', []);
     const refs = await computeGpRefs(prevMonth);
     const examFails = await computeGpExamFails(prevMonth);
+    const examBlocks = await computeGpExamBlocks();
     const rows = [];
-    let nGranted = 0, nSuspended = 0, nPending = 0;
+    let nGranted = 0, nSuspended = 0, nPending = 0, nAuto = 0;
     for (const emp of employees) {
       if (!GP_LEVELS.includes(emp.level)) continue;
       if (String(emp.emp_number || '').startsWith('TEST')) continue;
@@ -3317,9 +3355,13 @@ app.get('/api/admin/guaranteed-pay', authRequired('admin'), requirePermission('g
       const hasDriving = !!gp.driving_qual[empNo];
       const amount = gp.levels[gpKey(emp.level, hasDriving)] || null;
       const dec = gp.decisions.find(d => String(d.emp_number) === empNo && d.month === month);
-      const status = dec ? dec.status : 'granted';
+      const empBlocks = (examBlocks[empNo] || []).sort((a, b) => a.start_pay.localeCompare(b.start_pay));
+      const examHit = empBlocks.find(b => b.start_pay <= month && month <= b.end_pay) || null;
+      const autoSusp = !!examHit;
+      const status = dec ? dec.status : (autoSusp ? 'suspended' : 'granted');
+      const overrideGranted = !!(dec && dec.status === 'granted' && autoSusp); // 人手放行（系統本來建議停）
       const inc = gp.incidents.filter(i => String(i.emp_number) === empNo && i.month === prevMonth);
-      if (status === 'suspended') nSuspended++; else nGranted++;
+      if (status === 'suspended') { nSuspended++; if (!dec) nAuto++; } else nGranted++;
       if (!dec && inc.length) nPending++;
       rows.push({
         emp_number: empNo, name: emp.name, level: emp.level,
@@ -3328,6 +3370,10 @@ app.get('/api/admin/guaranteed-pay', authRequired('admin'), requirePermission('g
         guaranteed_amount: amount,
         status, decision_note: dec ? (dec.note || '') : '', decided_by: dec ? dec.by : null, decided_at: dec ? dec.at : null,
         incidents: inc,
+        exam_auto: examHit,
+        exam_blocks: empBlocks,
+        status_source: dec ? 'manual' : (autoSusp ? 'auto' : 'default'),
+        override_granted: overrideGranted,
         refs: { lateCount: (refs[empNo] || {}).lateCount || 0, sickDays: (refs[empNo] || {}).sickDays || 0, examFails: examFails[empNo] || [] }
       });
     }
@@ -3337,7 +3383,7 @@ app.get('/api/admin/guaranteed-pay', authRequired('admin'), requirePermission('g
       if (la !== lb) return la - lb;
       return String(a.emp_number).localeCompare(String(b.emp_number));
     });
-    res.json({ success: true, month, prevMonth, levels: gp.levels, categories: GP_CATEGORIES, levelLabels: GP_LEVEL_LABELS, rows, stats: { granted: nGranted, suspended: nSuspended, pending: nPending } });
+    res.json({ success: true, month, prevMonth, levels: gp.levels, categories: GP_CATEGORIES, levelLabels: GP_LEVEL_LABELS, rows, stats: { granted: nGranted, suspended: nSuspended, pending: nPending, auto: nAuto } });
   } catch (e) {
     console.error('[guaranteed-pay] list failed', e && e.message);
     res.status(500).json({ success: false, error: '載入失敗' });
@@ -3479,7 +3525,8 @@ app.get('/api/admin/guaranteed-pay/export', authRequired('admin'), requirePermis
     const prevMonth = shiftYM(month, -1);
     const gp = await loadGp();
     const employees = await loadJSON('employees.json', []);
-    const aoa = [['保證薪酬（包薪）批示表 — ' + month], [], ['員工編號', '姓名', '職級', '駕駛資格', '包薪線(HKD)', month + ' 包薪狀態', '參考：' + prevMonth + ' 違規', '備註']];
+    const examBlocks = await computeGpExamBlocks();
+    const aoa = [['保證薪酬（包薪）批示表 — ' + month], [], ['員工編號', '姓名', '職級', '駕駛資格', '包薪線(HKD)', month + ' 包薪狀態', '狀態來源', '參考：' + prevMonth + ' 違規', '考試唔合格停發區間', '備註']];
     for (const emp of employees) {
       if (!GP_LEVELS.includes(emp.level)) continue;
       if (String(emp.emp_number || '').startsWith('TEST')) continue;
@@ -3487,12 +3534,18 @@ app.get('/api/admin/guaranteed-pay/export', authRequired('admin'), requirePermis
       const hasDriving = !!gp.driving_qual[empNo];
       const amount = gp.levels[gpKey(emp.level, hasDriving)] || '';
       const dec = gp.decisions.find(d => String(d.emp_number) === empNo && d.month === month);
-      const status = dec ? dec.status : 'granted';
+      const examHit = (examBlocks[empNo] || []).find(b => b.start_pay <= month && month <= b.end_pay) || null;
+      const status = dec ? dec.status : (examHit ? 'suspended' : 'granted');
       const inc = gp.incidents.filter(i => String(i.emp_number) === empNo && i.month === prevMonth);
-      aoa.push([empNo, emp.name, GP_LEVEL_LABELS[emp.level] || emp.level, hasDriving ? '有' : '無', amount, status === 'suspended' ? '停發' : '有包薪', inc.map(i => i.category + (i.note ? '(' + i.note + ')' : '')).join('、') || '', dec ? (dec.note || '') : '']);
+      const examTxt = (examBlocks[empNo] || []).map(b => b.topic_name + ' ' + b.exam_month + ' 不合格 → 停 ' + b.start_pay + '~' + b.end_pay + (b.makeup_done_month ? ('（' + b.makeup_done_month + ' 補考合格）') : ('（補考 ' + (b.makeup_month || '') + '）'))).join('；');
+      aoa.push([empNo, emp.name, GP_LEVEL_LABELS[emp.level] || emp.level, hasDriving ? '有' : '無', amount,
+        status === 'suspended' ? '停發' : '有包薪',
+        dec ? '人手批示' : (examHit ? '考試規則自動' : '預設'),
+        inc.map(i => i.category + (i.note ? '(' + i.note + ')' : '')).join('、') || '', examTxt,
+        dec ? (dec.note || '') : (examHit ? (examHit.topic_name + ' ' + examHit.exam_month + ' 不合格，補考 ' + (examHit.makeup_month || '') + '，恢復 ' + shiftYM(examHit.end_pay, 1)) : '')]);
     }
     const ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws['!cols'] = [{ wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 12 }, { wch: 14 }, { wch: 16 }, { wch: 40 }, { wch: 30 }];
+    ws['!cols'] = [{ wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 12 }, { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 34 }, { wch: 46 }, { wch: 34 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'GuaranteedPay ' + month);
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
@@ -3512,6 +3565,34 @@ app.post('/api/admin/allowance/import', authRequired('admin'), requirePermission
     res.json({ success: true, msg: '津貼數據已寫入', empCount: Object.keys(store).length });
   } catch (e) {
     res.status(500).json({ success: false, error: '寫入失敗' });
+  }
+});
+
+// 手動標記補考結果（補考唔係經線上考試系統進行時用，例如紙筆補考 / 補考排喺第個月）
+app.post('/api/admin/allowance/makeup', authRequired('admin'), requirePermission('dashboard'), async (req, res) => {
+  try {
+    const b = req.body || {};
+    const empNo = String(b.emp_number || '');
+    const topicId = Number(b.topic);
+    const makeupMonth = String(b.month || '');
+    const passed = b.passed !== false;
+    if (!empNo || !ALLOWANCE_TOPICS.includes(topicId) || !/^\d{4}-\d{2}$/.test(makeupMonth)) {
+      return res.status(400).json({ success: false, error: '資料不完整（emp_number / topic / month）' });
+    }
+    const store = await loadJSON('allowance.json', {});
+    if (!store[empNo]) return res.status(400).json({ success: false, error: '該員工冇津貼記錄' });
+    if (passed) AAL.applyMakeupPass(store, empNo, topicId, makeupMonth);
+    else AAL.applyMakeupFail(store, empNo, topicId, makeupMonth);
+    const r = store[empNo][topicId];
+    const nowIso = new Date().toISOString();
+    r.last_auto_update = nowIso;
+    r.audit = r.audit || [];
+    r.audit.push({ exam_month: makeupMonth, result: passed ? 'pass(makeup)' : 'fail(makeup)', at: nowIso, source: 'admin-makeup', actor: req.session ? (req.session.username || '') : '' });
+    await saveJSON('allowance.json', store);
+    res.json({ success: true, status: r.status, active_start: r.active_start, active_end: r.active_end });
+  } catch (e) {
+    console.error('[allowance] makeup failed', e && e.message);
+    res.status(500).json({ success: false, error: '標記失敗' });
   }
 });
 
