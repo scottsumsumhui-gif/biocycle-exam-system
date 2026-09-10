@@ -3232,8 +3232,8 @@ app.get('/api/admin/allowance/export', authRequired('admin'), requirePermission(
 // ===== Module 7: 保證薪酬 / 包薪 (Guaranteed Pay) =====
 const GP_FILE = 'guaranteed_pay.json';
 const GP_CATEGORIES = ['考試不合格', '遲到', '病假', '客戶投訴', '損壞物品', '交通意外', '其他'];
-const GP_LEVELS = ['junior', 'senior', 'supervisor'];
-const GP_LEVEL_LABELS = { junior: '初級 Junior', senior: '高級 Senior', supervisor: '主管 Supervisor' };
+const GP_LEVELS = ['supervisor', 'd', 'senior', 'junior'];
+const GP_LEVEL_LABELS = { supervisor: '技術員主管 Supervisor', d: '副主管 Deputy', senior: '高級技術員 Senior', junior: '初級技術員 Junior' };
 
 function gpKey(level, driving) { return level + ':' + (driving ? '1' : '0'); }
 function shiftYM(ym, delta) {
@@ -3331,7 +3331,12 @@ app.get('/api/admin/guaranteed-pay', authRequired('admin'), requirePermission('g
         refs: { lateCount: (refs[empNo] || {}).lateCount || 0, sickDays: (refs[empNo] || {}).sickDays || 0, examFails: examFails[empNo] || [] }
       });
     }
-    rows.sort((a, b) => (a.status === b.status ? a.emp_number.localeCompare(b.emp_number) : (a.status === 'suspended' ? -1 : 1)));
+    rows.sort((a, b) => {
+      if (a.status !== b.status) return a.status === 'suspended' ? -1 : 1;
+      const la = GP_LEVELS.indexOf(a.level), lb = GP_LEVELS.indexOf(b.level);
+      if (la !== lb) return la - lb;
+      return String(a.emp_number).localeCompare(String(b.emp_number));
+    });
     res.json({ success: true, month, prevMonth, levels: gp.levels, categories: GP_CATEGORIES, levelLabels: GP_LEVEL_LABELS, rows, stats: { granted: nGranted, suspended: nSuspended, pending: nPending } });
   } catch (e) {
     console.error('[guaranteed-pay] list failed', e && e.message);

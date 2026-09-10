@@ -2250,7 +2250,7 @@ function gpSettingsHtml(data) {
   let h = '<div style="background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:14px;margin-bottom:14px">';
   h += '<h3 style="margin-top:0">包薪線金額（職級 &times; 駕駛資格）</h3>';
   h += '<table class="data-table"><thead><tr><th>職級</th><th>無駕駛資格</th><th>有駕駛資格</th></tr></thead><tbody>';
-  for (const lv of ['junior', 'senior', 'supervisor']) {
+  for (const lv of Object.keys(data.levelLabels || {})) {
     const v0 = data.levels[lv + ':0'];
     const v1 = data.levels[lv + ':1'];
     h += '<tr><td>' + esc(data.levelLabels[lv] || lv) + '</td>'
@@ -2353,7 +2353,7 @@ async function gpToggleDriving(empNo, val) {
 
 async function gpSaveLevels() {
   const levels = {};
-  for (const lv of ['junior', 'senior', 'supervisor']) for (const d of [0, 1]) {
+  for (const lv of Object.keys(_gpData.levelLabels || {})) for (const d of [0, 1]) {
     const el = document.getElementById('gpLv_' + lv + '_' + d);
     if (el) levels[lv + ':' + d] = el.value;
   }
