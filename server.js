@@ -3132,10 +3132,16 @@ app.get('/api/admin/allowance', authRequired('admin'), requirePermission('dashbo
         const lastAudit = (r && r.audit && r.audit.length) ? r.audit[r.audit.length - 1] : null;
         const lastHist = (r && r.history && r.history.length) ? r.history[r.history.length - 1] : null;
         if (r && r.last_auto_update && (!lastAutoUpdate || r.last_auto_update > lastAutoUpdate)) lastAutoUpdate = r.last_auto_update;
+        // 受影響區間：當月是否處於 suspension 內（用於 UI 紅字醒目提示）
+        const suspendedNow = r && r.suspensions && r.suspensions.some(s => {
+          return AAL.monthsBetween(s.start, month) >= 0 && AAL.monthsBetween(month, s.end) >= 0;
+        });
         return {
           topic: t, name: ALLOWANCE_TOPIC_NAMES[t],
           window: (r ? r.active_start : '') + '~' + (r ? r.active_end : ''),
           active: am.lines.some(l => l.topic === t),
+          suspendedNow: !!suspendedNow,
+          suspensions: (r && r.suspensions) || [],
           markedAt: lastAudit ? lastAudit.at : (r && r.last_auto_update) || null,
           markedSource: lastAudit ? lastAudit.source : null,
           markedActor: lastAudit ? lastAudit.actor : null,

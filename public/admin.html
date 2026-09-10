@@ -2201,8 +2201,17 @@ function renderAllowance(data) {
       const mark = b.markedAt
         ? `${b.lastExamMonth || ''} ${b.lastResult || ''} · ${new Date(b.markedAt).toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong' })} (${b.markedSource || ''}${b.markedActor ? ' / ' + b.markedActor : ''})`
         : 'seed baseline (手動 import)';
-      const col = b.active ? '' : ' style="color:#e65100"';
-      return `<span${col}>${b.name}</span> <span style="color:#888">(${b.window})</span><br><span style="font-size:11px;color:#999">mark: ${mark}</span>`;
+      const failLines = (b.suspensions || []).map(s => {
+        const done = s.makeup_done_month;
+        const makeup = s.makeup_month || '';
+        const win = `${s.start}~${s.end}`;
+        if (done) {
+          return `<span style="color:#2e7d32;font-size:12px">✓ 已於 ${done} 補考合格 · 停 ${win}</span>`;
+        }
+        return `<span style="color:#d32f2f;font-size:12px;font-weight:bold">❌ ${b.lastExamMonth || ''} 不合格 · 補考 ${makeup} · 停 ${win}</span>`;
+      }).join('<br>');
+      const col = b.suspendedNow ? ' style="color:#d32f2f;font-weight:bold"' : (b.active ? '' : ' style="color:#e65100"');
+      return `<span${col}>${b.name}</span> <span style="color:#888">(${b.window})</span><br><span style="font-size:11px;color:#999">mark: ${mark}</span>${failLines ? '<br>' + failLines : ''}`;
     }).join('<br><br>') || '<span style="color:#999">—</span>';
     const color = r.total >= 2400 ? '#2e7d32' : (r.total < 2400 ? '#e65100' : '#333');
     html += `<tr><td>${r.emp_number}</td><td>${r.name}</td><td>${r.level}</td><td style="font-weight:bold;color:${color}">$${r.total}</td><td>${r.activeCount}/6</td><td style="line-height:1.5">${bd}</td></tr>`;
