@@ -88,11 +88,9 @@ async function migrateAdminPermissions() {
       a.permissions = fullSet.slice();
       dirty = true;
     } else {
+      // ⚠️ 唔再自動將新權限 key 加俾現有非超管（否則每次部署加新模組，所有管理員都會自動攞到）。
+      // 新權限由超級管理員喺「管理員權限」後台手動授權。
       let changed = false;
-      // Add any newly-introduced permission keys (e.g. 'fleet') to existing admins.
-      for (const k of fullSet) {
-        if (!a.permissions.includes(k)) { a.permissions.push(k); changed = true; }
-      }
       // Existing admins must never hold admin_mgmt — strip it if present.
       if (a.permissions.includes('admin_mgmt')) {
         a.permissions = a.permissions.filter(p => p !== 'admin_mgmt');
@@ -3313,7 +3311,6 @@ app.get('/api/admin/guaranteed-pay', authRequired('admin'), requirePermission('g
     const rows = [];
     let nGranted = 0, nSuspended = 0, nPending = 0;
     for (const emp of employees) {
-      if (ALLOWANCE_EXEMPT.has(emp.level)) continue;
       if (!GP_LEVELS.includes(emp.level)) continue;
       if (String(emp.emp_number || '').startsWith('TEST')) continue;
       const empNo = String(emp.emp_number);
@@ -3424,7 +3421,6 @@ app.get('/api/admin/guaranteed-pay/export', authRequired('admin'), requirePermis
     const employees = await loadJSON('employees.json', []);
     const aoa = [['保證薪酬（包薪）批示表 — ' + month], [], ['員工編號', '姓名', '職級', '駕駛資格', '包薪線(HKD)', month + ' 包薪狀態', '參考：' + prevMonth + ' 違規', '備註']];
     for (const emp of employees) {
-      if (ALLOWANCE_EXEMPT.has(emp.level)) continue;
       if (!GP_LEVELS.includes(emp.level)) continue;
       if (String(emp.emp_number || '').startsWith('TEST')) continue;
       const empNo = String(emp.emp_number);
@@ -3855,6 +3851,23 @@ module.exports = app;
       console.log('migrateTopicsRemoveDeprecated: 移除廢棄 topic', topics.filter(t => DEPRECATED_TOPIC_IDS.has(t.id)).map(t => t.id).join(','));
     }
   } catch (e) { console.error('migrateTopicsRemoveDeprecated error:', e.message); }
+})();
+
+// Migration (一次性): 收回非超管嘅 guaranteed_pay 權限。舊邏輯每次啟動會自動將新權限 key
+// 加俾所有非超管（今次 guaranteed_pay 就係咁加咗），現改為由超管手動授權。
+(async () => {
+  try {
+    const admins = await loadJSON('admins.json', []);
+    let dirty = false;
+    for (const a of admins) {
+      if (a.is_super) continue;
+      if (Array.isArray(a.permissions) && a.permissions.includes('guaranteed_pay')) {
+        a.permissions = a.permissions.filter(p => p !== 'guaranteed_pay');
+        dirty = true;
+      }
+    }
+    if (dirty) { await saveJSON('admins.json', admins); console.log('migrateRevokeGuaranteedPay: 已從非超管收回 guaranteed_pay（需超管手動授權）'); }
+  } catch (e) { console.error('migrateRevokeGuaranteedPay error:', e.message); }
 })();
 
 // Start server locally only (not on Vercel)
