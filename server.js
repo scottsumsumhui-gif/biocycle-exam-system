@@ -3185,16 +3185,40 @@ app.get('/api/admin/allowance/export', authRequired('admin'), requirePermission(
       if (String(emp.emp_number || '').startsWith('TEST')) continue;
       const recs = store[emp.emp_number] || {};
       const am = AAL.allowanceForMonth(store, emp.emp_number, month);
-      const parts = am.lines.map(l => { const r = recs[l.topic]; return ALLOWANCE_TOPIC_NAMES[l.topic] + '(' + (r ? r.active_start : '') + '~' + (r ? r.active_end : '') + ')'; });
+      // 6 卷全列，清楚標示 active / 不合格 / 補考狀態
+      const parts = ALLOWANCE_TOPICS.map(t => {
+        const r = recs[t];
+        const name = ALLOWANCE_TOPIC_NAMES[t];
+        const win = (r ? r.active_start : '') + '~' + (r ? r.active_end : '');
+        const isActive = am.lines.some(l => l.topic === t);
+        if (!isActive && r && r.suspensions && r.suspensions.length) {
+          const s = r.suspensions[r.suspensions.length - 1];
+          const examMonth = r.history && r.history.length ? r.history[r.history.length - 1].exam_month : '';
+          if (s.makeup_done_month) {
+            return `${name}(${win}) ✓ 已補考${s.makeup_done_month}`;
+          }
+          return `${name}(${win}) ❌ ${examMonth}不合格 補考${s.makeup_month || ''}`;
+        }
+        return `${name}(${win}) ${isActive ? '✓' : '—'}`;
+      });
+      // 備註欄：集中寫 suspended 摘要
+      const remarks = ALLOWANCE_TOPICS.map(t => {
+        const r = recs[t];
+        if (!r || !r.suspensions || !r.suspensions.length) return null;
+        const s = r.suspensions[r.suspensions.length - 1];
+        const examMonth = r.history && r.history.length ? r.history[r.history.length - 1].exam_month : '';
+        if (s.makeup_done_month) return `${ALLOWANCE_TOPIC_NAMES[t]} 已於 ${s.makeup_done_month} 補考合格`;
+        return `${ALLOWANCE_TOPIC_NAMES[t]} ${examMonth} 不合格，補考 ${s.makeup_month || ''}`;
+      }).filter(Boolean);
       grandTotal += am.total;
-      rows.push([emp.emp_number, emp.name, emp.level, am.total, parts.length, parts.join(' / ')]);
+      rows.push([emp.emp_number, emp.name, emp.level, am.total, am.activeCount, parts.join(' / '), remarks.join('；')]);
     }
     const aoa = [['技術員考試津貼出糧表 — ' + month], []];
-    aoa.push(['員工編號', '姓名', '職級', '當月津貼(HKD)', 'Active卷數', '津貼明細 (卷 / window)']);
+    aoa.push(['員工編號', '姓名', '職級', '當月津貼(HKD)', 'Active卷數', '津貼明細 (卷 / window / 狀態)', '備註 (不合格/補考)']);
     for (const r of rows) aoa.push(r);
     aoa.push([]); aoa.push(['合計', '', '', grandTotal, '', '']);
     const ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 10 }, { wch: 16 }, { wch: 12 }, { wch: 60 }];
+    ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 10 }, { wch: 16 }, { wch: 12 }, { wch: 80 }, { wch: 50 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Allowance ' + month);
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
