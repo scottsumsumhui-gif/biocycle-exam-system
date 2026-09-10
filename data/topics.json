@@ -24,18 +24,6 @@
     "order_num": 4
   },
   {
-    "id": 5,
-    "name": "技術員手冊",
-    "name_en": "Technician Manual",
-    "order_num": 5
-  },
-  {
-    "id": 6,
-    "name": "舊 Topic 6（已拆分）",
-    "name_en": "Old Topic 6 (Split)",
-    "order_num": 6
-  },
-  {
     "id": 7,
     "name": "蒼蠅及鼠患",
     "name_en": "Flies & Rodent Control",

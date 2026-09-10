@@ -1272,7 +1272,7 @@ app.get('/api/admin/questions/:topicId', authRequired('admin'), requirePermissio
 app.post('/api/admin/questions/reseed', authRequired('admin'), requirePermission('questions'), async (req, res) => {
   try {
     const results = [];
-    for (const tid of [1, 2, 3, 4, 5, 7, 8]) {
+    for (const tid of [1, 2, 3, 4, 7, 8]) {
       for (const type of ['mc', 'essay']) {
         const file = path.join(__dirname, 'questions', `topic_${tid}_${type}.json`);
         if (!fs.existsSync(file)) continue;
@@ -3061,6 +3061,104 @@ app.get('/api/admin/worktime/monthly-ot', authRequired('admin'), requirePermissi
     res.json({ success: true, month, reports });
   } catch (e) {
     res.status(500).json({ success: false, error: '計算失敗' });
+  }
+});
+
+// ===== 技術員考試津貼 Allowance（2026-09-10）=====
+const AAL = require('./allowance_logic.js'); // 共用計算邏輯（active interval + suspensions 模型）
+const ALLOWANCE_TOPICS = [1, 2, 3, 4, 7, 8];
+const ALLOWANCE_AMOUNT = 400;
+const ALLOWANCE_TOPIC_NAMES = { 1: 'IPM', 2: 'BIOKILL', 3: '白蟻', 4: '職安', 7: '蒼蠅鼠患', 8: '蟑螂' };
+const ALLOWANCE_EXEMPT = new Set(['i', 'supervisor', 'a', 'b', 'c', 'g']);
+function ymIndex(ym) { const [y, m] = ym.split('-').map(Number); return y * 12 + (m - 1); }
+function inWin(ym, start, end) { const i = ymIndex(ym); return ymIndex(start) <= i && i <= ymIndex(end); }
+
+app.get('/api/admin/allowance', authRequired('admin'), requirePermission('dashboard'), async (req, res) => {
+  try {
+    let month = (req.query.month || '').toString().trim();
+    if (!month) month = todayHK().slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ success: false, error: '月份格式錯誤 (YYYY-MM)' });
+    const store = await loadJSON('allowance.json', {});
+    const employees = await loadJSON('employees.json', []);
+    const rows = [];
+    let grandTotal = 0;
+    const makeupDue = [];
+    for (const emp of employees) {
+      if (ALLOWANCE_EXEMPT.has(emp.level)) continue;
+      if (String(emp.emp_number || '').startsWith('TEST')) continue;
+      const recs = store[emp.emp_number] || {};
+      const am = AAL.allowanceForMonth(store, emp.emp_number, month);
+      const breakdown = am.lines.map(l => {
+        const r = recs[l.topic];
+        return { topic: l.topic, name: ALLOWANCE_TOPIC_NAMES[l.topic], window: (r ? r.active_start : '') + '~' + (r ? r.active_end : '') };
+      });
+      grandTotal += am.total;
+      rows.push({ emp_number: emp.emp_number, name: emp.name, level: emp.level, total: am.total, activeCount: am.activeCount, breakdown });
+      // 補考到期：有 suspension 且補考月 <= 當月 且未補考
+      for (const t of ALLOWANCE_TOPICS) {
+        const r = recs[t];
+        if (r && r.suspensions) {
+          for (const s of r.suspensions) {
+            if (s.makeup_month && !s.makeup_done_month && AAL.monthsBetween(s.makeup_month, month) >= 0) {
+              makeupDue.push({ emp_number: emp.emp_number, name: emp.name, topic: t, topic_name: ALLOWANCE_TOPIC_NAMES[t], makeup_month: s.makeup_month, suspended_window: s.start + '~' + s.end });
+            }
+          }
+        }
+      }
+    }
+    rows.sort((a, b) => b.total - a.total);
+    makeupDue.sort((a, b) => (a.makeup_month || '').localeCompare(b.makeup_month || ''));
+    res.json({ success: true, month, rows, grandTotal, makeupDue, topicNames: ALLOWANCE_TOPIC_NAMES });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '計算失敗' });
+  }
+});
+
+app.get('/api/admin/allowance/export', authRequired('admin'), requirePermission('dashboard'), async (req, res) => {
+  try {
+    let month = (req.query.month || '').toString().trim();
+    if (!month) month = todayHK().slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).send('月份格式錯誤 (YYYY-MM)');
+    const store = await loadJSON('allowance.json', {});
+    const employees = await loadJSON('employees.json', []);
+    const rows = [];
+    let grandTotal = 0;
+    for (const emp of employees) {
+      if (ALLOWANCE_EXEMPT.has(emp.level)) continue;
+      if (String(emp.emp_number || '').startsWith('TEST')) continue;
+      const recs = store[emp.emp_number] || {};
+      const am = AAL.allowanceForMonth(store, emp.emp_number, month);
+      const parts = am.lines.map(l => { const r = recs[l.topic]; return ALLOWANCE_TOPIC_NAMES[l.topic] + '(' + (r ? r.active_start : '') + '~' + (r ? r.active_end : '') + ')'; });
+      grandTotal += am.total;
+      rows.push([emp.emp_number, emp.name, emp.level, am.total, parts.length, parts.join(' / ')]);
+    }
+    const aoa = [['技術員考試津貼出糧表 — ' + month], []];
+    aoa.push(['員工編號', '姓名', '職級', '當月津貼(HKD)', 'Active卷數', '津貼明細 (卷 / window)']);
+    for (const r of rows) aoa.push(r);
+    aoa.push([]); aoa.push(['合計', '', '', grandTotal, '', '']);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 10 }, { wch: 16 }, { wch: 12 }, { wch: 60 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Allowance ' + month);
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Disposition', 'attachment; filename="allowance_' + month + '.xlsx"');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buf);
+  } catch (e) {
+    res.status(500).send('匯出失敗');
+  }
+});
+
+// 初始化/匯入津貼數據：只寫 allowance.json 一個 key，唔影響其他數據。
+// 部署後由線下版 POST { store } 寫入（或日後由線上 exam_results 重新生成）。
+app.post('/api/admin/allowance/import', authRequired('admin'), requirePermission('dashboard'), async (req, res) => {
+  try {
+    const store = req.body && req.body.store;
+    if (!store || typeof store !== 'object') return res.status(400).json({ success: false, error: 'store 格式錯誤' });
+    await saveJSON('allowance.json', store);
+    res.json({ success: true, msg: '津貼數據已寫入', empCount: Object.keys(store).length });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '寫入失敗' });
   }
 });
 

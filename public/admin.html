@@ -56,6 +56,7 @@
     <button class="nav-btn" data-tab="worktime" onclick="showTab('worktime')" id="tabWorktime">&#9201; 工時記錄</button>
     <button class="nav-btn" data-tab="feedback" onclick="showTab('feedback')" id="tabFeedback">&#128172; 意見箱</button>
     <button class="nav-btn" data-tab="monthlyOt" onclick="showTab('monthlyOt')" id="tabMonthlyOt">&#128176; 月度OT出糧</button>
+    <button class="nav-btn" data-tab="allowance" onclick="showTab('allowance')" id="tabAllowance">&#128176; 津貼 Allowance</button>
   </nav>
   
   <main class="admin-body" id="adminBody"></main>
@@ -140,7 +141,8 @@ const TAB_PERMISSION_MAP = {
   fleet: 'fleet',
   worktime: 'worktime',
   feedback: 'feedback',
-  monthlyOt: 'worktime'
+  monthlyOt: 'worktime',
+  allowance: 'dashboard'
 };
 function hasPerm(key) {
   if (!adminData) return false;
@@ -158,7 +160,7 @@ function applyNavPermissions() {
 
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet', worktime:'tabWorktime', feedback:'tabFeedback' };
+  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet', worktime:'tabWorktime', feedback:'tabFeedback', allowance:'tabAllowance' };
   const tabEl = document.getElementById(tabIdMap[tab]);
   if (tabEl) tabEl.classList.add('active');
   
@@ -177,6 +179,7 @@ function showTab(tab) {
     case 'worktime': loadWorktimeAdmin(); break;
     case 'feedback': loadFeedbackAdmin(); break;
     case 'monthlyOt': loadMonthlyOtAdmin(); break;
+    case 'allowance': loadAllowanceAdmin(); break;
   }
 }
 
@@ -2151,6 +2154,58 @@ async function deleteFeedback(id) {
 }
 
 // ===== 月度 OT 出糧表 =====
+async function loadAllowanceAdmin() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = '<div class="loading">載入中...</div>';
+  const m = window._allowanceMonth || '';
+  const url = API + '/api/admin/allowance' + (m ? ('?month=' + encodeURIComponent(m)) : '');
+  try {
+    const res = await fetch(url, { credentials: 'include' });
+    const data = await res.json();
+    if (!data.success) { body.innerHTML = '<p>載入失敗</p>'; return; }
+    renderAllowance(data);
+  } catch (e) {
+    body.innerHTML = '<p>載入失敗</p>';
+  }
+}
+
+function renderAllowance(data) {
+  const body = document.getElementById('adminBody');
+  const month = data.month;
+  let html = '<h2>&#128176; 技術員考試津貼 (Allowance)</h2>';
+  html += `<div style="margin:12px 0; display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+    <label>出糧月份：</label>
+    <input id="allowanceMonthInput" type="month" value="${month}" style="padding:6px">
+    <button class="btn btn-sm btn-primary" onclick="window._allowanceMonth=document.getElementById('allowanceMonthInput').value; loadAllowanceAdmin()">查看</button>
+    <button class="btn btn-sm btn-outline" onclick="exportAllowanceExcel()">&#128229; 匯出出糧 Excel</button>
+  </div>`;
+  html += `<div style="margin:10px 0; padding:10px 14px; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; font-weight:bold">
+    ${month} 全體技術員津貼總額 = <span style="color:#2e7d32">HKD ${data.grandTotal.toLocaleString()}</span>
+    （${data.rows.length} 位 eligible 技術員）
+  </div>`;
+  if (data.makeupDue && data.makeupDue.length) {
+    html += '<h3 style="color:#e65100">⚠️ 補考到期 / 待跟進</h3><div class="table-scroll"><table class="data-table"><thead><tr><th>員工</th><th>卷</th><th>補考月份</th><th>停用窗口</th></tr></thead><tbody>';
+    for (const md of data.makeupDue) {
+      html += `<tr><td>${md.emp_number} ${md.name}</td><td>${md.topic_name}</td><td>${md.makeup_month}</td><td>${md.suspended_window}</td></tr>`;
+    }
+    html += '</tbody></table></div>';
+  }
+  html += '<div class="table-scroll"><table class="data-table"><thead><tr><th>員工編號</th><th>姓名</th><th>職級</th><th>當月津貼</th><th>Active 卷數</th><th>明細 (卷 / window)</th></tr></thead><tbody>';
+  for (const r of data.rows) {
+    const bd = r.breakdown.map(b => `${b.name} <span style="color:#888">(${b.window})</span>`).join('<br>') || '<span style="color:#999">—</span>';
+    const color = r.total >= 2400 ? '#2e7d32' : (r.total < 2400 ? '#e65100' : '#333');
+    html += `<tr><td>${r.emp_number}</td><td>${r.name}</td><td>${r.level}</td><td style="font-weight:bold;color:${color}">$${r.total}</td><td>${r.activeCount}/6</td><td>${bd}</td></tr>`;
+  }
+  html += '</tbody></table></div>';
+  body.innerHTML = html;
+}
+
+async function exportAllowanceExcel() {
+  const m = window._allowanceMonth || '';
+  const url = API + '/api/admin/allowance/export' + (m ? ('?month=' + encodeURIComponent(m)) : '');
+  window.open(url, '_blank');
+}
+
 function loadMonthlyOtAdmin() {
   const body = document.getElementById('adminBody');
   const now = new Date();
