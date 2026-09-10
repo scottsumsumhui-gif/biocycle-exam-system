@@ -3547,6 +3547,19 @@ module.exports = app;
   try { await migrateAdminPermissions(); } catch (e) { console.error('migrateAdminPermissions error:', e.message); }
 })();
 
+// Migration: 移除已廢棄 topic（技術員手冊=5, 舊Topic6=6）。只寫 topics.json 呢個 key，唔掂 questions 題庫/其他數據。
+(async () => {
+  try {
+    const DEPRECATED_TOPIC_IDS = new Set([5, 6]);
+    const topics = await loadJSON('topics.json', []);
+    const filtered = topics.filter(t => !DEPRECATED_TOPIC_IDS.has(t.id));
+    if (filtered.length !== topics.length) {
+      await saveJSON('topics.json', filtered);
+      console.log('migrateTopicsRemoveDeprecated: 移除廢棄 topic', topics.filter(t => DEPRECATED_TOPIC_IDS.has(t.id)).map(t => t.id).join(','));
+    }
+  } catch (e) { console.error('migrateTopicsRemoveDeprecated error:', e.message); }
+})();
+
 // Start server locally only (not on Vercel)
 if (!isVercel) {
   app.listen(PORT, () => {
