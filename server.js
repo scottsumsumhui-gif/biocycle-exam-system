@@ -706,6 +706,12 @@ app.post('/api/exam/submit', authRequired('employee'), async (req, res) => {
     await saveJSON('essay_answers.json', allEssays);
   }
 
+  // 自動 mark 津貼（非作文級別，交卷即知合格）：load 現有 store → apply 事件 → save
+  if (!hasEssay) {
+    const examYM = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+    await applyAllowanceEvent(emp.emp_number, tid, examYM, mcPassed);
+  }
+
   res.json({
     success: true,
     result: { mcCorrect, mcTotal: mcCount, mcWrong, mcScore: mcScorePercent, mcPassed, hasEssay, totalPassed: hasEssay ? false : mcPassed, maxWrong, questionDetails }
@@ -1178,6 +1184,10 @@ app.post('/api/admin/grade-essay/:resultId', authRequired('admin'), requirePermi
     graded_at: nowStr()
   };
   await saveJSON('exam_results.json', results);
+
+  // 自動 mark 津貼（作文級別，批改後先知合格）：apply 對應考試月事件
+  const examYM = `${result.year}-${String(result.month).padStart(2, '0')}`;
+  await applyAllowanceEvent(emp.emp_number, result.topic_id, examYM, totalPassed);
 
   res.json({ success: true, totalPassed, totalScore, essayScore: Math.round(essayPassPercent), mcPassed });
 });
@@ -3072,6 +3082,27 @@ const ALLOWANCE_TOPIC_NAMES = { 1: 'IPM', 2: 'BIOKILL', 3: '白蟻', 4: '職安'
 const ALLOWANCE_EXEMPT = new Set(['i', 'supervisor', 'a', 'b', 'c', 'g']);
 function ymIndex(ym) { const [y, m] = ym.split('-').map(Number); return y * 12 + (m - 1); }
 function inWin(ym, start, end) { const i = ymIndex(ym); return ymIndex(start) <= i && i <= ymIndex(end); }
+
+// 自動 mark 津貼（task #80）：考試提交(自動批改級別) / 作文批改 之後，
+// 按 (員工 emp_number, 卷, 考試月) 增量更新 allowance store。
+// 唔 reseed —— 直接 load 線上/本地現有 store（已經係 seed baseline），apply 事件，save。
+// 同一 (考試月, 結果) 已 apply 過就 skip，避免 double-apply（提交 dedup + admin 重批改都安全）。
+async function applyAllowanceEvent(empNumber, topicId, examYM, passed) {
+  try {
+    if (!AAL.ALLOWANCE_TOPICS.includes(Number(topicId))) return; // 技術員手冊(5)/Old Topic 6(6) 唔計津貼
+    const store = await loadJSON('allowance.json', {});
+    if (!store[empNumber]) return; // 非 eligible 員工（管理層/豁免級）store 冇 entry，skip
+    const rec = store[empNumber][topicId];
+    if (rec && rec.history && rec.history.some(h =>
+      h.exam_month === examYM && (passed ? String(h.result).startsWith('pass') : h.result === 'fail'))) {
+      return; // 已 apply 過，skip
+    }
+    AAL.applyExamEvent(store, empNumber, topicId, examYM, passed);
+    await saveJSON('allowance.json', store);
+  } catch (e) {
+    console.error('[allowance] auto-mark failed', empNumber, topicId, examYM, e && e.message);
+  }
+}
 
 app.get('/api/admin/allowance', authRequired('admin'), requirePermission('dashboard'), async (req, res) => {
   try {
