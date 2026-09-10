@@ -2326,7 +2326,8 @@ function renderGuaranteedPay(data) {
       + '<input id="gpDecNote_' + r.emp_number + '" placeholder="批示備註" value="' + esc(r.decision_note || '') + '" style="padding:4px;font-size:13px;width:190px">'
       + '<button class="btn btn-xs btn-outline" onclick="gpDecide(\'' + r.emp_number + '\',\'granted\')">&#10003; ' + Number(data.month.slice(5, 7)) + ' 月有包薪</button>'
       + '<button class="btn btn-xs btn-outline" onclick="gpDecide(\'' + r.emp_number + '\',\'suspended\')" style="color:#c62828;border-color:#ef9a9a">&#128683; 停 ' + Number(data.month.slice(5, 7)) + ' 月（1 個月）</button>'
-      + (r.decided_at ? '<span style="font-size:12px;color:#999">' + esc(r.decided_by || '') + ' ' + new Date(r.decided_at).toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong' }) + '</span>' : '')
+      + (r.decided_at ? '<span style="font-size:12px;color:#999">' + esc(r.decided_by || '') + ' ' + new Date(r.decided_at).toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong' })
+        + ' <a href="javascript:void(0)" onclick="gpUndoDecision(\'' + r.emp_number + '\')" style="color:#c62828;text-decoration:none">&#8617; 撤銷批示</a></span>' : '')
       + '</div>';
     html += '</div>';
   }
@@ -2381,6 +2382,13 @@ async function gpDecide(empNo, status) {
   const r = await fetch(API + '/api/admin/guaranteed-pay/decisions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ emp_number: empNo, month: _gpData.month, status, note }) });
   const j = await r.json();
   if (j.success) loadGuaranteedPayAdmin(); else alert(j.error || '批示失敗');
+}
+
+async function gpUndoDecision(empNo) {
+  if (!confirm('撤銷 ' + empNo + ' 喺 ' + _gpData.month + ' 嘅批示？（會變返「未批示 / 有包薪」，唔留底）')) return;
+  const r = await fetch(API + '/api/admin/guaranteed-pay/decisions', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ emp_number: empNo, month: _gpData.month }) });
+  const j = await r.json();
+  if (j.success) loadGuaranteedPayAdmin(); else alert(j.error || '撤銷失敗');
 }
 
 async function gpToggleDriving(empNo, val) {

@@ -3439,6 +3439,21 @@ app.post('/api/admin/guaranteed-pay/auto-incidents', authRequired('admin'), requ
   }
 });
 
+// 撤銷批示：刪除指定員工 + 月份嘅 decision，回復預設（有包薪）且唔留底
+app.delete('/api/admin/guaranteed-pay/decisions', authRequired('admin'), requirePermission('guaranteed_pay'), async (req, res) => {
+  try {
+    const b = Object.assign({}, req.body || {}, req.query || {});
+    const empNo = String(b.emp_number || '');
+    const month = String(b.month || '');
+    if (!empNo || !/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ success: false, error: '資料不完整' });
+    const gp = await loadGp();
+    const before = gp.decisions.length;
+    gp.decisions = gp.decisions.filter(d => !(String(d.emp_number) === empNo && d.month === month));
+    await saveJSON(GP_FILE, gp);
+    res.json({ success: true, removed: before - gp.decisions.length });
+  } catch (e) { res.status(500).json({ success: false, error: '撤銷失敗' }); }
+});
+
 app.post('/api/admin/guaranteed-pay/decisions', authRequired('admin'), requirePermission('guaranteed_pay'), async (req, res) => {
   try {
     const b = req.body || {};
