@@ -2192,9 +2192,11 @@ function renderAllowance(data) {
     html += `<div style="margin:4px 0 12px; font-size:13px; color:#999">🕒 津貼最後自動更新：尚未有自動 mark 記錄（仍係手動 import baseline）</div>`;
   }
   if (data.makeupDue && data.makeupDue.length) {
-    html += '<h3 style="color:#e65100">⚠️ 補考到期 / 待跟進</h3><div class="table-scroll"><table class="data-table"><thead><tr><th>員工</th><th>卷</th><th>補考月份</th><th>停用窗口</th></tr></thead><tbody>';
+    html += '<h3 style="color:#e65100">⚠️ 補考到期 / 待跟進</h3><div class="table-scroll"><table class="data-table"><thead><tr><th>員工</th><th>卷</th><th>補考月份</th><th>停用窗口</th><th>登記補考結果</th></tr></thead><tbody>';
     for (const md of data.makeupDue) {
-      html += `<tr><td>${md.emp_number} ${md.name}</td><td>${md.topic_name}</td><td>${md.makeup_month}</td><td>${md.suspended_window}</td></tr>`;
+      html += `<tr><td>${md.emp_number} ${md.name}</td><td>${md.topic_name}</td><td>${md.makeup_month}</td><td>${md.suspended_window}</td>
+        <td><button class="btn btn-xs btn-outline" onclick="gpMarkMakeup('${md.emp_number}',${md.topic},'${md.makeup_month}',true)">✓ 補考合格</button>
+        <button class="btn btn-xs btn-outline" style="color:#c62828" onclick="gpMarkMakeup('${md.emp_number}',${md.topic},'${md.makeup_month}',false)">✗ 補考唔合格</button></td></tr>`;
     }
     html += '</tbody></table></div>';
   }
@@ -2356,6 +2358,16 @@ async function gpAddIncident(empNo) {
   const r = await fetch(API + '/api/admin/guaranteed-pay/incidents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ emp_number: empNo, month: _gpData.prevMonth, category: cat, note }) });
   const j = await r.json();
   if (j.success) loadGuaranteedPayAdmin(); else alert(j.error || '新增失敗');
+}
+
+async function gpMarkMakeup(empNo, topic, month, passed) {
+  const msg = passed
+    ? `標記 ${empNo} 喺 ${month} 補考合格？\n津貼同包薪都會喺 ${month} 之後自動恢復。`
+    : `標記 ${empNo} 喺 ${month} 補考唔合格？\n會再停多 3 個月，並自動排下次補考。`;
+  if (!confirm(msg)) return;
+  const r = await fetch(API + '/api/admin/allowance/makeup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ emp_number: empNo, topic, month, passed }) });
+  const j = await r.json();
+  if (j.success) { alert('已登記：補考' + (passed ? '合格' : '唔合格')); loadAllowanceAdmin(); } else alert(j.error || '登記失敗');
 }
 
 async function gpAutoIncidents() {
