@@ -2805,8 +2805,8 @@ async function sanitizeWorktimePayload(body, emp) {
       seen.add(id);
       members.push({ emp_id: id, emp_name: found.name || '', emp_number: found.emp_number || '' });
     }
-    if (members.length < 2 || members.length > 4)
-      return { ok: false, error: '今日隊員必須 2 至 4 人' };
+    if (members.length < 1 || members.length > 4)
+      return { ok: false, error: '今日隊員必須 1 至 4 人' };
   }
 
   const ot = computeWorktimeOt({ day_status, date, schedule_in: vals.schedule_in, actual_in: vals.actual_in, off_time: vals.off_time });

@@ -504,7 +504,7 @@
         <div><label>下班時間</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtOff" placeholder="--:--"></div>
       </div>
       <div class="mt-10" >
-        <label>今日隊員（2-4 人）</label>
+        <label>今日隊員（1-4 人）</label>
         <div id="wtMembers" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px"></div>
         <button type="button" class="btn btn-xs btn-outline" onclick="wtAddMember()" style="margin-top:6px">+ 加隊員</button>
       </div>
@@ -2184,7 +2184,7 @@ function wtAddMember(selectedId) {
   btn.textContent = '×';
   btn.onclick = () => {
     const rows = box.querySelectorAll('.wt-member');
-    if (rows.length <= 2) { alert('今日隊員最少 2 人'); return; }
+    if (rows.length < 1) { alert('今日隊員最少 1 人'); return; }
     row.remove();
   };
   row.appendChild(sel);
