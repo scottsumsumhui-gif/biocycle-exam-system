@@ -621,12 +621,58 @@ async function showExamInfo() {
 }
 
 // ===== HOME / MODULE DASHBOARD =====
+
+// 佛教名句 — 每日按日期輪換（同一日所有人見到同一句）
+const DAILY_QUOTES = [
+  { text: '心靜自然涼，煩惱皆自尋。', source: '禪語' },
+  { text: '一念覺，即佛；一念迷，即眾生。', source: '六祖壇經' },
+  { text: '放下執著，方得自在。', source: '佛教格言' },
+  { text: '萬法唯心造，境隨心轉。', source: '華嚴經' },
+  { text: '慈悲無敵，忍辱最強。', source: '法句經' },
+  { text: '過去心不可得，現在心不可得，未來心不可得。', source: '金剛經' },
+  { text: '凡所有相，皆是虛妄。若見諸相非相，則見如來。', source: '金剛經' },
+  { text: '應無所住而生其心。', source: '金剛經' },
+  { text: '色不異空，空不異色。色即是空，空即是色。', source: '般若心經' },
+  { text: '菩提本無樹，明鏡亦非臺。本來無一物，何處惹塵埃。', source: '六祖惠能' },
+  { text: '行到水窮處，坐看雲起時。', source: '王維 · 終南別業' },
+  { text: '莫以善小而不為，莫以惡小而為之。', source: '三國志·蜀書·先主傳' },
+  { text: '諸惡莫作，眾善奉行。自淨其意，是諸佛教。', source: '七佛通戒偈' },
+  { text: '因緣會聚時，果報還自受。', source: '佛經' },
+  { text: '忍一時風平浪靜，退一步海闊天空。', source: '增廣賢文' },
+  { text: '一切有為法，如夢幻泡影，如露亦如電，應作如是觀。', source: '金剛經' },
+  { text: '不生不滅，不垢不淨，不增不減。', source: '般若心經' },
+  { text: '念念不忘，必有迴響；種善因，得善果。', source: '佛法啟示' },
+  { text: '山靜似太古，日長如小年。', source: '王維' },
+  { text: '人之所以痛苦，在於追求錯誤的東西。', source: '釋迦牟尼' },
+  { text: '真正的快樂來自內心的平靜，而非外在的擁有。', source: '佛法智慧' },
+  { text: '寬恕別人，就是善待自己。', source: '佛教格言' },
+  { text: '人生如逆旅，我亦是行人。', source: '蘇軾·臨江仙' },
+  { text: '心中無礙，事事無礙；心中有礙，事事皆礙。', source: '禪語' },
+  { text: '修行不在深山，而在日常的一言一行。', source: '佛法啟示' },
+  { text: '知足者富，強行者有志。', source: '道德經' },
+  { text: '上善若水，水善利萬物而不爭。', source: '道德經' },
+  { text: '大道至簡，衍化至繁。', source: '哲思' },
+  { text: '掃地掃塵心地掃，門開窗開意門開。', source: '禪宗公案' },
+  { text: '今日的努力，是明日福報的種子。', source: '佛法啟示' }
+];
+
+function getDailyQuote() {
+  // 用日期做 seed：同一天永遠返回同一句，翌日自動換
+  const now = new Date();
+  const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+  return DAILY_QUOTES[dayOfYear % DAILY_QUOTES.length];
+}
+
 function showHome() {
   if (!empData) { showScreen('loginScreen'); return; }
+  const q = getDailyQuote();
   document.getElementById('homeHeader').innerHTML =
     `<h1>你好，${empData.name}！</h1>` +
     `<p>職級: ${levelNames[empData.level] || empData.level} | 組別: ${empData.group || '未分配'}</p>` +
-    `<p style="color:var(--text-light)">請選擇要進入的功能：</p>`;
+    `<p style="color:var(--text-light)">請選擇要進入的功能：</p>` +
+    `<div style="margin:16px 0; padding:14px 18px; border-radius:10px; background:linear-gradient(135deg,#f8faf8 0%,#f0f5f4 100%); border-left:3px solid var(--primary); font-style:italic">` +
+    `<span style="color:var(--primary-dark);font-size:15px;line-height:1.6">🪷 ${q.text}</span>` +
+    `</div>`;
   showScreen('homeScreen');
 }
 
