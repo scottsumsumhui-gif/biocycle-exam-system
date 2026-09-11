@@ -3168,7 +3168,7 @@ async function applyAllowanceEvent(empNumber, topicId, examYM, passed, source, a
   }
 }
 
-app.get('/api/admin/allowance', authRequired('admin'), requirePermission('dashboard'), async (req, res) => {
+app.get('/api/admin/allowance', authRequired('admin'), requirePermission('allowance'), async (req, res) => {
   try {
     let month = (req.query.month || '').toString().trim();
     if (!month) month = todayHK().slice(0, 7);
@@ -3229,7 +3229,7 @@ app.get('/api/admin/allowance', authRequired('admin'), requirePermission('dashbo
   }
 });
 
-app.get('/api/admin/allowance/export', authRequired('admin'), requirePermission('dashboard'), async (req, res) => {
+app.get('/api/admin/allowance/export', authRequired('admin'), requirePermission('allowance'), async (req, res) => {
   try {
     let month = (req.query.month || '').toString().trim();
     if (!month) month = todayHK().slice(0, 7);
@@ -3621,7 +3621,7 @@ app.get('/api/admin/guaranteed-pay/export', authRequired('admin'), requirePermis
 
 // 初始化/匯入津貼數據：只寫 allowance.json 一個 key，唔影響其他數據。
 // 部署後由線下版 POST { store } 寫入（或日後由線上 exam_results 重新生成）。
-app.post('/api/admin/allowance/import', authRequired('admin'), requirePermission('dashboard'), async (req, res) => {
+app.post('/api/admin/allowance/import', authRequired('admin'), requirePermission('allowance'), async (req, res) => {
   try {
     const store = req.body && req.body.store;
     if (!store || typeof store !== 'object') return res.status(400).json({ success: false, error: 'store 格式錯誤' });
@@ -3633,7 +3633,7 @@ app.post('/api/admin/allowance/import', authRequired('admin'), requirePermission
 });
 
 // 手動標記補考結果（補考唔係經線上考試系統進行時用，例如紙筆補考 / 補考排喺第個月）
-app.post('/api/admin/allowance/makeup', authRequired('admin'), requirePermission('dashboard'), async (req, res) => {
+app.post('/api/admin/allowance/makeup', authRequired('admin'), requirePermission('allowance'), async (req, res) => {
   try {
     const b = req.body || {};
     const empNo = String(b.emp_number || '');
