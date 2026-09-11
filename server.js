@@ -2167,14 +2167,20 @@ function fleetNextId(rows) { return rows.length ? Math.max(...rows.map(r => r.id
 function fleetIsOut(trips, plate) { return trips.some(t => t.plate === plate && t.end_mileage == null); }
 function fleetActiveTrip(trips, plate) { return trips.find(t => t.plate === plate && t.end_mileage == null) || null; }
 function fleetLastMileage(trips, fuels, plate) {
-  let last = 0;
+  // 用「最近一條有里程嘅記錄」而唔係全歷史 MAX，
+  // 避免舊嘅高值記錄（如誤輸入）或換錶後嘅新低值污染「上次里程」顯示。
+  const recs = [];
   for (const t of trips) {
     if (t.plate !== plate) continue;
-    if (t.end_mileage != null && t.end_mileage > last) last = t.end_mileage;
-    if (t.end_mileage == null && t.start_mileage > last) last = t.start_mileage;
+    const m = t.end_mileage != null ? t.end_mileage : (t.start_mileage != null ? t.start_mileage : null);
+    if (m != null) recs.push({ date: t.date || '', id: t.id || 0, mileage: m });
   }
-  for (const f of fuels) if (f.plate === plate && f.mileage > last) last = f.mileage;
-  return last;
+  for (const f of fuels) {
+    if (f.plate === plate && f.mileage != null) recs.push({ date: f.date || '', id: f.id || 0, mileage: f.mileage });
+  }
+  if (recs.length === 0) return 0;
+  recs.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id));
+  return recs[0].mileage;
 }
 function todayHK() { return new Date(Date.now() + 8 * 3600000).toISOString().substring(0, 10); }
 function validMileage(v) { const n = Number(v); return Number.isFinite(n) && n >= 0 && n <= 1000000; }
