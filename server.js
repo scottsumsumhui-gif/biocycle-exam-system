@@ -2869,12 +2869,17 @@ app.post('/api/worktime/records', authRequired('employee'), async (req, res) => 
     const v = s.value;
     const recs = await loadJSON(WORKTIME_FILE, []);
     // 跨隊重複隊員檢測：如果隊員名單中有人今日已經有另一隊嘅記錄，彈警告讓用戶確認
+    // 「另一隊」= 現有記錄嘅 created_by 唔係自己，而且自己唔喺嗰筆記錄嘅 members 入面（否則只係同隊唔同人 save）
     if (!req.body.ignore_conflict && v.members && v.members.length > 0) {
       const conflicts = [];
       for (const m of v.members) {
         if (Number(m.emp_id) === me.id) continue; // 跳過自己
         const existing = recs.find(r => r.emp_id === Number(m.emp_id) && r.date === v.date);
         if (existing && existing.created_by_emp_id != null && existing.created_by_emp_id !== me.id) {
+          // 檢查自己是否喺現有記錄嘅隊員名單入面 — 如果係，代表之前係同一隊保存，唔算跨隊衝突
+          const existingMembers = Array.isArray(existing.members) ? existing.members : [];
+          const meInExistingTeam = existingMembers.some(em => Number(em.emp_id) === me.id);
+          if (meInExistingTeam) continue;
           const submitter = employees.find(e => e.id === existing.created_by_emp_id);
           conflicts.push({
             emp_name: m.emp_name || existing.emp_name || `ID:${m.emp_id}`,
