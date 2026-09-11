@@ -1988,7 +1988,7 @@ const FLEET_FILES = { trip: FLEET_TRIPS_FILE, fuel: FLEET_FUELS_FILE, maintenanc
 const WORKTIME_FILE = 'worktime.json';
 const FEEDBACK_FILE = 'feedback.json';
 const WORKTIME_TYPES = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除', 'Cancel'];
-const WORKTIME_STATUSES = ['正常上班', '公眾假期', '大假', '病假'];
+const WORKTIME_STATUSES = ['正常上班', '留守公司', '公眾假期', '大假', '病假'];
 const WORKTIME_EDIT_DAYS = 7; // technicians may edit/delete their own record within 7 days
 const WORKTIME_NIGHT_CUT = 20 * 60; // 20:00 後嘅 OT 係另一價錢，OT 由此分界拆做日間 OT / 深夜 OT
 const WORKTIME_TECH_LEVELS = ['junior', 'senior', 'supervisor', 'b', 'd']; // 隊員名單顯示技術員體系職級（初級/高級技術員、技術員主管/經理/副主管）；行政/高層(a/c/g)唔顯示
@@ -2758,7 +2758,7 @@ async function sanitizeWorktimePayload(body, emp) {
   const day_status = WORKTIME_STATUSES.includes(body.day_status) ? body.day_status : '正常上班';
   // 公眾假期預設當大假/病假處理（唔使填時間），除非 user 明確 tick 咗「假期開工」
   const holiday_work = (day_status === '公眾假期' && body.holiday_work === true);
-  const needsTimes = (day_status === '正常上班' || holiday_work);
+  const needsTimes = (day_status === '正常上班' || day_status === '留守公司' || holiday_work);
   // 上班時間 + 實際上班 必填；下班時間可後補（做哂全日工作先去入）
   const fieldOf = { schedule_in: '上班時間', actual_in: '實際上班時間' };
   const vals = {};
@@ -3808,7 +3808,7 @@ app.post('/api/commission/records', authRequired('employee'), async (req, res) =
   try {
     const { record_date, customer_code, members } = req.body || {};
     if (!record_date || !/^\d{4}-\d{2}-\d{2}$/.test(record_date)) return res.status(400).json({ error: '請選擇有效日期' });
-    if (!Array.isArray(members) || members.length < 2 || members.length > 3) return res.status(400).json({ error: '隊員必須 2 至 3 人' });
+    if (!Array.isArray(members) || members.length < 1 || members.length > 3) return res.status(400).json({ error: '隊員必須 1 至 3 人' });
     // 客戶編號可選,自動 trim 及去掉開頭 # / 空白
     const custCode = (customer_code == null ? '' : String(customer_code)).trim().replace(/^#+/, '').trim();
     const employees = await loadJSON('employees.json', []);
