@@ -1969,7 +1969,7 @@ const FLEET_FILES = { trip: FLEET_TRIPS_FILE, fuel: FLEET_FUELS_FILE, maintenanc
 // One record per employee per date, with nested job rows. OT is computed server-side.
 const WORKTIME_FILE = 'worktime.json';
 const FEEDBACK_FILE = 'feedback.json';
-const WORKTIME_TYPES = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除'];
+const WORKTIME_TYPES = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除', 'Cancel'];
 const WORKTIME_STATUSES = ['正常上班', '公眾假期', '大假', '病假'];
 const WORKTIME_EDIT_DAYS = 7; // technicians may edit/delete their own record within 7 days
 const WORKTIME_NIGHT_CUT = 20 * 60; // 20:00 後嘅 OT 係另一價錢，OT 由此分界拆做日間 OT / 深夜 OT
@@ -2850,6 +2850,25 @@ app.post('/api/worktime/records', authRequired('employee'), async (req, res) => 
     if (!s.ok) return res.status(400).json({ success: false, error: s.error });
     const v = s.value;
     const recs = await loadJSON(WORKTIME_FILE, []);
+    // 跨隊重複隊員檢測：如果隊員名單中有人今日已經有另一隊嘅記錄，彈警告讓用戶確認
+    if (!req.body.ignore_conflict && v.members && v.members.length > 0) {
+      const conflicts = [];
+      for (const m of v.members) {
+        if (Number(m.emp_id) === me.id) continue; // 跳過自己
+        const existing = recs.find(r => r.emp_id === Number(m.emp_id) && r.date === v.date);
+        if (existing && existing.created_by_emp_id != null && existing.created_by_emp_id !== me.id) {
+          const submitter = employees.find(e => e.id === existing.created_by_emp_id);
+          conflicts.push({
+            emp_name: m.emp_name || existing.emp_name || `ID:${m.emp_id}`,
+            emp_number: m.emp_number || existing.emp_number || '',
+            created_by: submitter ? submitter.name : `ID:${existing.created_by_emp_id}`
+          });
+        }
+      }
+      if (conflicts.length > 0) {
+        return res.status(409).json({ success: false, error: '發現隊員與其他隊伍重複', conflicts });
+      }
+    }
     const idx = recs.findIndex(r => r.emp_id === me.id && r.date === v.date);
     let record, updated;
     if (idx >= 0) {

@@ -1949,7 +1949,7 @@ async function deleteFleetRecord(type, id) {
 }
 
 // ===== WORKTIME (技術員每日工時記錄) =====
-let wtTypes = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除'];
+let wtTypes = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除', 'Cancel'];
 let wtEmployees = [];
 let wtLoadedHadJobs = false; // 載入記錄時原本有冇工作單（用嚟防止誤保存空單清走自己）
 
@@ -2199,16 +2199,25 @@ async function submitWorktime() {
       let gap = offM - lastEndM;
       if (gap < 0) gap = 0; // 防護：正常情況下收工應喺尾單之後
       if (gap > 60) {
-        // 原因可以寫喺「備註(假期/備註)」或者任何一張單嘅備註，有字就放行
-        const reasons =
-          document.getElementById('wtRemark').value.trim() + ' ' +
-          Array.from(document.querySelectorAll('#wtJobs .wt-remarks')).map(i => i.value.trim()).filter(Boolean).join(' ');
-        if (!reasons.trim()) {
-          alert('下班時間比最尾一張單完結時間超過 1 小時，請喺「備註(假期/備註)」或者單嘅備註寫番原因。');
-          document.getElementById('wtRemark').focus();
-          return;
+        // 判斷是否有 OT：標準工時 Mon-Fri=10h, Sat=5h；實際下班超過標準結束時間 = 有 OT
+        const dow = new Date(date + 'T00:00:00+08:00').getDay();
+        const stdHours = (dow === 6) ? 5 : 10; // Sat=5, Mon-Fri=10
+        const stdEndM = wtAnchor + stdHours * 60;
+        const actualStartM = wtParseHM(payload.actual_in);
+        const effStartM = (actualStartM != null) ? Math.max(stdEndM, actualStartM) : stdEndM;
+        const hasOT = (offM > effStartM);
+        if (hasOT) {
+          // 原因可以寫喺「備註(假期/備註)」或者任何一張單嘅備註，有字就放行
+          const reasons =
+            document.getElementById('wtRemark').value.trim() + ' ' +
+            Array.from(document.querySelectorAll('#wtJobs .wt-remarks')).map(i => i.value.trim()).filter(Boolean).join(' ');
+          if (!reasons.trim()) {
+            alert('下班時間比最尾一張單完結時間超過 1 小時，且今日有 OT，請喺「備註(假期/備註)」或者單嘅備註寫番原因。');
+            document.getElementById('wtRemark').focus();
+            return;
+          }
+          if (!confirm('下班時間比最尾一張單完結時間超過 1 小時，且今日有 OT，確定已喺備註寫咗原因？')) return;
         }
-        if (!confirm('下班時間比最尾一張單完結時間超過 1 小時，確定已喺備註寫咗原因？')) return;
       }
     }
   }
@@ -2218,16 +2227,34 @@ async function submitWorktime() {
       body: JSON.stringify(payload)
     });
     const data = await res.json().catch(() => ({}));
+    // 跨隊重複隊員警告 (HTTP 409)
+    if (res.status === 409 && data.conflicts && data.conflicts.length) {
+      const list = data.conflicts.map(c => `• ${c.emp_name} (${c.emp_number}) — 已由 ${c.created_by} 儲存過`).join('\n');
+      if (!confirm(`⚠️ 發現以下隊員今日已經有另一隊嘅工時記錄：\n\n${list}\n\n繼續儲存會覆蓋佢哋嘅記錄，確定要繼續？`)) return;
+      // 用戶確認 → 加 ignore_conflict 重試
+      payload.ignore_conflict = true;
+      const retry = await fetch(API + '/api/worktime/records', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+      const rd = await retry.json().catch(() => ({}));
+      if (!rd.success) { wtMsg(rd.error || '儲存失敗', false); return; }
+      return handleWtSaveSuccess(rd);
+    }
     if (!data.success) { wtMsg(data.error || '儲存失敗', false); return; }
-    const r = data.record;
-    wtMsg(data.updated ? '✅ 已更新' : '✅ 已儲存', true);
-    document.getElementById('wtResult').innerHTML =
-      `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;display:inline-block">
-        今日總當值 <b>${r.total_duty_hours}h</b> ｜ 標準 <b>${r.standard_hours}h</b> ｜ <span style="color:var(--warning)"><b>OT ${fmtH(r.ot_hours)}h</b></span>
-        <div style="margin-top:4px;color:#555;font-size:13px">OT 細分：20:00前 <b>${fmtH(r.ot_evening_hours || 0)}h</b> ｜ 20:00後 <b style="color:var(--accent-dark)">${fmtH(r.ot_night_hours || 0)}h</b></div>
-      </div>`;
-    await loadWtWeek();
+    return handleWtSaveSuccess(data);
   } catch (e) { wtMsg('連接錯誤', false); }
+}
+
+function handleWtSaveSuccess(data) {
+  const r = data.record;
+  wtMsg(data.updated ? '✅ 已更新' : '✅ 已儲存', true);
+  document.getElementById('wtResult').innerHTML =
+    `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;display:inline-block">
+      今日總當值 <b>${r.total_duty_hours}h</b> ｜ 標準 <b>${r.standard_hours}h</b> ｜ <span style="color:var(--warning)"><b>OT ${fmtH(r.ot_hours)}h</b></span>
+      <div style="margin-top:4px;color:#555;font-size:13px">OT 細分：20:00前 <b>${fmtH(r.ot_evening_hours || 0)}h</b> ｜ 20:00後 <b style="color:var(--accent-dark)">${fmtH(r.ot_night_hours || 0)}h</b></div>
+    </div>`;
+  loadWtWeek();
 }
 
 // OT 以 0.25h（15 分鐘）為單位，2 位小數顯示，唔用 round1 以免變形
