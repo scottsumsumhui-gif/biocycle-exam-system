@@ -25,20 +25,22 @@ let redisPing = 'unknown'; // unknown | ok | failed
 // Admin RBAC permissions. Each key maps to a feature area. is_super admins automatically have all.
 // When editing/adding admin features, just add a new key here and wrap endpoints with requirePermission().
 const ADMIN_PERMISSIONS = {
-  dashboard:   '看板 Dashboard',
-  employees:   '員工管理 Employees',
-  admin_mgmt:  '管理員權限 Admin Management',
-  exam_config: '考試配置 Exam Config',
-  results:     '成績查看 Results',
-  grading:     '問答評分 Essay Grading',
-  questions:   '題庫管理 Question Bank',
-  warehouse:   '倉存管理 Warehouse',
-  commission:  '渠網銷售佣金 Channel Commission',
-  leads:       '服務銷售 Technician Leads',
-  fleet:       '車隊記錄 Fleet Records',
-  worktime:    '工時記錄 Worktime Records',
-  feedback:    '意見箱 Feedback Box',
-  guaranteed_pay: '保證薪酬 Guaranteed Pay'
+  dashboard:         '看板 Dashboard',
+  employees:         '員工管理 Employees',
+  admin_mgmt:        '管理員權限 Admin Management',
+  exam_config:       '考試配置 Exam Config',
+  results:           '成績查看 Results',
+  grading:           '問答評分 Essay Grading',
+  questions:         '題庫管理 Question Bank',
+  warehouse:         '倉存管理 Warehouse',
+  commission:        '渠網銷售佣金 Channel Commission',
+  leads:             '服務銷售 Technician Leads',
+  fleet:             '車隊記錄 Fleet Records',
+  worktime:          '工時記錄 Worktime Records',
+  feedback:          '意見箱 Feedback Box',
+  guaranteed_pay:    '保證薪酬 Guaranteed Pay',
+  allowance:         '津貼 Allowance',
+  monthly_ot_payroll:'月度OT出糧 OT Payroll'
 };
 const ALL_PERMISSION_KEYS = Object.keys(ADMIN_PERMISSIONS);
 
@@ -94,6 +96,17 @@ async function migrateAdminPermissions() {
       // Existing admins must never hold admin_mgmt — strip it if present.
       if (a.permissions.includes('admin_mgmt')) {
         a.permissions = a.permissions.filter(p => p !== 'admin_mgmt');
+        changed = true;
+      }
+      // One-time migration (2026-09-11): allowance / monthly_ot_payroll 從 fallback 改為獨立 key。
+      // 原本 allowance tab 用 dashboard 權限、monthlyOt tab 用 worktime 權限，
+      // 有呢兩個舊 key 嘅管理員應該自動補返新 key，避免部署後突然睇唔到。
+      if (!a.permissions.includes('allowance') && a.permissions.includes('dashboard')) {
+        a.permissions.push('allowance');
+        changed = true;
+      }
+      if (!a.permissions.includes('monthly_ot_payroll') && a.permissions.includes('worktime')) {
+        a.permissions.push('monthly_ot_payroll');
         changed = true;
       }
       if (changed) dirty = true;
