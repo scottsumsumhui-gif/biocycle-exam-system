@@ -98,15 +98,20 @@ async function migrateAdminPermissions() {
         a.permissions = a.permissions.filter(p => p !== 'admin_mgmt');
         changed = true;
       }
-      // One-time migration (2026-09-11): allowance / monthly_ot_payroll 從 fallback 改為獨立 key。
-      // 原本 allowance tab 用 dashboard 權限、monthlyOt tab 用 worktime 權限，
-      // 有呢兩個舊 key 嘅管理員應該自動補返新 key，避免部署後突然睇唔到。
+      // One-time migration (2026-09-11): allowance / monthly_ot_payroll / guaranteed_pay
+      // allowance / monthly_ot_payroll 係由 fallback key 改為獨立 key，舊 key 持有人要補返。
+      // guaranteed_pay 當初加 key 嗰陣冇 auto-grant，導致現有管理員全部未勾到；
+      // 包薪係工時/出糧相關模組，跟 worktime 一齊授權。
       if (!a.permissions.includes('allowance') && a.permissions.includes('dashboard')) {
         a.permissions.push('allowance');
         changed = true;
       }
       if (!a.permissions.includes('monthly_ot_payroll') && a.permissions.includes('worktime')) {
         a.permissions.push('monthly_ot_payroll');
+        changed = true;
+      }
+      if (!a.permissions.includes('guaranteed_pay') && a.permissions.includes('worktime')) {
+        a.permissions.push('guaranteed_pay');
         changed = true;
       }
       if (changed) dirty = true;
