@@ -31,6 +31,9 @@
 </div>
 
 <!-- HOME / MODULE DASHBOARD -->
+<!-- 背景純音樂：用戶自備 mp3 放去 public/audio/bg-music.mp3（唔使推 code，只推檔） -->
+<audio id="bgMusic" loop preload="none" src="audio/bg-music.mp3"></audio>
+
 <div id="homeScreen" class="screen app-shell" style="display:none">
   <div class="brand-bar">
     <div class="bb-logo">BIOCYCLE OPERATION SYSTEM</div>
@@ -554,7 +557,11 @@ async function login() {
   const errEl = document.getElementById('loginError');
   
   if (!empNum || !pw) { errEl.textContent = '請輸入員工編號及密碼'; errEl.style.display='block'; return; }
-  
+
+  // 一登入就播背景音樂（預設開；若之前撳 🎵 掣關咗，bgMusicOn='0' 就唔播）。
+  // 必須喺 click gesture 內同步 call play()，唔可以喺 fetch 之後（嗰陣手勢已過會被 block）。
+  if (localStorage.getItem('bgMusicOn') !== '0') tryStartBgMusic();
+
   try {
     const res = await fetch(API + '/api/auth/employee-login', {
       method: 'POST', headers: {'Content-Type':'application/json'},
@@ -567,10 +574,12 @@ async function login() {
       startHeartbeat();
       showHome();
     } else {
+      stopBgMusic();
       errEl.textContent = data.error;
       errEl.style.display = 'block';
     }
   } catch (e) {
+    stopBgMusic();
     errEl.textContent = '連接錯誤，請稍後再試';
     errEl.style.display = 'block';
   }
@@ -669,12 +678,57 @@ function showHome() {
   const q = getDailyQuote();
   document.getElementById('homeHeader').innerHTML =
     `<h1>你好，${empData.name}！</h1>` +
-    `<p>職級: ${levelNames[empData.level] || empData.level} | 組別: ${empData.group || '未分配'}</p>` +
+    `<div style="margin:6px 0 0"><button class="btn btn-sm btn-outline" id="bgMusicBtn" onclick="toggleBgMusic()">🎵 播放音樂</button></div>` +
     `<p style="color:var(--text-light)">請選擇要進入的功能：</p>` +
-    `<div style="margin:16px 0; padding:14px 18px; border-radius:10px; background:linear-gradient(135deg,#f8faf8 0%,#f0f5f4 100%); border-left:3px solid var(--primary); font-style:italic">` +
-    `<span style="color:var(--primary-dark);font-size:15px;line-height:1.6">🪷 ${q.text}</span>` +
+    `<div style="margin:20px 0; padding:20px 24px; border-radius:12px; background:linear-gradient(135deg,#f0f7f0 0%,#e8f5e8 100%); border-left:4px solid var(--primary); box-shadow:0 1px 3px rgba(0,0,0,0.06)">` +
+    `<span style="color:var(--primary-dark);font-size:18px;line-height:1.8;font-weight:500">🪷 ${q.text}</span>` +
     `</div>`;
+  updateBgMusicBtn();
   showScreen('homeScreen');
+}
+
+// ===== 背景純音樂（🎵 開關掣，用家自備 mp3） =====
+function toggleBgMusic() {
+  const a = document.getElementById('bgMusic');
+  const btn = document.getElementById('bgMusicBtn');
+  if (!a) return;
+  if (a.paused) {
+    a.volume = 0.4;
+    a.play().then(() => {
+      localStorage.setItem('bgMusicOn', '1');
+      if (btn) { btn.textContent = '🎵 播放中（撳停）'; btn.classList.add('btn-active'); }
+    }).catch(err => {
+      console.warn('bg music play failed:', err);
+      if (btn) btn.textContent = '🎵 未找到音樂檔';
+      alert('未找到背景音樂檔。請將 mp3 放到 public/audio/bg-music.mp3（或聯絡管理員）。');
+    });
+  } else {
+    a.pause();
+    localStorage.setItem('bgMusicOn', '0');
+    if (btn) { btn.textContent = '🎵 播放音樂'; btn.classList.remove('btn-active'); }
+  }
+}
+
+function updateBgMusicBtn() {
+  const btn = document.getElementById('bgMusicBtn');
+  const a = document.getElementById('bgMusic');
+  if (btn && a) {
+    if (!a.paused) { btn.textContent = '🎵 播放中（撳停）'; btn.classList.add('btn-active'); }
+    else { btn.textContent = '🎵 播放音樂'; btn.classList.remove('btn-active'); }
+  }
+}
+
+// 喺 login click gesture 內同步 call play()（瀏覽器只允許手勢期間播，否則被 block）
+function tryStartBgMusic() {
+  const a = document.getElementById('bgMusic');
+  if (!a) return;
+  a.volume = 0.4;
+  a.play().then(() => { localStorage.setItem('bgMusicOn', '1'); })
+          .catch(err => console.warn('bg music autoplay blocked:', err));
+}
+function stopBgMusic() {
+  const a = document.getElementById('bgMusic');
+  if (a && !a.paused) a.pause();
 }
 
 // ===== COMMISSION MODULE =====
