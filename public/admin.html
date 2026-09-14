@@ -697,7 +697,16 @@ async function loadDashboard() {
       }
       html += `</tbody></table></div>`;
     }
-    
+
+    // System backup (super-admin only)
+    if (adminData && adminData.isSuper) {
+      html += `<div class="section-card" style="border-left:4px solid var(--primary)"><h3>&#128190; 系統備份</h3>`;
+      html += `<p style="color:var(--text-light); font-size:13px; margin-bottom:10px">將 Redis 內全部數據（員工、考試、工時、倉庫、車隊、津貼、包薪等）匯出成一個 JSON 落你電腦。建議定期備份，防止誤操作或數據出錯損毀。</p>`;
+      html += `<button class="btn btn-primary" onclick="downloadBackup()">&#11015; 一鍵匯出備份 (JSON)</button>`;
+      html += `<span id="backupMsg" style="margin-left:10px; font-size:13px; color:var(--text-light)"></span>`;
+      html += `</div>`;
+    }
+
     body.innerHTML = html;
   } catch(e) { 
     console.error(e); 
@@ -707,6 +716,35 @@ async function loadDashboard() {
 
 function statCard(label, value, color) {
   return `<div class="stat-card" style="border-top:4px solid ${color}"><div class="stat-val">${value}</div><div class="stat-label">${label}</div></div>`;
+}
+
+// One-click full-system backup: download a JSON snapshot from the server.
+async function downloadBackup() {
+  const msg = document.getElementById('backupMsg');
+  if (msg) msg.textContent = '匯出中...';
+  try {
+    const res = await fetch(API + '/api/admin/backup/export', { credentials: 'include' });
+    if (!res.ok) {
+      let err = '匯出失敗';
+      try { const d = await res.json(); if (d.error) err = d.error; } catch (e) {}
+      if (msg) msg.textContent = err;
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const cd = res.headers.get('Content-Disposition') || '';
+    const m = cd.match(/filename="?([^"]+)"?/);
+    a.download = m ? m[1] : ('biocycle_backup_' + new Date().toISOString().replace(/[:.]/g, '-') + '.json');
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    if (msg) msg.textContent = '✅ 已下載';
+  } catch (e) {
+    if (msg) msg.textContent = '連接錯誤';
+  }
 }
 
 // ===== EMPLOYEES =====

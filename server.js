@@ -3774,6 +3774,69 @@ app.delete('/api/admin/feedback/:id', authRequired('admin'), requirePermission('
   }
 });
 
+// ====== FULL SYSTEM BACKUP EXPORT (super-admin only) ======
+// Dumps every data key into a single JSON the browser downloads.
+// No credit card / no external service needed — reads straight from Redis (or local files).
+app.get('/api/admin/backup/export', authRequired('admin'), async (req, res) => {
+  try {
+    // Contains PII + password hashes, so only super admins may export the whole system.
+    const admins = await loadJSON('admins.json', []);
+    const me = admins.find(a => a.id === req.session.user_id);
+    if (!me || !me.is_super) return res.status(403).json({ success: false, error: '需要超級管理員權限' });
+
+    // Comprehensive known data keys (redis key === filename in file mode)
+    const TOPIC_IDS = [1, 2, 3, 4, 7, 8];
+    const KNOWN = [
+      'admins.json', 'employees.json', 'sessions.json',
+      'exam_results.json', 'essay_answers.json', 'exam_config.json',
+      'topics.json', 'job_levels.json',
+      'warehouse_items.json', 'warehouse_transactions.json', 'warehouse_vehicles.json',
+      'commission_records.json', 'tech_leads.json',
+      'fleet_vehicles.json', 'fleet_trips.json', 'fleet_fuels.json', 'fleet_maintenance.json', 'fleet_repairs.json',
+      'worktime.json', 'feedback.json', 'allowance.json', 'guaranteed_pay.json'
+    ];
+    for (const id of TOPIC_IDS) { KNOWN.push(`questions_topic_${id}_mc`, `questions_topic_${id}_essay`); }
+
+    // Build key set: try redis.keys('*') (catches dynamic/new keys), union with KNOWN fallback.
+    const keys = new Set(KNOWN);
+    if (redis) {
+      try {
+        const all = await redis.keys('*');
+        if (Array.isArray(all)) all.forEach(k => keys.add(k));
+      } catch (e) {
+        // Upstash may block KEYS on some plans — fall back to the known key list.
+        console.warn('[BACKUP] redis.keys failed, using known key list:', e.message);
+      }
+    }
+
+    const snapshot = {};
+    for (const k of keys) {
+      let v;
+      try { v = await loadJSON(k, null); } catch (e) { v = null; }
+      if (v === null || v === undefined) continue;
+      snapshot[k] = v;
+    }
+
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    const payload = {
+      meta: {
+        system: 'BIOCYCLE exam-system',
+        exported_at: new Date().toISOString(),
+        exported_by: me.username,
+        key_count: Object.keys(snapshot).length,
+        source: redis ? 'upstash-redis' : 'local-file'
+      },
+      data: snapshot
+    };
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="biocycle_backup_${ts}.json"`);
+    res.send(JSON.stringify(payload, null, 2));
+  } catch (e) {
+    res.status(500).json({ success: false, error: '備份失敗: ' + e.message });
+  }
+});
+
 // Employee: list all employees (for team-member picker)
 app.get('/api/commission/employees', authRequired('employee'), async (req, res) => {
   const employees = await loadJSON('employees.json', []);
