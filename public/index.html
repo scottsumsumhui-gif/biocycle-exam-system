@@ -684,6 +684,7 @@ function showHome() {
     `<span style="color:var(--primary-dark);font-size:18px;line-height:1.8;font-weight:500">🪷 ${q.text}</span>` +
     `</div>`;
   updateBgMusicBtn();
+  armBgMusicAutoplay(); // 兜底：入到 home 第一次撳任何嘢就補播（session 重啟 / login click 被 block 都 cover）
   showScreen('homeScreen');
 }
 
@@ -729,6 +730,29 @@ function tryStartBgMusic() {
 function stopBgMusic() {
   const a = document.getElementById('bgMusic');
   if (a && !a.paused) a.pause();
+}
+
+// 兜底自動播：login click 嘅 play() 被瀏覽器 block，或 session 重啟（開 prod 直接入 home、冇撳登入）
+// 導致 login() 冇跑 → 用家第一次撳 home 任何嘢就補播（仍喺 gesture 內，瀏覽器允許）。
+// 用家關咗(bgMusicOn='0')就唔補；撳 🎵 掣本身唔會被呢度 intercept（toggle 自己 handle）。
+let _bgAutoplayArmed = false;
+function armBgMusicAutoplay() {
+  if (_bgAutoplayArmed) return;
+  if (localStorage.getItem('bgMusicOn') === '0') return;
+  const a0 = document.getElementById('bgMusic');
+  if (a0 && !a0.paused) return; // 已經播緊就唔使 arm
+  _bgAutoplayArmed = true;
+  const onFirst = (e) => {
+    if (e && e.target && e.target.id === 'bgMusicBtn') return; // 撳 🎵 掣交畀 toggleBgMusic
+    const a = document.getElementById('bgMusic');
+    if (!a) return;
+    if (!a.paused) { disarm(); return; }
+    a.volume = 0.4;
+    a.play().then(() => { localStorage.setItem('bgMusicOn', '1'); disarm(); })
+            .catch(() => { /* 下次 gesture 再試，唔拆掣 */ });
+  };
+  const disarm = () => { document.removeEventListener('pointerdown', onFirst, true); _bgAutoplayArmed = false; };
+  document.addEventListener('pointerdown', onFirst, true);
 }
 
 // ===== COMMISSION MODULE =====
