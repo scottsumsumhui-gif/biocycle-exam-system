@@ -4,8 +4,8 @@
 //   - 技術員手冊(5) 同 Old Topic 6(6) 不計津貼
 //   - 合格 → 嗰份卷每月 $400，津貼期 = 考試月 +1 ~ 考試月 +6（即 6 個月，由考試月之後一個月開始）
 //           例：2026-02 考 IPM 合格 → 津貼期 2026-03 ~ 2026-08
-//   - 不合格 → 由考試月+1 起停嗰份卷（考試月+1 ~ 補考月 = 3 個月 $0），補考月 = 考試月+3
-//             （考試月當月仍照派；若補考延後／漏安排，停津貼會一直延至實際補考月）
+//   - 不合格 → 停嗰份卷 3 個月（考試月 ~ 考試月+2 = 3 個月 $0，考試月當月都唔派），補考月 = 考試月+3
+//             （補考延後／漏安排屬個別事件，需人手改 prod data，code 唔會自動延長停津貼）
 //   - 補考合格 → 由補考月 +1 起重新派 6 個月（補考月 +1 ~ +6）
 //   - 6 個 topic 每 6 個月輪考一次（見 TOPIC_EXAM_MONTHS），所以全合格 steady state = 每個月 $2,400
 //
@@ -80,8 +80,8 @@ function maxYM(a, b) { return monthsBetween(a, b) <= 0 ? a : b; }
 
 // 根據一次考試事件計出津貼 window
 // 合格：津貼期 = 考試月 +1 ~ +6（例：2026-02 考 → 2026-03~2026-08）
-// 不合格：停津貼 = 考試月 +1 ~ 補考月（= 考試月+3，標準 3 個月），並排 +3 個月補考
-//         （考試月當月仍照派；補考合格後由補考月+1 起重新派 6 個月）
+// 不合格：停津貼 = 考試月 ~ 考試月+2（標準 3 個月，考試月當月都唔派），補考月 = 考試月+3
+//         （補考延後屬個別事件，需人手改 data；補考合格後由補考月+1 起重新派 6 個月）
 function computeFromExam(examMonth, passed) {
   if (passed) {
     return {
@@ -92,8 +92,8 @@ function computeFromExam(examMonth, passed) {
     };
   }
   return {
-    allowance_start: addMonths(examMonth, 1),
-    allowance_end: addMonths(examMonth, SUSPEND_MONTHS),
+    allowance_start: examMonth,
+    allowance_end: addMonths(examMonth, SUSPEND_MONTHS - 1),
     status: 'suspended',
     makeup_month: addMonths(examMonth, MAKEUP_OFFSET)
   };
@@ -205,15 +205,15 @@ function applyMakeupPass(store, empId, topicId, makeupMonth) {
   return store;
 }
 
-// 補考都唔合格：再停 3 個月，+3 個月再排補考
+// 補考都唔合格：再停 3 個月（補考月 ~ 補考月+2），+3 個月再排補考
 function applyMakeupFail(store, empId, topicId, makeupMonth) {
   const rec = getRec(store, empId, topicId);
   if (!rec) return store;
   rec.suspensions = rec.suspensions || [];
   rec.suspensions.push({
     fail_month: makeupMonth,
-    start: addMonths(makeupMonth, 1),
-    end: addMonths(makeupMonth, SUSPEND_MONTHS),
+    start: makeupMonth,
+    end: addMonths(makeupMonth, SUSPEND_MONTHS - 1),
     makeup_month: addMonths(makeupMonth, MAKEUP_OFFSET),
     makeup_done_month: null,
     result: 'fail(makeup)'
