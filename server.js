@@ -3209,9 +3209,12 @@ app.get('/api/admin/allowance', authRequired('admin'), requirePermission('allowa
         const suspendedNow = r && r.suspensions && r.suspensions.some(s => {
           return AAL.monthsBetween(s.start, month) >= 0 && AAL.monthsBetween(month, s.end) >= 0;
         });
+        // 顯示用津貼期：該卷喺查詢月份所屬嘅 6 個月 cycle（例 IPM 2026-09~2027-02）
+        const cyc = AAL.allowanceCycleWindow(t, month);
         return {
           topic: t, name: ALLOWANCE_TOPIC_NAMES[t],
-          window: (r ? r.active_start : '') + '~' + (r ? r.active_end : ''),
+          window: cyc ? (cyc.start + '~' + cyc.end) : ((r ? r.active_start : '') + '~' + (r ? r.active_end : '')),
+          baselineWindow: (r ? r.active_start : '') + '~' + (r ? r.active_end : ''),
           active: am.lines.some(l => l.topic === t),
           suspendedNow: !!suspendedNow,
           suspensions: (r && r.suspensions) || [],
@@ -3265,10 +3268,11 @@ app.get('/api/allowance/me', authRequired('employee'), async (req, res) => {
       const r = recs[t];
       const lastHist = (r && r.history && r.history.length) ? r.history[r.history.length - 1] : null;
       const activeSusp = (r && r.suspensions) ? r.suspensions.find(s => AAL.monthsBetween(s.start, month) >= 0 && AAL.monthsBetween(month, s.end) >= 0) : null;
+      const cyc = AAL.allowanceCycleWindow(t, month);
       return {
         topic: t,
         name: ALLOWANCE_TOPIC_NAMES[t],
-        window: r ? (r.active_start + '~' + r.active_end) : '',
+        window: cyc ? (cyc.start + '~' + cyc.end) : (r ? (r.active_start + '~' + r.active_end) : ''),
         active: am.lines.some(l => l.topic === t),
         suspendedNow: !!activeSusp,
         makeupMonth: activeSusp ? activeSusp.makeup_month : null,
@@ -3304,7 +3308,8 @@ app.get('/api/admin/allowance/export', authRequired('admin'), requirePermission(
       const parts = ALLOWANCE_TOPICS.map(t => {
         const r = recs[t];
         const name = ALLOWANCE_TOPIC_NAMES[t];
-        const win = (r ? r.active_start : '') + '~' + (r ? r.active_end : '');
+        const cyc = AAL.allowanceCycleWindow(t, month);
+        const win = cyc ? (cyc.start + '~' + cyc.end) : ((r ? r.active_start : '') + '~' + (r ? r.active_end : ''));
         const isActive = am.lines.some(l => l.topic === t);
         if (!isActive && r && r.suspensions && r.suspensions.length) {
           const s = r.suspensions[r.suspensions.length - 1];

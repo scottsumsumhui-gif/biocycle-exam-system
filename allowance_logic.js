@@ -1,11 +1,12 @@
 // allowance_logic.js — 技術員考試津貼計算 (offline logic, 之後會接入 server.js)
-// 規則（2026-09-10 與 Sum 確認，更新為 6 份卷）：
+// 規則（2026-09-15 與 Sum 再確認，更新為 6 份卷 + 新津貼期公式）：
 //   - 6 個 topic (1,2,3,4,7,8)：IPM、BIOKILL、白蟻、職安、蒼蠅鼠患、蟑螂
 //   - 技術員手冊(5) 同 Old Topic 6(6) 不計津貼
-//   - 合格 → 嗰份卷每月 $400，由考試月計 6 個月（考試月 +5）；下一次同卷考試續期，window 連續唔會有真空檔
-//   - 不合格 → 停嗰份卷 3 個月 $400（考試月 +2 = 3 個月 $0），+3 個月安排補考
-//   - 補考合格 → 接回正常 cycle 唔重計：由 fail 月起重回 6 個月 window（補返停咗嗰 3 個月），下一場正常考試仍喺 fail月+7
-//   - 6 個 topic 每年輪 2 次（每 6 個月考一次），所以全合格 steady state = 每個月 $2,400
+//   - 合格 → 嗰份卷每月 $400，津貼期 = 考試月 +1 ~ 考試月 +6（即 6 個月，由考試月之後一個月開始）
+//           例：2026-02 考 IPM 合格 → 津貼期 2026-03 ~ 2026-08
+//   - 不合格 → 停嗰份卷 3 個月 $400（考試月 ~ 考試月 +2 = 3 個月 $0），+3 個月安排補考
+//   - 補考合格 → 由補考月 +1 起重新派 6 個月（補考月 +1 ~ +6）
+//   - 6 個 topic 每 6 個月輪考一次（見 TOPIC_EXAM_MONTHS），所以全合格 steady state = 每個月 $2,400
 //
 // 模型重點（2026-09-10 修正）：
 //   - 每 (員工,卷) 記錄一條 active interval [active_start, active_end]（合格會 merge 延長，唔 overwrite）
@@ -18,6 +19,37 @@ const ALLOWANCE_AMOUNT = 400;                   // 每卷每月 HKD
 const ALLOWANCE_MONTHS = 6;                      // 合格津貼月份數
 const SUSPEND_MONTHS = 3;                        // 不合格停津貼月份數
 const MAKEUP_OFFSET = 3;                         // 補考安排月份偏移
+
+// 考試輪替（2026-09-15 與 Sum 確認）：每個 topic 每 6 個月考一次
+//   2026-02 IPM → 03 白蟻 → 04 BIOKILL → 05 職安 → 06 蟑螂 → 07 蒼蠅鼠患 → 08 再輪到 IPM
+// 津貼期 = 考試月+1 ~ +6，所以每個 topic 嘅津貼 cycle 都係 6 個月一段、首尾相接。
+const TOPIC_EXAM_MONTHS = {
+  1: [2, 8],   // IPM
+  3: [3, 9],   // 白蟻 Termite
+  2: [4, 10],  // BIOKILL
+  4: [5, 11],  // 職業安全
+  8: [6, 12],  // 蟑螂及其他害蟲
+  7: [7, 1]    // 蒼蠅及鼠患
+};
+const ROTATION_ANCHOR = '2026-02'; // >= 2026-02 係 IPM 嘅第一次考試月 (2026-08 = IPM 第二次)
+const CYCLE_MONTHS = 6;           // 輪替週期 = 6 個月 = 津貼期長度
+
+// 某卷嘅第一個津貼 cycle 起始月（= 2026 年第一次考試 + 1 個月）
+function firstCycleStart(topicId) {
+  const em = TOPIC_EXAM_MONTHS[Number(topicId)];
+  if (!em) return null;
+  return addMonths(`${ROTATION_ANCHOR.slice(0, 4)}-${String(em[0]).padStart(2, '0')}`, 1);
+}
+
+// 某卷喺 refMonth 所屬嘅津貼 cycle window（6 個月一段，用嚟顯示真正嘅津貼期）
+function allowanceCycleWindow(topicId, refMonth) {
+  const base = firstCycleStart(topicId);
+  if (!base) return null;
+  const diff = monthsBetween(base, refMonth);
+  const k = Math.max(0, Math.floor(diff / CYCLE_MONTHS));
+  const start = addMonths(base, k * CYCLE_MONTHS);
+  return { start, end: addMonths(start, ALLOWANCE_MONTHS - 1) };
+}
 
 function parseYM(ym) {
   const [y, m] = ym.split('-').map(Number);
@@ -46,11 +78,13 @@ function minYM(a, b) { return monthsBetween(a, b) <= 0 ? b : a; }
 function maxYM(a, b) { return monthsBetween(a, b) <= 0 ? a : b; }
 
 // 根據一次考試事件計出津貼 window
+// 合格：津貼期 = 考試月 +1 ~ +6（例：2026-02 考 → 2026-03~2026-08）
+// 不合格：停 3 個月 = 考試月 ~ 考試月 +2，並排 +3 個月補考
 function computeFromExam(examMonth, passed) {
   if (passed) {
     return {
-      allowance_start: examMonth,
-      allowance_end: addMonths(examMonth, ALLOWANCE_MONTHS - 1),
+      allowance_start: addMonths(examMonth, 1),
+      allowance_end: addMonths(examMonth, ALLOWANCE_MONTHS),
       status: 'active',
       makeup_month: null
     };
@@ -142,15 +176,15 @@ function applyExamEvent(store, empId, topicId, examMonth, passed) {
   return store;
 }
 
-// 補考合格：接回正常 cycle 唔重計（由 fail 月起重回 6 個月 window，補返停咗嗰 3 個月），
+// 補考合格：由補考月 +1 起重新派 6 個月（補考月 +1 ~ +6），
 // 並標記對應 suspension 已補考解決（該 suspension 仍保留以反映停津貼嗰幾個月）
 function applyMakeupPass(store, empId, topicId, makeupMonth) {
   const rec = getRec(store, empId, topicId);
   if (!rec || rec.status !== 'suspended') return store;
-  const failMonth = rec.suspensions.length ? rec.suspensions[rec.suspensions.length - 1].start : makeupMonth;
+  const c = computeFromExam(makeupMonth, true);
   rec.status = 'active';
-  rec.active_start = minYM(rec.active_start, failMonth);
-  rec.active_end = maxYM(rec.active_end, addMonths(failMonth, ALLOWANCE_MONTHS - 1));
+  rec.active_start = minYM(rec.active_start, c.allowance_start);
+  rec.active_end = maxYM(rec.active_end, c.allowance_end);
   rec.last_result = 'pass'; // via makeup
   // 標記最近一個未補考嘅 suspension 已解決
   for (let i = rec.suspensions.length - 1; i >= 0; i--) {
@@ -210,6 +244,7 @@ function allowanceForMonth(store, empId, targetMonth) {
 
 module.exports = {
   ALLOWANCE_TOPICS, ALLOWANCE_AMOUNT, ALLOWANCE_MONTHS, SUSPEND_MONTHS, MAKEUP_OFFSET,
+  TOPIC_EXAM_MONTHS, ROTATION_ANCHOR, CYCLE_MONTHS, firstCycleStart, allowanceCycleWindow,
   addMonths, monthsBetween, inWindow, computeFromExam, minYM, maxYM,
   newStore, applyExamEvent, applyMakeupPass, applyMakeupFail, allowanceForMonth, getRec, seedSteadyState, suspendedInMonth
 };
