@@ -3121,6 +3121,21 @@ app.get('/api/admin/worktime/monthly-ot', authRequired('admin'), requirePermissi
   }
 });
 
+// ===== 員工自助：我的當月 OT（只讀，鎖 session，只返自己）=====
+app.get('/api/worktime/my-ot', authRequired('employee'), async (req, res) => {
+  try {
+    let month = (req.query.month || '').toString().trim();
+    if (!month) month = todayHK().slice(0, 7); // 預設當月 YYYY-MM
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ success: false, error: '月份格式錯誤 (YYYY-MM)' });
+    const reports = await buildMonthlyOt(month);
+    // 只回傳登入者自己一份（靠 session user_id，唔接受任何 emp 參數）
+    const report = reports.find(r => r.emp_id === req.session.user_id) || null;
+    res.json({ success: true, month, report });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '計算失敗' });
+  }
+});
+
 // ===== 技術員考試津貼 Allowance（2026-09-10）=====
 const AAL = require('./allowance_logic.js'); // 共用計算邏輯（active interval + suspensions 模型）
 const ALLOWANCE_TOPICS = [1, 2, 3, 4, 7, 8];
@@ -3224,6 +3239,48 @@ app.get('/api/admin/allowance', authRequired('admin'), requirePermission('allowa
     rows.sort((a, b) => b.total - a.total);
     makeupDue.sort((a, b) => (a.makeup_month || '').localeCompare(b.makeup_month || ''));
     res.json({ success: true, month, rows, grandTotal, makeupDue, lastAutoUpdate, topicNames: ALLOWANCE_TOPIC_NAMES });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '計算失敗' });
+  }
+});
+
+// ===== 員工自助：我的考試津貼（只讀，鎖 session，只返自己）=====
+app.get('/api/allowance/me', authRequired('employee'), async (req, res) => {
+  try {
+    let month = (req.query.month || '').toString().trim();
+    if (!month) month = todayHK().slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ success: false, error: '月份格式錯誤 (YYYY-MM)' });
+    const employees = await loadJSON('employees.json', []);
+    const emp = employees.find(e => e.id === req.session.user_id);
+    if (!emp) return res.status(404).json({ success: false, error: '員工不存在' });
+    // 管理層職級不設津貼
+    if (ALLOWANCE_EXEMPT.has(emp.level)) {
+      return res.json({ success: true, month, exempt: true, amount: ALLOWANCE_AMOUNT, topicNames: ALLOWANCE_TOPIC_NAMES });
+    }
+    const store = await loadJSON('allowance.json', {});
+    const recs = store[emp.emp_number] || {};
+    const am = AAL.allowanceForMonth(store, emp.emp_number, month);
+    // 6 卷全部列埋狀態（領取中 / 停發中 / 未考核），方便員工自己睇
+    const breakdown = ALLOWANCE_TOPICS.map(t => {
+      const r = recs[t];
+      const lastHist = (r && r.history && r.history.length) ? r.history[r.history.length - 1] : null;
+      const activeSusp = (r && r.suspensions) ? r.suspensions.find(s => AAL.monthsBetween(s.start, month) >= 0 && AAL.monthsBetween(month, s.end) >= 0) : null;
+      return {
+        topic: t,
+        name: ALLOWANCE_TOPIC_NAMES[t],
+        window: r ? (r.active_start + '~' + r.active_end) : '',
+        active: am.lines.some(l => l.topic === t),
+        suspendedNow: !!activeSusp,
+        makeupMonth: activeSusp ? activeSusp.makeup_month : null,
+        lastExamMonth: lastHist ? lastHist.exam_month : null,
+        lastResult: lastHist ? lastHist.result : null
+      };
+    });
+    res.json({
+      success: true, month, exempt: false,
+      total: am.total, activeCount: am.activeCount, amount: ALLOWANCE_AMOUNT,
+      breakdown, topicNames: ALLOWANCE_TOPIC_NAMES
+    });
   } catch (e) {
     res.status(500).json({ success: false, error: '計算失敗' });
   }
