@@ -507,30 +507,28 @@ function selectExamQuestions(mcQuestions, essayQs, emp, tid, monthVal, mcCount, 
 }
 
 // 考試合格邏輯：按職級 key 對應考試準則（或不用考試）
-// 對應表（2026-09-09）：
-//   初級標準：見習技術員(e)、初級技術員(junior) → 20 MC，最多錯 4
-//   高級標準：見習高級技術員(f)、高級技術員(senior)、見習技術員副主管(h)、技術員副主管(d) → 20 MC，最多錯 2
-//   不用考試：見習技術員主管(i)、技術員主管(supervisor)、管理層(a/b/c/g)
+// 對應表（2026-09-16 改名後）：
+//   初級標準：見習技術員(P.junior)、初級技術員(junior) → 20 MC，最多錯 4
+//   高級標準：見習高級技術員(P.senior)、高級技術員(senior)、見習技術員副主管(PD.supervisor)、技術員副主管(D.supervisor) → 20 MC，最多錯 2
+//   不用考試：見習技術員主管(P.supervisor)、技術員主管(supervisor)、管理層(AAM/DGM/GM/OPM)
 function getExamCriteria(level) {
-  switch (level) {
-    case 'e':
-    case 'junior':
-      return { mcCount: 20, maxWrong: 4, hasEssay: false, essayCount: 0, exempt: false, criteriaLabel: '初級技術員' };
-    case 'f':
-    case 'senior':
-    case 'h':
-    case 'd':
-      return { mcCount: 20, maxWrong: 2, hasEssay: false, essayCount: 0, exempt: false, criteriaLabel: '高級技術員' };
-    case 'i':
-    case 'supervisor':
-    case 'a':
-    case 'b':
-    case 'c':
-    case 'g':
-      return { mcCount: 0, maxWrong: 0, hasEssay: false, essayCount: 0, exempt: true, criteriaLabel: '不用考試' };
-    default:
-      return { mcCount: 20, maxWrong: 4, hasEssay: false, essayCount: 0, exempt: false, criteriaLabel: '初級技術員' };
-  }
+  // 初級標準：16 題合格
+  if (level === 'junior' || level === 'P.junior')
+    return { mcCount: 20, maxWrong: 4, hasEssay: false, essayCount: 0, exempt: false, criteriaLabel: '初級技術員' };
+  // 高級標準：18 題合格
+  if (level === 'senior' || level === 'D.supervisor' || level === 'P.senior' || level === 'PD.supervisor')
+    return { mcCount: 20, maxWrong: 2, hasEssay: false, essayCount: 0, exempt: false, criteriaLabel: '高級技術員' };
+  // 見習技術員主管 + 技術員主管 + 管理層：免考
+  if (level === 'P.supervisor' || level === 'supervisor' ||
+      level === 'AAM' || level === 'DGM' || level === 'GM' || level === 'OPM')
+    return { mcCount: 0, maxWrong: 0, hasEssay: false, essayCount: 0, exempt: true, criteriaLabel: '不用考試' };
+  // —— 過渡 alias：deploy ↔ 搬數據 空窗內，舊 key 仍生效，行為不變（搬完 + 刪舊 key 後無害）——
+  if (level === 'e' || level === 'f' || level === 'h' || level === 'd')
+    return { mcCount: 20, maxWrong: 2, hasEssay: false, essayCount: 0, exempt: false, criteriaLabel: '高級技術員' };
+  if (level === 'a' || level === 'b' || level === 'c' || level === 'g' || level === 'i')
+    return { mcCount: 0, maxWrong: 0, hasEssay: false, essayCount: 0, exempt: true, criteriaLabel: '不用考試' };
+  // default：未知職級當初級處理（與舊 default 一致）
+  return { mcCount: 20, maxWrong: 4, hasEssay: false, essayCount: 0, exempt: false, criteriaLabel: '初級技術員' };
 }
 
 app.get('/api/exam/current', authRequired('employee'), async (req, res) => {
@@ -3141,7 +3139,7 @@ const AAL = require('./allowance_logic.js'); // 共用計算邏輯（active inte
 const ALLOWANCE_TOPICS = [1, 2, 3, 4, 7, 8];
 const ALLOWANCE_AMOUNT = 400;
 const ALLOWANCE_TOPIC_NAMES = { 1: 'IPM', 2: 'BIOKILL', 3: '白蟻', 4: '職安', 7: '蒼蠅鼠患', 8: '蟑螂' };
-const ALLOWANCE_EXEMPT = new Set(['i', 'supervisor', 'a', 'b', 'c', 'g']);
+const ALLOWANCE_EXEMPT = new Set(['supervisor', 'P.supervisor', 'AAM', 'DGM', 'GM', 'OPM']);
 function ymIndex(ym) { const [y, m] = ym.split('-').map(Number); return y * 12 + (m - 1); }
 function inWin(ym, start, end) { const i = ymIndex(ym); return ymIndex(start) <= i && i <= ymIndex(end); }
 
