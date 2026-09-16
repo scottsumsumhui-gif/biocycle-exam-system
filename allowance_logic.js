@@ -1,12 +1,14 @@
 // allowance_logic.js — 技術員考試津貼計算 (offline logic, 之後會接入 server.js)
-// 規則（2026-09-15 與 Sum 再確認，更新為 6 份卷 + 新津貼期公式）：
+// 規則（2026-09-16 與 Sum 再確認，停發期改為考試月+1 起）：
 //   - 6 個 topic (1,2,3,4,7,8)：IPM、BIOKILL、白蟻、職安、蒼蠅鼠患、蟑螂
 //   - 技術員手冊(5) 同 Old Topic 6(6) 不計津貼
 //   - 合格 → 嗰份卷每月 $400，津貼期 = 考試月 +1 ~ 考試月 +6（即 6 個月，由考試月之後一個月開始）
 //           例：2026-02 考 IPM 合格 → 津貼期 2026-03 ~ 2026-08
-//   - 不合格 → 停嗰份卷 3 個月（考試月 ~ 考試月+2 = 3 個月 $0，考試月當月都唔派），補考月 = 考試月+3
-//             （補考延後／漏安排屬個別事件，需人手改 prod data，code 唔會自動延長停津貼）
+//   - 不合格 → 停嗰份卷 3 個月（考試月+1 ~ 考試月+3 = 3 個月 $0），補考月 = 考試月+4
+//           例：2026-09 考唔合格 → 停 2026-10、11、12；補考 2027-01
+//           （補考延後／漏安排屬個別事件，需人手改 prod data，code 唔會自動延長停津貼）
 //   - 補考合格 → 由補考月 +1 起重新派 6 個月（補考月 +1 ~ +6）
+//           例：2027-01 補考合格 → 津貼期 2027-02 ~ 2027-07
 //   - 6 個 topic 每 6 個月輪考一次（見 TOPIC_EXAM_MONTHS），所以全合格 steady state = 每個月 $2,400
 //
 // 模型重點（2026-09-10 修正）：
@@ -18,8 +20,9 @@
 const ALLOWANCE_TOPICS = [1, 2, 3, 4, 7, 8]; // 6 份卷
 const ALLOWANCE_AMOUNT = 400;                   // 每卷每月 HKD
 const ALLOWANCE_MONTHS = 6;                      // 合格津貼月份數
-const SUSPEND_MONTHS = 3;                        // 不合格停津貼月份數（考試月+1 ~ 補考月）
-const MAKEUP_OFFSET = 3;                         // 補考安排月份偏移
+const SUSPEND_MONTHS = 3;                        // 不合格停津貼月份數（考試月+1 ~ 考試月+3）
+const SUSPEND_OFFSET = 1;                        // 停津貼由考試月之後一個月開始
+const MAKEUP_OFFSET = 4;                         // 補考安排月份偏移 = SUSPEND_OFFSET + SUSPEND_MONTHS
 
 // 考試輪替（2026-09-15 與 Sum 確認）：每個 topic 每 6 個月考一次
 //   2026-02 IPM → 03 白蟻 → 04 BIOKILL → 05 職安 → 06 蟑螂 → 07 蒼蠅鼠患 → 08 再輪到 IPM
@@ -80,7 +83,8 @@ function maxYM(a, b) { return monthsBetween(a, b) <= 0 ? a : b; }
 
 // 根據一次考試事件計出津貼 window
 // 合格：津貼期 = 考試月 +1 ~ +6（例：2026-02 考 → 2026-03~2026-08）
-// 不合格：停津貼 = 考試月 ~ 考試月+2（標準 3 個月，考試月當月都唔派），補考月 = 考試月+3
+// 不合格：停津貼 = 考試月+1 ~ 考試月+3（標準 3 個月），補考月 = 考試月+4
+//         （例：2026-09 考唔合格 → 停 2026-10、11、12；補考 2027-01）
 //         （補考延後屬個別事件，需人手改 data；補考合格後由補考月+1 起重新派 6 個月）
 function computeFromExam(examMonth, passed) {
   if (passed) {
@@ -92,8 +96,8 @@ function computeFromExam(examMonth, passed) {
     };
   }
   return {
-    allowance_start: examMonth,
-    allowance_end: addMonths(examMonth, SUSPEND_MONTHS - 1),
+    allowance_start: addMonths(examMonth, SUSPEND_OFFSET),
+    allowance_end: addMonths(examMonth, SUSPEND_OFFSET + SUSPEND_MONTHS - 1),
     status: 'suspended',
     makeup_month: addMonths(examMonth, MAKEUP_OFFSET)
   };
@@ -205,15 +209,15 @@ function applyMakeupPass(store, empId, topicId, makeupMonth) {
   return store;
 }
 
-// 補考都唔合格：再停 3 個月（補考月 ~ 補考月+2），+3 個月再排補考
+// 補考都唔合格：再停 3 個月（補考月+1 ~ 補考月+3），+4 個月再排補考
 function applyMakeupFail(store, empId, topicId, makeupMonth) {
   const rec = getRec(store, empId, topicId);
   if (!rec) return store;
   rec.suspensions = rec.suspensions || [];
   rec.suspensions.push({
     fail_month: makeupMonth,
-    start: makeupMonth,
-    end: addMonths(makeupMonth, SUSPEND_MONTHS - 1),
+    start: addMonths(makeupMonth, SUSPEND_OFFSET),
+    end: addMonths(makeupMonth, SUSPEND_OFFSET + SUSPEND_MONTHS - 1),
     makeup_month: addMonths(makeupMonth, MAKEUP_OFFSET),
     makeup_done_month: null,
     result: 'fail(makeup)'
@@ -247,7 +251,7 @@ function allowanceForMonth(store, empId, targetMonth) {
 }
 
 module.exports = {
-  ALLOWANCE_TOPICS, ALLOWANCE_AMOUNT, ALLOWANCE_MONTHS, SUSPEND_MONTHS, MAKEUP_OFFSET,
+  ALLOWANCE_TOPICS, ALLOWANCE_AMOUNT, ALLOWANCE_MONTHS, SUSPEND_MONTHS, SUSPEND_OFFSET, MAKEUP_OFFSET,
   TOPIC_EXAM_MONTHS, ROTATION_ANCHOR, CYCLE_MONTHS, firstCycleStart, allowanceCycleWindow,
   addMonths, monthsBetween, inWindow, computeFromExam, minYM, maxYM,
   newStore, applyExamEvent, applyMakeupPass, applyMakeupFail, allowanceForMonth, getRec, seedSteadyState, suspendedInMonth

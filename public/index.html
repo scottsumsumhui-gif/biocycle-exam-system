@@ -1148,10 +1148,9 @@ async function fillCarOptions() {
       return;
     }
   } catch (e) {}
-  // fallback default CAR 1-12
-  for (let i = 1; i <= 12; i++) html += `<option value="CAR ${i}">CAR ${i}</option>`;
-  sel.dataset.loaded = '1';
-  sel.innerHTML = html;
+  // 載入失敗：唔好硬塞假車牌（CAR 1-12 只會令記錄入錯車），
+  // 改為提示用戶重試，避免污染倉存記錄。
+  sel.innerHTML = '<option value="">（車牌載入失敗，請重新開啟本頁）</option>';
 }
 
 let whItemsCache = [];
