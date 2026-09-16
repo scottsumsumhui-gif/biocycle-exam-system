@@ -821,8 +821,9 @@ app.post('/api/admin/job-levels', authRequired('admin'), requirePermission('empl
 
   const { key, label, description, order } = req.body || {};
   if (!key || !label) return res.json({ success: false, error: 'key 及 label 必填' });
-  // Restrict key to lowercase letters / digits / underscore so it is safe in URLs and SQL-ish contexts.
-  if (!/^[a-z][a-z0-9_]{0,29}$/.test(key)) return res.json({ success: false, error: 'key 必須係小寫英文字母開頭，只可包含字母、數字、底線' });
+  // Restrict key to letters / digits / underscore so it is safe in URLs and storage.
+  // 容許大寫開頭（2026-09-16：職級 short code 用 AAM/DGM/GM/OPM/D.supervisor 等大寫）。
+  if (!/^[A-Za-z][A-Za-z0-9_]{0,29}$/.test(key)) return res.json({ success: false, error: 'key 必須係英文字母開頭，只可包含字母、數字、底線' });
 
   const list = await getJobLevels();
   if (list.find(l => l.key === key)) return res.json({ success: false, error: '此 key 已存在' });
@@ -1989,7 +1990,7 @@ const WORKTIME_TYPES = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug'
 const WORKTIME_STATUSES = ['正常上班', '留守公司', '公眾假期', '大假', '病假'];
 const WORKTIME_EDIT_DAYS = 7; // technicians may edit/delete their own record within 7 days
 const WORKTIME_NIGHT_CUT = 20 * 60; // 20:00 後嘅 OT 係另一價錢，OT 由此分界拆做日間 OT / 深夜 OT
-const WORKTIME_TECH_LEVELS = ['junior', 'senior', 'supervisor', 'b', 'd']; // 隊員名單顯示技術員體系職級（初級/高級技術員、技術員主管/經理/副主管）；行政/高層(a/c/g)唔顯示
+const WORKTIME_TECH_LEVELS = ['junior', 'senior', 'supervisor', 'OPM', 'D.supervisor']; // 隊員名單顯示技術員體系職級（初級/高級技術員、技術員主管/經理/副主管）；行政/高層(AAM/DGM/GM)唔顯示
 
 // Parse "HH:MM" -> minutes since midnight, or null if invalid.
 function parseHM(s) {
@@ -2085,17 +2086,17 @@ function ensureWorktimeOtSplit(rec) {
 // ===== OT 出糧設定 =====
 // 各職級 OT 時薪：normal = 20:00 前 (Normal Hours)；special = 20:00 後 (Special Hours)
 const OT_RATES = {
-  e:          { normal: 60, special: 66 }, // 見習技術員
-  junior:     { normal: 70, special: 81 }, // 初級技術員
-  f:          { normal: 70, special: 81 }, // 見習高級技術員
-  senior:     { normal: 80, special: 88 }, // 高級技術員
-  h:          { normal: 80, special: 88 }, // 見習技術員副主管
-  d:          { normal: 85, special: 94 }, // 技術員副主管
-  i:          { normal: 85, special: 94 }, // 見習技術員主管
-  supervisor: { normal: 88, special: 97 }, // 技術員主管
+  'P.junior':     { normal: 60, special: 66 }, // 見習技術員 (舊 e)
+  junior:       { normal: 70, special: 81 }, // 初級技術員
+  'P.senior':     { normal: 70, special: 81 }, // 見習高級技術員 (舊 f)
+  senior:       { normal: 80, special: 88 }, // 高級技術員
+  'PD.supervisor': { normal: 80, special: 88 }, // 見習技術員副主管 (舊 h)
+  'D.supervisor': { normal: 85, special: 94 }, // 技術員副主管 (舊 d)
+  'P.supervisor': { normal: 85, special: 94 }, // 見習技術員主管 (舊 i)
+  supervisor:   { normal: 88, special: 97 }, // 技術員主管
 };
-// 管理層職級：不計算 OT 出糧（Assistant Accounting Manager / 技術員經理 / DGM / GM）
-const OT_EXCLUDE_LEVELS = new Set(['a', 'b', 'c', 'g']);
+// 管理層職級：不計算 OT 出糧（AAM / OPM / DGM / GM）
+const OT_EXCLUDE_LEVELS = new Set(['AAM', 'OPM', 'DGM', 'GM']);
 // Extra % 加成：按當月 Total OT 小時分層（參考 OT 津貼表）
 function otExtraPct(totalHours) {
   if (totalHours >= 75) return 0.20;
@@ -3139,7 +3140,8 @@ const AAL = require('./allowance_logic.js'); // 共用計算邏輯（active inte
 const ALLOWANCE_TOPICS = [1, 2, 3, 4, 7, 8];
 const ALLOWANCE_AMOUNT = 400;
 const ALLOWANCE_TOPIC_NAMES = { 1: 'IPM', 2: 'BIOKILL', 3: '白蟻', 4: '職安', 7: '蒼蠅鼠患', 8: '蟑螂' };
-const ALLOWANCE_EXEMPT = new Set(['supervisor', 'P.supervisor', 'AAM', 'DGM', 'GM', 'OPM']);
+// 免津貼職級：主管 + 見習主管 + 管理層（新 key）；另加舊 key alias (a/b/c/g) 頂住 deploy↔搬數據空窗，搬完後無害
+const ALLOWANCE_EXEMPT = new Set(['supervisor', 'P.supervisor', 'AAM', 'DGM', 'GM', 'OPM', 'a', 'b', 'c', 'g']);
 function ymIndex(ym) { const [y, m] = ym.split('-').map(Number); return y * 12 + (m - 1); }
 function inWin(ym, start, end) { const i = ymIndex(ym); return ymIndex(start) <= i && i <= ymIndex(end); }
 
@@ -3351,8 +3353,8 @@ app.get('/api/admin/allowance/export', authRequired('admin'), requirePermission(
 // ===== Module 7: 保證薪酬 / 包薪 (Guaranteed Pay) =====
 const GP_FILE = 'guaranteed_pay.json';
 const GP_CATEGORIES = ['考試不合格', '遲到', '病假', '客戶投訴', '損壞物品', '交通意外', '其他'];
-const GP_LEVELS = ['supervisor', 'd', 'senior', 'junior'];
-const GP_LEVEL_LABELS = { supervisor: '技術員主管 Supervisor', d: '副主管 Deputy', senior: '高級技術員 Senior', junior: '初級技術員 Junior' };
+const GP_LEVELS = ['supervisor', 'D.supervisor', 'senior', 'junior'];
+const GP_LEVEL_LABELS = { supervisor: '技術員主管 Supervisor', 'D.supervisor': '副主管 Deputy', senior: '高級技術員 Senior', junior: '初級技術員 Junior' };
 
 function gpKey(level, driving) { return level + ':' + (driving ? '1' : '0'); }
 function shiftYM(ym, delta) {
@@ -4196,6 +4198,25 @@ module.exports = app;
     }
     if (dirty) { await saveJSON('admins.json', admins); console.log('migrateRevokeGuaranteedPay: 已從非超管收回 guaranteed_pay（需超管手動授權）'); }
   } catch (e) { console.error('migrateRevokeGuaranteedPay error:', e.message); }
+})();
+
+// Migration (一次性): 職級改名 d → D.supervisor（2026-09-16）。guaranteed_pay.levels 用 `level:driving` 做 key，
+// 舊 'd:0'/'d:1' 改名為 'D.supervisor:0'/'D.supervisor:1'，保留原值。
+(async () => {
+  try {
+    const gp = await loadJSON(GP_FILE, null);
+    if (gp && gp.levels) {
+      let dirty = false;
+      for (const [oldK, newK] of [['d:0', 'D.supervisor:0'], ['d:1', 'D.supervisor:1']]) {
+        if (Object.prototype.hasOwnProperty.call(gp.levels, oldK)) {
+          gp.levels[newK] = gp.levels[oldK];
+          delete gp.levels[oldK];
+          dirty = true;
+        }
+      }
+      if (dirty) { await saveJSON(GP_FILE, gp); console.log('migrateGpRenameDsu: 包薪 levels d: → D.supervisor: 已搬'); }
+    }
+  } catch (e) { console.error('migrateGpRenameDsu error:', e.message); }
 })();
 
 // Start server locally only (not on Vercel)
