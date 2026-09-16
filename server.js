@@ -821,9 +821,9 @@ app.post('/api/admin/job-levels', authRequired('admin'), requirePermission('empl
 
   const { key, label, description, order } = req.body || {};
   if (!key || !label) return res.json({ success: false, error: 'key 及 label 必填' });
-  // Restrict key to letters / digits / underscore so it is safe in URLs and storage.
-  // 容許大寫開頭（2026-09-16：職級 short code 用 AAM/DGM/GM/OPM/D.supervisor 等大寫）。
-  if (!/^[A-Za-z][A-Za-z0-9_]{0,29}$/.test(key)) return res.json({ success: false, error: 'key 必須係英文字母開頭，只可包含字母、數字、底線' });
+  // Restrict key to letters / digits / underscore / dot so it is safe in URLs and storage.
+  // 容許大寫開頭（2026-09-16：職級 short code 用 AAM/DGM/GM/OPM/D.supervisor 等大寫 + 句點）。
+  if (!/^[A-Za-z][A-Za-z0-9_.]{0,29}$/.test(key)) return res.json({ success: false, error: 'key 必須係英文字母開頭，只可包含字母、數字、底線、句點' });
 
   const list = await getJobLevels();
   if (list.find(l => l.key === key)) return res.json({ success: false, error: '此 key 已存在' });
@@ -2094,6 +2094,12 @@ const OT_RATES = {
   'D.supervisor': { normal: 85, special: 94 }, // 技術員副主管 (舊 d)
   'P.supervisor': { normal: 85, special: 94 }, // 見習技術員主管 (舊 i)
   supervisor:   { normal: 88, special: 97 }, // 技術員主管
+  // 舊 key 過渡 alias（deploy↔搬數據空窗；搬完員工後員工唔再喺呢啲 key，無害）
+  d: { normal: 85, special: 94 },
+  e: { normal: 60, special: 66 },
+  f: { normal: 70, special: 81 },
+  h: { normal: 80, special: 88 },
+  i: { normal: 85, special: 94 },
 };
 // 管理層職級：不計算 OT 出糧（AAM / OPM / DGM / GM）
 const OT_EXCLUDE_LEVELS = new Set(['AAM', 'OPM', 'DGM', 'GM']);
