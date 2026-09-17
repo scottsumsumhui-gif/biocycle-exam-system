@@ -298,6 +298,20 @@ function expiresAtStr(ttl = SESSION_TTL_MS) {
   return d.toISOString().replace('T', ' ').substring(0, 19);
 }
 
+// Helper: normalize a stored timestamp to HK time string for display.
+// 舊記錄可能係 UTC ISO（含 T），新記錄已係 nowStr() 嘅 HKT 字串——兩種都處理到。
+function toHKTStr(s) {
+  if (!s) return '';
+  const str = String(s);
+  if (str.includes('T')) {
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      return new Date(d.getTime() + 8 * 3600000).toISOString().replace('T', ' ').substring(0, 19);
+    }
+  }
+  return str.replace('T', ' ').substring(0, 19);
+}
+
 // Auth middleware
 function authRequired(userType) {
   return async (req, res, next) => {
@@ -4313,7 +4327,7 @@ app.get('/api/quiz/record', authRequired('employee'), async (req, res) => {
         explanation: q.explanation || ''
       };
     });
-    res.json({ record: { id: rec.id, score: rec.score, total: rec.total, correct: rec.correct, percent: rec.percent, submitted_at: rec.submitted_at }, details });
+    res.json({ record: { id: rec.id, score: rec.score, total: rec.total, correct: rec.correct, percent: rec.percent, submitted_at: toHKTStr(rec.submitted_at) }, details });
   } catch (e) {
     res.status(500).json({ error: '讀取記錄失敗' });
   }
@@ -4358,7 +4372,7 @@ app.post('/api/quiz/submit', authRequired('employee'), async (req, res) => {
       score: correct,
       percent,
       details,
-      submitted_at: new Date().toISOString()
+      submitted_at: nowStr()
     };
     records.push(rec);
     await saveJSON('quiz_records.json', records);
@@ -4373,7 +4387,8 @@ app.post('/api/quiz/submit', authRequired('employee'), async (req, res) => {
 app.get('/api/admin/quiz/records', authRequired('admin'), requirePermission('quiz'), async (req, res) => {
   try {
     const records = await loadJSON('quiz_records.json', []);
-    const sorted = records.slice().sort((a, b) => (b.submitted_at || '').localeCompare(a.submitted_at || ''));
+    const sorted = records.slice().sort((a, b) => (b.submitted_at || '').localeCompare(a.submitted_at || ''))
+      .map(r => ({ ...r, submitted_at: toHKTStr(r.submitted_at) }));
     res.json({ records: sorted, total: sorted.length });
   } catch (e) {
     res.status(500).json({ error: '讀取記錄失敗' });
@@ -4459,7 +4474,7 @@ app.get('/api/admin/quiz/export', authRequired('admin'), requirePermission('quiz
     const lines = [header.join(',')];
     records.slice().sort((a, b) => (b.submitted_at || '').localeCompare(a.submitted_at || ''))
       .forEach(r => {
-        const row = [r.emp_number, r.name, r.group || '', r.level || '', r.correct, r.total, r.percent, (r.submitted_at || '').replace('T', ' ').slice(0, 19)];
+        const row = [r.emp_number, r.name, r.group || '', r.level || '', r.correct, r.total, r.percent, toHKTStr(r.submitted_at)];
         lines.push(row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','));
       });
     const csv = '﻿' + lines.join('\r\n');
