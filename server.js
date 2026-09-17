@@ -40,7 +40,8 @@ const ADMIN_PERMISSIONS = {
   feedback:          '意見箱 Feedback Box',
   guaranteed_pay:    '保證薪酬 Guaranteed Pay',
   allowance:         '津貼 Allowance',
-  monthly_ot_payroll:'月度OT出糧 OT Payroll'
+  monthly_ot_payroll:'月度OT出糧 OT Payroll',
+  quiz:              '邏輯測驗 Quiz'
 };
 const ALL_PERMISSION_KEYS = Object.keys(ADMIN_PERMISSIONS);
 
@@ -4266,6 +4267,208 @@ module.exports = app;
     }
   } catch (e) { console.error('migrateGpRenameDsu error:', e.message); }
 })();
+
+// ===================== QUIZ (邏輯與智力測驗) =====================
+// 員工每人限做一次；題目由 admin 管理（data/quiz_questions.json → Redis）。
+// Stores: quiz_questions.json（題目，含正確答案）、quiz_records.json（作答記錄）
+
+// 員工攞題（洗走答案）；順便講返佢做咗未
+app.get('/api/quiz/questions', authRequired('employee'), async (req, res) => {
+  try {
+    const questions = await loadJSON('quiz_questions.json', []);
+    const records = await loadJSON('quiz_records.json', []);
+    const taken = records.some(r => r.employee_id === req.session.user_id);
+    const safe = questions.map(q => ({
+      id: q.id,
+      category: q.category,
+      question: q.question,
+      options: (q.options || []).map(o => ({ key: o.key, text: o.text }))
+    }));
+    res.json({ taken, total: safe.length, questions: safe });
+  } catch (e) {
+    res.status(500).json({ error: '讀取題目失敗' });
+  }
+});
+
+// 員工睇自己嘅記錄（做咗 -> 連正確答案 + 解釋，畀佢重睇）
+app.get('/api/quiz/record', authRequired('employee'), async (req, res) => {
+  try {
+    const records = await loadJSON('quiz_records.json', []);
+    const rec = records.find(r => r.employee_id === req.session.user_id);
+    if (!rec) return res.json({ record: null });
+    const questions = await loadJSON('quiz_questions.json', []);
+    const qmap = {};
+    questions.forEach(q => { qmap[q.id] = q; });
+    const details = (rec.details || []).map(d => {
+      const q = qmap[d.qid] || {};
+      return {
+        qid: d.qid,
+        category: q.category || '',
+        question: q.question || '',
+        options: (q.options || []).map(o => ({ key: o.key, text: o.text })),
+        chosen: d.chosen,
+        correct: d.correct,
+        correctAnswer: q.answer || '',
+        explanation: q.explanation || ''
+      };
+    });
+    res.json({ record: { id: rec.id, score: rec.score, total: rec.total, correct: rec.correct, percent: rec.percent, submitted_at: rec.submitted_at }, details });
+  } catch (e) {
+    res.status(500).json({ error: '讀取記錄失敗' });
+  }
+});
+
+// 員工交卷（限做一次）
+app.post('/api/quiz/submit', authRequired('employee'), async (req, res) => {
+  try {
+    const employees = await loadJSON('employees.json', []);
+    const emp = employees.find(e => e.id === req.session.user_id);
+    if (!emp) return res.status(401).json({ error: '員工不存在' });
+
+    const records = await loadJSON('quiz_records.json', []);
+    if (records.some(r => r.employee_id === emp.id)) {
+      return res.status(403).json({ error: '你已經做過呢份測驗，每人限做一次' });
+    }
+
+    const questions = await loadJSON('quiz_questions.json', []);
+    if (!questions.length) return res.status(400).json({ error: '題庫尚未準備好' });
+
+    const answers = (req.body && req.body.answers) || {};
+    let correct = 0;
+    const details = [];
+    questions.forEach(q => {
+      const chosen = answers[q.id];
+      const isCorrect = chosen != null && String(chosen) === String(q.answer);
+      if (isCorrect) correct++;
+      details.push({ qid: q.id, chosen: chosen != null ? String(chosen) : null, correct: isCorrect });
+    });
+    const total = questions.length;
+    const percent = total ? Math.round((correct / total) * 100) : 0;
+    const rec = {
+      id: uuidv4(),
+      employee_id: emp.id,
+      emp_number: emp.emp_number,
+      name: emp.name,
+      group: emp.group_name || '',
+      level: emp.level || '',
+      answers,
+      correct,
+      total,
+      score: correct,
+      percent,
+      details,
+      submitted_at: new Date().toISOString()
+    };
+    records.push(rec);
+    await saveJSON('quiz_records.json', records);
+    res.json({ success: true, score: correct, total, percent, correct });
+  } catch (e) {
+    res.status(500).json({ error: '提交失敗：' + e.message });
+  }
+});
+
+// ---------- Admin ----------
+// 全員記錄
+app.get('/api/admin/quiz/records', authRequired('admin'), requirePermission('quiz'), async (req, res) => {
+  try {
+    const records = await loadJSON('quiz_records.json', []);
+    const sorted = records.slice().sort((a, b) => (b.submitted_at || '').localeCompare(a.submitted_at || ''));
+    res.json({ records: sorted, total: sorted.length });
+  } catch (e) {
+    res.status(500).json({ error: '讀取記錄失敗' });
+  }
+});
+
+// 題目（含答案，管理用）
+app.get('/api/admin/quiz/questions', authRequired('admin'), requirePermission('quiz'), async (req, res) => {
+  try {
+    const questions = await loadJSON('quiz_questions.json', []);
+    res.json({ questions });
+  } catch (e) {
+    res.status(500).json({ error: '讀取題目失敗' });
+  }
+});
+
+function normalizeQuizQuestion(q) {
+  const id = String(q.id || '').trim();
+  const category = String(q.category || '').trim();
+  const question = String(q.question || '').trim();
+  const opts = Array.isArray(q.options) ? q.options : [];
+  const options = opts.map(o => ({ key: String(o.key), text: String(o.text || '').trim() })).filter(o => o.key && o.text);
+  const answer = String(q.answer || '').trim();
+  const explanation = String(q.explanation || '').trim();
+  return { id, category, question, options, answer, explanation };
+}
+
+app.post('/api/admin/quiz/questions', authRequired('admin'), requirePermission('quiz'), async (req, res) => {
+  try {
+    const q = normalizeQuizQuestion(req.body);
+    if (!q.question) return res.status(400).json({ error: '題目不能為空' });
+    if (q.options.length < 2) return res.status(400).json({ error: '至少需要 2 個選項' });
+    if (!q.answer || !q.options.some(o => o.key === q.answer)) return res.status(400).json({ error: '正確答案必須是其中一個選項 key' });
+    const questions = await loadJSON('quiz_questions.json', []);
+    if (!q.id) q.id = 'q' + (questions.length + 1) + '_' + Date.now().toString().slice(-4);
+    if (questions.some(x => x.id === q.id)) return res.status(400).json({ error: '題目 ID 重複' });
+    questions.push(q);
+    await saveJSON('quiz_questions.json', questions);
+    res.json({ success: true, question: q });
+  } catch (e) {
+    res.status(500).json({ error: '新增失敗：' + e.message });
+  }
+});
+
+app.put('/api/admin/quiz/questions/:id', authRequired('admin'), requirePermission('quiz'), async (req, res) => {
+  try {
+    const qid = req.params.id;
+    const questions = await loadJSON('quiz_questions.json', []);
+    const idx = questions.findIndex(x => x.id === qid);
+    if (idx < 0) return res.status(404).json({ error: '題目不存在' });
+    const q = normalizeQuizQuestion(req.body);
+    if (!q.question) return res.status(400).json({ error: '題目不能為空' });
+    if (q.options.length < 2) return res.status(400).json({ error: '至少需要 2 個選項' });
+    if (!q.answer || !q.options.some(o => o.key === q.answer)) return res.status(400).json({ error: '正確答案必須是其中一個選項 key' });
+    q.id = qid;
+    questions[idx] = q;
+    await saveJSON('quiz_questions.json', questions);
+    res.json({ success: true, question: q });
+  } catch (e) {
+    res.status(500).json({ error: '更新失敗：' + e.message });
+  }
+});
+
+app.delete('/api/admin/quiz/questions/:id', authRequired('admin'), requirePermission('quiz'), async (req, res) => {
+  try {
+    const qid = req.params.id;
+    const questions = await loadJSON('quiz_questions.json', []);
+    const idx = questions.findIndex(x => x.id === qid);
+    if (idx < 0) return res.status(404).json({ error: '題目不存在' });
+    questions.splice(idx, 1);
+    await saveJSON('quiz_questions.json', questions);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: '刪除失敗：' + e.message });
+  }
+});
+
+// 記錄匯出（CSV，Excel 可直接開）
+app.get('/api/admin/quiz/export', authRequired('admin'), requirePermission('quiz'), async (req, res) => {
+  try {
+    const records = await loadJSON('quiz_records.json', []);
+    const header = ['員工編號', '姓名', '組別', '職級', '答對題數', '總題數', '答對率%', '提交時間'];
+    const lines = [header.join(',')];
+    records.slice().sort((a, b) => (b.submitted_at || '').localeCompare(a.submitted_at || ''))
+      .forEach(r => {
+        const row = [r.emp_number, r.name, r.group || '', r.level || '', r.correct, r.total, r.percent, (r.submitted_at || '').replace('T', ' ').slice(0, 19)];
+        lines.push(row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','));
+      });
+    const csv = '﻿' + lines.join('\r\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="quiz_records.csv"');
+    res.send(csv);
+  } catch (e) {
+    res.status(500).json({ error: '匯出失敗' });
+  }
+});
 
 // Start server locally only (not on Vercel)
 if (!isVercel) {

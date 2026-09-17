@@ -78,6 +78,11 @@
         <div class="module-title">意見箱</div>
         <div class="module-desc">匿名發表意見 / 建議</div>
       </div>
+      <div class="module-card" onclick="showQuiz()">
+        <div class="module-icon">🧩</div>
+        <div class="module-title">邏輯測驗</div>
+        <div class="module-desc">智力挑戰 / 每人一次</div>
+      </div>
     </div>
     <div class="h-center" >
       <button class="btn btn-outline btn-sm" onclick="showChangePw()">修改密碼</button>
@@ -145,6 +150,13 @@
     <button class="btn btn-primary btn-block" onclick="changePassword()">確認修改 Confirm</button>
     <button class="btn btn-outline btn-block" onclick="showHome()">返回主板面 Back</button>
     <div id="changePwError" class="error-msg" style="display:none"></div>
+  </div>
+</div>
+
+<!-- QUIZ (邏輯測驗) -->
+<div id="quizScreen" class="screen" style="display:none">
+  <div class="center-card">
+    <div id="quizContent"></div>
   </div>
 </div>
 
@@ -690,6 +702,107 @@ function getDailyQuote() {
   const now = new Date();
   const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
   return DAILY_QUOTES[dayOfYear % DAILY_QUOTES.length];
+}
+
+// ============ QUIZ (邏輯測驗) ============
+let quizState = { phase: 'intro', questions: [], idx: 0, answers: {}, record: null, details: [] };
+function qesc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+async function showQuiz() {
+  try {
+    const qRes = await (await fetch(API + '/api/quiz/questions', { credentials: 'include' })).json();
+    const rRes = await (await fetch(API + '/api/quiz/record', { credentials: 'include' })).json();
+    quizState.questions = qRes.questions || [];
+    quizState.record = rRes.record;
+    quizState.details = rRes.details || [];
+    quizState.idx = 0; quizState.answers = {};
+    quizState.phase = (qRes.taken && rRes.record) ? 'review' : 'intro';
+    renderQuiz();
+    showScreen('quizScreen');
+  } catch (e) { alert('載入測驗失敗'); }
+}
+
+function renderQuiz() {
+  const el = document.getElementById('quizContent');
+  if (quizState.phase === 'review') { el.innerHTML = quizReviewHTML(); return; }
+  if (quizState.phase === 'intro') {
+    const total = quizState.questions.length;
+    if (!total) {
+      el.innerHTML = '<h1>🧩 邏輯測驗</h1><p>題庫暫時未有題目，請聯絡 admin。</p><div class="h-center"><button class="btn btn-outline btn-sm" onclick="showHome()">返回主板面</button></div>';
+      return;
+    }
+    el.innerHTML = `
+      <h1>🧩 邏輯與智力測驗</h1>
+      <p>呢份測驗有 <b>${total}</b> 題選擇題，涵蓋邏輯、數字、圖案同語言推理。</p>
+      <div style="margin:20px 0;padding:16px;border-radius:12px;background:#eef2ee">
+        <p>⚠️ <b>每人限做一次</b>，交卷後唔可以重做，亦唔可以改答案。</p>
+        <p>唔限時，但建議一次過做完。</p>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="quizStart()">開始測驗 Start</button>
+      <div class="h-center" style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="showHome()">返回主板面</button></div>`;
+    return;
+  }
+  const i = quizState.idx;
+  const q = quizState.questions[i];
+  const chosen = quizState.answers[q.id];
+  let opts = '';
+  q.options.forEach(o => {
+    const sel = chosen === o.key ? 'border-color:#146B4F;background:#eef2ee;font-weight:500' : '';
+    opts += `<div style="padding:12px 14px;border:0.5px solid #d4dad4;border-radius:10px;cursor:pointer;${sel}" onclick="quizPick('${q.id}','${o.key}')">
+       <span style="display:inline-block;width:24px;font-weight:500;color:#146B4F">${o.key}</span>${qesc(o.text)}</div>`;
+  });
+  const isLast = i === quizState.questions.length - 1;
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">${qesc(q.category)}</h2><span class="text-muted">第 ${i + 1} / ${quizState.questions.length} 題</span></div>
+    <p style="font-size:15px;margin:12px 0 16px">${qesc(q.question)}</p>
+    <div style="display:flex;flex-direction:column;gap:10px">${opts}</div>
+    <div style="display:flex;justify-content:space-between;margin-top:20px">
+      <button class="btn btn-sm btn-outline" onclick="quizPrev()" ${i === 0 ? 'disabled' : ''}>← 上一題</button>
+      ${isLast ? `<button class="btn btn-sm btn-primary" onclick="quizSubmit()">交卷</button>` : `<button class="btn btn-sm btn-primary" onclick="quizNext()">下一題 →</button>`}
+    </div>
+    <div class="h-center" style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="showHome()">暫停 / 返回</button></div>`;
+}
+
+function quizStart() { quizState.phase = 'doing'; renderQuiz(); }
+function quizPick(qid, key) { quizState.answers[qid] = key; renderQuiz(); }
+function quizPrev() { if (quizState.idx > 0) { quizState.idx--; renderQuiz(); } }
+function quizNext() { if (quizState.idx < quizState.questions.length - 1) { quizState.idx++; renderQuiz(); } }
+
+async function quizSubmit() {
+  if (Object.keys(quizState.answers).length < quizState.questions.length) {
+    if (!confirm('仲有題未答，確定要交卷？')) return;
+  }
+  try {
+    const res = await fetch(API + '/api/quiz/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ answers: quizState.answers }) });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || '提交失敗'); return; }
+    const rRes = await (await fetch(API + '/api/quiz/record', { credentials: 'include' })).json();
+    quizState.record = rRes.record; quizState.details = rRes.details || [];
+    quizState.phase = 'review'; renderQuiz();
+  } catch (e) { alert('提交失敗'); }
+}
+
+function quizReviewHTML() {
+  const r = quizState.record;
+  if (!r) return '<h1>邏輯測驗</h1><p>未找到你的記錄。</p>';
+  let rows = '';
+  (quizState.details || []).forEach((d, idx) => {
+    const col = d.correct ? '#2e7d32' : '#c0392b';
+    rows += `<div style="padding:12px 0;border-bottom:0.5px solid #d4dad4">
+      <div><b>Q${idx + 1}</b> <span class="text-muted">${qesc(d.category)}</span></div>
+      <div style="margin:6px 0">${qesc(d.question)}</div>
+      <div style="font-size:13px">你嘅答案：<b style="color:${col}">${d.chosen || '（無答）'}</b>${d.correct ? ' ✔' : ` ✘　正確答案：<b>${d.correctAnswer}</b>`}</div>
+      ${d.explanation ? `<div class="text-muted" style="font-size:12px;margin-top:4px">💡 ${qesc(d.explanation)}</div>` : ''}
+    </div>`;
+  });
+  return `<h1>🧩 邏輯測驗結果</h1>
+    <div style="margin:16px 0;padding:20px;border-radius:12px;background:#eef2ee;text-align:center">
+      <div style="font-size:32px;font-weight:500;color:#146B4F">${r.correct} / ${r.total}</div>
+      <div class="text-muted">答對率 ${r.percent}%</div>
+    </div>
+    <p class="text-muted small">你已經完成呢份測驗（每人限一次）。以下係逐題檢討：</p>
+    ${rows}
+    <div class="h-center" style="margin-top:16px"><button class="btn btn-outline btn-sm" onclick="showHome()">返回主板面</button></div>`;
 }
 
 function showHome() {

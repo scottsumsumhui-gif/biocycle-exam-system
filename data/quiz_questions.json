@@ -1,0 +1,262 @@
+[
+  {
+    "id": "q1",
+    "category": "邏輯推理",
+    "question": "所有 A 都係 B，所有 B 都係 C。以下邊句一定啱？",
+    "options": [
+      { "key": "A", "text": "所有 A 都係 C" },
+      { "key": "B", "text": "所有 C 都係 A" },
+      { "key": "C", "text": "有些 A 唔係 C" },
+      { "key": "D", "text": "B 唔係 C" }
+    ],
+    "answer": "A",
+    "explanation": "傳遞律：A⊆B 且 B⊆C，所以 A⊆C。"
+  },
+  {
+    "id": "q2",
+    "category": "邏輯推理",
+    "question": "「如果落雨就會帶遮」。今日佢冇帶遮，咁可以推論到咩？",
+    "options": [
+      { "key": "A", "text": "今日落雨" },
+      { "key": "B", "text": "今日冇落雨" },
+      { "key": "C", "text": "佢帶咗雨衣" },
+      { "key": "D", "text": "無法判斷" }
+    ],
+    "answer": "B",
+    "explanation": "逆否命題：唔帶遮 → 唔落雨。所以今日一定冇落雨。"
+  },
+  {
+    "id": "q3",
+    "category": "邏輯推理",
+    "question": "阿明企喺阿強左邊，阿強企喺阿麗左邊（由左至右排）。最右邊係邊個？",
+    "options": [
+      { "key": "A", "text": "阿明" },
+      { "key": "B", "text": "阿強" },
+      { "key": "C", "text": "阿麗" },
+      { "key": "D", "text": "無法判斷" }
+    ],
+    "answer": "C",
+    "explanation": "排列為 阿明、阿強、阿麗（左→右），最右係阿麗。"
+  },
+  {
+    "id": "q4",
+    "category": "邏輯推理",
+    "question": "以下邊句同「所有鳥都會飛」喺邏輯上互相矛盾？",
+    "options": [
+      { "key": "A", "text": "有些鳥唔會飛" },
+      { "key": "B", "text": "所有鳥都係動物" },
+      { "key": "C", "text": "有些會飛嘅嘢係鳥" },
+      { "key": "D", "text": "鴕鳥係鳥" }
+    ],
+    "answer": "A",
+    "explanation": "「所有」嘅矛盾係「存在至少一個唔係」，即有些鳥唔會飛。"
+  },
+  {
+    "id": "q5",
+    "category": "邏輯推理",
+    "question": "圖書館規則：要安靜、唔可以飲食、要出示借書證。小明入圖書館大聲食麵包，佢違反咗幾條規則？",
+    "options": [
+      { "key": "A", "text": "0 條" },
+      { "key": "B", "text": "1 條" },
+      { "key": "C", "text": "2 條" },
+      { "key": "D", "text": "3 條" }
+    ],
+    "answer": "C",
+    "explanation": "大聲（違反安靜）+ 食麵包（違反唔可以飲食）= 2 條。"
+  },
+  {
+    "id": "q6",
+    "category": "數字推理",
+    "question": "數列：2, 4, 8, 16, ? 下一個數係咩？",
+    "options": [
+      { "key": "A", "text": "24" },
+      { "key": "B", "text": "32" },
+      { "key": "C", "text": "20" },
+      { "key": "D", "text": "18" }
+    ],
+    "answer": "B",
+    "explanation": "每個數係上一個 ×2：2→4→8→16→32。"
+  },
+  {
+    "id": "q7",
+    "category": "數字推理",
+    "question": "數列：1, 3, 5, 7, ? 下一個數係咩？",
+    "options": [
+      { "key": "A", "text": "8" },
+      { "key": "B", "text": "9" },
+      { "key": "C", "text": "10" },
+      { "key": "D", "text": "11" }
+    ],
+    "answer": "B",
+    "explanation": "連續單數（奇數），下一個係 9。"
+  },
+  {
+    "id": "q8",
+    "category": "數字推理",
+    "question": "數列：100, 90, 81, 73, 66, ? 下一個數係咩？",
+    "options": [
+      { "key": "A", "text": "59" },
+      { "key": "B", "text": "60" },
+      { "key": "C", "text": "61" },
+      { "key": "D", "text": "58" }
+    ],
+    "answer": "B",
+    "explanation": "相鄰差：10、9、8、7，下一個差 6，66−6=60。"
+  },
+  {
+    "id": "q9",
+    "category": "數字推理",
+    "question": "數列：2, 3, 5, 7, 11, ? 下一個數係咩？",
+    "options": [
+      { "key": "A", "text": "12" },
+      { "key": "B", "text": "13" },
+      { "key": "C", "text": "14" },
+      { "key": "D", "text": "15" }
+    ],
+    "answer": "B",
+    "explanation": "質數序列，11 之後嘅質數係 13。"
+  },
+  {
+    "id": "q10",
+    "category": "數字推理",
+    "question": "數列：1, 4, 9, 16, 25, ? 下一個數係咩？",
+    "options": [
+      { "key": "A", "text": "30" },
+      { "key": "B", "text": "35" },
+      { "key": "C", "text": "36" },
+      { "key": "D", "text": "49" }
+    ],
+    "answer": "C",
+    "explanation": "平方數：1²,2²,3²,4²,5², 下一個 6²=36。"
+  },
+  {
+    "id": "q11",
+    "category": "圖案推理",
+    "question": "圖案序列：○ ○ △ ○ ○ △ ○ ○ ? 下一個圖案係咩？",
+    "options": [
+      { "key": "A", "text": "○" },
+      { "key": "B", "text": "△" },
+      { "key": "C", "text": "□" },
+      { "key": "D", "text": "☆" }
+    ],
+    "answer": "B",
+    "explanation": "每 3 個一循環「○ ○ △」，跟住兩個 ○ 後應係 △。"
+  },
+  {
+    "id": "q12",
+    "category": "圖案推理",
+    "question": "圖案序列：▲ ▲ ▼ ▲ ▲ ▼ ▲ ▲ ? 下一個圖案係咩？",
+    "options": [
+      { "key": "A", "text": "▲" },
+      { "key": "B", "text": "▼" },
+      { "key": "C", "text": "◀" },
+      { "key": "D", "text": "▶" }
+    ],
+    "answer": "B",
+    "explanation": "每 3 個一循環「▲ ▲ ▼」，跟住兩個 ▲ 後應係 ▼。"
+  },
+  {
+    "id": "q13",
+    "category": "圖案推理",
+    "question": "字母序列：A, C, E, G, ? 下一個字母係咩？",
+    "options": [
+      { "key": "A", "text": "H" },
+      { "key": "B", "text": "I" },
+      { "key": "C", "text": "J" },
+      { "key": "D", "text": "K" }
+    ],
+    "answer": "B",
+    "explanation": "隔一個字母（跳 1 個）：A→C→E→G→I。"
+  },
+  {
+    "id": "q14",
+    "category": "圖案推理",
+    "question": "方格入面嘅點數：1, 2, 3, 4, ? 下一格有幾多點？",
+    "options": [
+      { "key": "A", "text": "4" },
+      { "key": "B", "text": "5" },
+      { "key": "C", "text": "6" },
+      { "key": "D", "text": "7" }
+    ],
+    "answer": "B",
+    "explanation": "每次加 1，下一格係 5 點。"
+  },
+  {
+    "id": "q15",
+    "category": "圖案推理",
+    "question": "箭頭方向順時針轉：↑ → ↓ → ? 下一個方向係咩？",
+    "options": [
+      { "key": "A", "text": "↑" },
+      { "key": "B", "text": "→" },
+      { "key": "C", "text": "↓" },
+      { "key": "D", "text": "←" }
+    ],
+    "answer": "D",
+    "explanation": "順時針：上→右→下→左，下一個係 ←。"
+  },
+  {
+    "id": "q16",
+    "category": "語言推理",
+    "question": "以下邊組兩個詞係近義詞？",
+    "options": [
+      { "key": "A", "text": "美麗 — 漂亮" },
+      { "key": "B", "text": "高 — 矮" },
+      { "key": "C", "text": "新 — 舊" },
+      { "key": "D", "text": "開 — 關" }
+    ],
+    "answer": "A",
+    "explanation": "美麗同漂亮意思相近；其餘都係反義詞。"
+  },
+  {
+    "id": "q17",
+    "category": "語言推理",
+    "question": "「蘋果」對「水果」，如同「紅蘿蔔」對？",
+    "options": [
+      { "key": "A", "text": "蔬菜" },
+      { "key": "B", "text": "水果" },
+      { "key": "C", "text": "肉類" },
+      { "key": "D", "text": "飲品" }
+    ],
+    "answer": "A",
+    "explanation": "蘋果係水果嘅一種；紅蘿蔔係蔬菜嘅一種（類別關係）。"
+  },
+  {
+    "id": "q18",
+    "category": "語言推理",
+    "question": "事件合理次序：①佢去超市 ②買咗牛奶 ③返到屋企。正確次序係？",
+    "options": [
+      { "key": "A", "text": "① → ② → ③" },
+      { "key": "B", "text": "② → ① → ③" },
+      { "key": "C", "text": "③ → ① → ②" },
+      { "key": "D", "text": "② → ③ → ①" }
+    ],
+    "answer": "A",
+    "explanation": "先去超市，再買嘢，最後返屋企。"
+  },
+  {
+    "id": "q19",
+    "category": "語言推理",
+    "question": "以下邊個字唔係量詞？",
+    "options": [
+      { "key": "A", "text": "個" },
+      { "key": "B", "text": "隻" },
+      { "key": "C", "text": "條" },
+      { "key": "D", "text": "食" }
+    ],
+    "answer": "D",
+    "explanation": "個、隻、條都係量詞；「食」係動詞。"
+  },
+  {
+    "id": "q20",
+    "category": "語言推理",
+    "question": "「因為落雨，所以賽事取消」呢句表達咩關係？",
+    "options": [
+      { "key": "A", "text": "因果關係" },
+      { "key": "B", "text": "轉折關係" },
+      { "key": "C", "text": "並列關係" },
+      { "key": "D", "text": "假設關係" }
+    ],
+    "answer": "A",
+    "explanation": "「因為…所以…」表示原因同結果，係因果關係。"
+  }
+]

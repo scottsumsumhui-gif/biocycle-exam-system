@@ -58,6 +58,7 @@
     <button class="nav-btn" data-tab="monthlyOt" onclick="showTab('monthlyOt')" id="tabMonthlyOt">&#128176; 月度OT出糧</button>
     <button class="nav-btn" data-tab="allowance" onclick="showTab('allowance')" id="tabAllowance">&#128176; 津貼 Allowance</button>
     <button class="nav-btn" data-tab="guaranteedPay" onclick="showTab('guaranteedPay')" id="tabGuaranteedPay">&#128737; 包薪 Guaranteed Pay</button>
+  <button class="nav-btn" data-tab="quiz" onclick="showTab('quiz')" id="tabQuiz">&#129514; 邏輯測驗 Quiz</button>
   </nav>
   
   <main class="admin-body" id="adminBody"></main>
@@ -144,7 +145,8 @@ const TAB_PERMISSION_MAP = {
   feedback: 'feedback',
   monthlyOt: 'monthly_ot_payroll',
   allowance: 'allowance',
-  guaranteedPay: 'guaranteed_pay'
+  guaranteedPay: 'guaranteed_pay',
+  quiz: 'quiz'
 };
 function hasPerm(key) {
   if (!adminData) return false;
@@ -162,7 +164,7 @@ function applyNavPermissions() {
 
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet', worktime:'tabWorktime', feedback:'tabFeedback', allowance:'tabAllowance', guaranteedPay:'tabGuaranteedPay' };
+  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet', worktime:'tabWorktime', feedback:'tabFeedback', allowance:'tabAllowance', guaranteedPay:'tabGuaranteedPay', quiz:'tabQuiz' };
   const tabEl = document.getElementById(tabIdMap[tab]);
   if (tabEl) tabEl.classList.add('active');
   
@@ -183,8 +185,116 @@ function showTab(tab) {
     case 'monthlyOt': loadMonthlyOtAdmin(); break;
     case 'allowance': loadAllowanceAdmin(); break;
     case 'guaranteedPay': loadGuaranteedPayAdmin(); break;
+    case 'quiz': showQuizAdmin(); break;
   }
 }
+
+// ============ QUIZ ADMIN (邏輯測驗) ============
+async function showQuizAdmin() {
+  try {
+    const [rRes, qRes] = await Promise.all([
+      fetch(API + '/api/admin/quiz/records', { credentials: 'include' }).then(r => r.json()),
+      fetch(API + '/api/admin/quiz/questions', { credentials: 'include' }).then(r => r.json())
+    ]);
+    const records = rRes.records || [];
+    const questions = qRes.questions || [];
+    let recRows = '';
+    if (!records.length) recRows = '<tr><td colspan="6" class="text-muted">暫時未有人做測驗</td></tr>';
+    records.forEach(r => {
+      recRows += `<tr><td>${esc(r.emp_number)}</td><td>${esc(r.name)}</td><td>${esc(r.group || '')}</td><td>${r.correct}/${r.total}</td><td>${r.percent}%</td><td>${esc((r.submitted_at || '').replace('T', ' ').slice(0, 19))}</td></tr>`;
+    });
+    let qRows = '';
+    questions.forEach(q => {
+      qRows += `<tr>
+        <td>${esc(q.id)}</td>
+        <td>${esc(q.category)}</td>
+        <td>${esc(q.question)}</td>
+        <td style="font-size:12px">${q.options.map(o => o.key + '.' + esc(o.text)).join('<br>')}</td>
+        <td><b>${q.answer}</b></td>
+        <td>
+          <button class="btn btn-sm btn-outline" onclick="editQuizQ('${q.id}')">改</button>
+          <button class="btn btn-sm btn-outline" onclick="delQuizQ('${q.id}')">刪</button>
+        </td>
+      </tr>`;
+    });
+    document.getElementById('adminBody').innerHTML = `
+      <div class="h-between" style="align-items:center">
+        <h2>🧩 邏輯測驗 Quiz</h2>
+        <button class="btn btn-sm btn-primary" onclick="addQuizQ()">+ 新增題目</button>
+      </div>
+      <h3>全員成績</h3>
+      <div class="h-between" style="margin-bottom:8px">
+        <span class="text-muted">共 ${records.length} 人做咗</span>
+        <button class="btn btn-sm btn-outline" onclick="exportQuiz()">匯出 CSV</button>
+      </div>
+      <table class="admin-table"><thead><tr><th>員工編號</th><th>姓名</th><th>組別</th><th>答對</th><th>答對率</th><th>提交時間</th></tr></thead><tbody>${recRows}</tbody></table>
+      <h3 style="margin-top:24px">題目管理（${questions.length} 題）</h3>
+      <table class="admin-table"><thead><tr><th>ID</th><th>類別</th><th>題目</th><th>選項</th><th>答案</th><th>操作</th></tr></thead><tbody>${qRows}</tbody></table>
+      <div id="quizEditBox"></div>`;
+  } catch (e) { alert('載入失敗'); }
+}
+
+function quizQForm(q) {
+  q = q || {};
+  const opts = q.options || [];
+  const get = (k) => (opts.find(o => o.key === k) || {}).text || '';
+  const cat = q.category || '邏輯推理';
+  return `<div style="margin-top:16px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+    <h4>${q.id ? '編輯題目' : '新增題目'}</h4>
+    <div class="form-group"><label>類別</label>
+      <select id="qqCat">
+        <option ${cat === '邏輯推理' ? 'selected' : ''}>邏輯推理</option>
+        <option ${cat === '數字推理' ? 'selected' : ''}>數字推理</option>
+        <option ${cat === '圖案推理' ? 'selected' : ''}>圖案推理</option>
+        <option ${cat === '語言推理' ? 'selected' : ''}>語言推理</option>
+      </select></div>
+    <div class="form-group"><label>題目</label><input id="qqQuestion" value="${esc(q.question || '')}"></div>
+    ${['A', 'B', 'C', 'D'].map(k => `<div class="form-group"><label>選項 ${k}</label><input id="qqOpt${k}" value="${esc(get(k))}"></div>`).join('')}
+    <div class="form-group"><label>正確答案</label>
+      <select id="qqAnswer">${['A', 'B', 'C', 'D'].map(k => `<option value="${k}" ${q.answer === k ? 'selected' : ''}>${k}</option>`).join('')}</select></div>
+    <div class="form-group"><label>解釋（可留空）</label><input id="qqExp" value="${esc(q.explanation || '')}"></div>
+    <div class="h-center">
+      <button class="btn btn-primary btn-sm" onclick="saveQuizQ('${q.id || ''}')">儲存</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('quizEditBox').innerHTML=''">取消</button>
+    </div>
+  </div>`;
+}
+async function addQuizQ() {
+  document.getElementById('quizEditBox').innerHTML = quizQForm();
+  if (document.getElementById('quizEditBox').scrollIntoView) document.getElementById('quizEditBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+async function editQuizQ(id) {
+  const qRes = await (await fetch(API + '/api/admin/quiz/questions', { credentials: 'include' })).json();
+  const q = (qRes.questions || []).find(x => x.id === id);
+  document.getElementById('quizEditBox').innerHTML = quizQForm(q);
+  if (document.getElementById('quizEditBox').scrollIntoView) document.getElementById('quizEditBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+async function saveQuizQ(id) {
+  const payload = {
+    id: id || undefined,
+    category: document.getElementById('qqCat').value,
+    question: document.getElementById('qqQuestion').value.trim(),
+    options: ['A', 'B', 'C', 'D'].map(k => ({ key: k, text: document.getElementById('qqOpt' + k).value.trim() })),
+    answer: document.getElementById('qqAnswer').value,
+    explanation: document.getElementById('qqExp').value.trim()
+  };
+  if (!payload.question) { alert('題目不能為空'); return; }
+  if (payload.options.some(o => !o.text)) { alert('請填齊 4 個選項'); return; }
+  const url = id ? API + '/api/admin/quiz/questions/' + id : API + '/api/admin/quiz/questions';
+  const method = id ? 'PUT' : 'POST';
+  const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(payload) });
+  const data = await res.json();
+  if (!res.ok) { alert(data.error || '儲存失敗'); return; }
+  showQuizAdmin();
+}
+async function delQuizQ(id) {
+  if (!confirm('確定刪除呢題？')) return;
+  const res = await fetch(API + '/api/admin/quiz/questions/' + id, { method: 'DELETE', credentials: 'include' });
+  const data = await res.json();
+  if (!res.ok) { alert(data.error || '刪除失敗'); return; }
+  showQuizAdmin();
+}
+function exportQuiz() { window.location.href = API + '/api/admin/quiz/export'; }
 
 // ===== WAREHOUSE ADMIN =====
 let whCache = { stock: [], tx: [], items: [], categories: [], vehicles: [] };
