@@ -227,9 +227,9 @@ async function showQuizAdmin() {
         <span class="text-muted">共 ${records.length} 人做咗</span>
         <button class="btn btn-sm btn-outline" onclick="exportQuiz()">匯出 CSV</button>
       </div>
-      <table class="admin-table"><thead><tr><th>員工編號</th><th>姓名</th><th>組別</th><th>答對</th><th>答對率</th><th>提交時間</th></tr></thead><tbody>${recRows}</tbody></table>
+      <table class="data-table"><thead><tr><th>員工編號</th><th>姓名</th><th>組別</th><th>答對</th><th>答對率</th><th>提交時間</th></tr></thead><tbody>${recRows}</tbody></table>
       <h3 style="margin-top:24px">題目管理（${questions.length} 題）</h3>
-      <table class="admin-table"><thead><tr><th>ID</th><th>類別</th><th>題目</th><th>選項</th><th>答案</th><th>操作</th></tr></thead><tbody>${qRows}</tbody></table>
+      <table class="data-table"><thead><tr><th>ID</th><th>類別</th><th>題目</th><th>選項</th><th>答案</th><th>操作</th></tr></thead><tbody>${qRows}</tbody></table>
       <div id="quizEditBox"></div>`;
   } catch (e) { alert('載入失敗'); }
 }
