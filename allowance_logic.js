@@ -235,6 +235,59 @@ function applyMakeupFail(store, empId, topicId, makeupMonth) {
   return store;
 }
 
+// 撤銷一次考試事件（Admin 人手 DELETE 成績記錄時必須同步做）
+// 背景：allowance.json 同 exam_results.json 係兩個**互不相干**嘅 store ——
+//       淨係 delete 考試記錄並唔會清走津貼停發，UI 會繼續顯示「不合格」（orphan suspension）。
+// 做法（保守，故意唔 rebuild 成條 record，避免洗走人手改過嘅 makeup_month / rule 等欄位）：
+//   1) 移除該考試月嘅 history entry
+//   2) 移除 fail_month == 該考試月嘅 suspension（由呢次考試直接產生嘅停發）
+//   3) 若撤銷嘅係補考合格 → 對應 suspension 嘅 makeup_done_month 還原做 null（變返「未補考」）
+//   4) active window / status / last_exam_month / last_result 由**剩餘最後一條 history 嘅 snapshot**
+//      還原 —— 每條 history entry 都存咗嗰次事件之後嘅累積 window，所以係精確回退，
+//      唔使自己估 baseline（SEED baseline 都只係一條普通 history entry）
+function revertExamEvent(store, empId, topicId, examMonth) {
+  const empRec = store && store[empId];
+  const rec = empRec && empRec[topicId];
+  if (!rec) return { changed: false, reason: 'record-not-found' };
+
+  const hist = Array.isArray(rec.history) ? rec.history : [];
+  const removed = hist.filter(h => h && h.exam_month === examMonth);
+  const susBefore = Array.isArray(rec.suspensions) ? rec.suspensions : [];
+  const matchingSus = susBefore.filter(s => s && s.fail_month === examMonth);
+  if (!removed.length && !matchingSus.length) return { changed: false, reason: 'event-not-found' };
+
+  rec.history = hist.filter(h => !h || h.exam_month !== examMonth);
+  rec.suspensions = susBefore.filter(s => s && s.fail_month !== examMonth);
+
+  // 撤銷補考合格 → 對應 suspension 還原做「未補考」
+  const wasMakeupPass = removed.some(h => String(h.result || '').startsWith('pass') && String(h.result || '').indexOf('(makeup)') >= 0);
+  if (wasMakeupPass) {
+    rec.suspensions.forEach(s => { if (s && s.makeup_done_month === examMonth) s.makeup_done_month = null; });
+  }
+
+  // 由剩餘最後一條 history snapshot 還原衍生欄位
+  const last = rec.history.length ? rec.history[rec.history.length - 1] : null;
+  if (last) {
+    if (last.active_start) rec.active_start = last.active_start;
+    if (last.active_end) rec.active_end = last.active_end;
+    if (last.status) rec.status = last.status;
+    rec.last_exam_month = last.exam_month;
+    rec.last_result = last.result;
+  } else {
+    rec.status = 'active';
+    rec.last_exam_month = null;
+    rec.last_result = null;
+  }
+
+  return {
+    changed: true,
+    removedEvents: removed.length,
+    removedSuspensions: susBefore.length - rec.suspensions.length,
+    status: rec.status,
+    window: `${rec.active_start}~${rec.active_end}`
+  };
+}
+
 // 計某員工喺 targetMonth 嘅津貼總額同明細
 function allowanceForMonth(store, empId, targetMonth) {
   const recs = store[empId] || {};
@@ -254,5 +307,5 @@ module.exports = {
   ALLOWANCE_TOPICS, ALLOWANCE_AMOUNT, ALLOWANCE_MONTHS, SUSPEND_MONTHS, SUSPEND_OFFSET, MAKEUP_OFFSET,
   TOPIC_EXAM_MONTHS, ROTATION_ANCHOR, CYCLE_MONTHS, firstCycleStart, allowanceCycleWindow,
   addMonths, monthsBetween, inWindow, computeFromExam, minYM, maxYM,
-  newStore, applyExamEvent, applyMakeupPass, applyMakeupFail, allowanceForMonth, getRec, seedSteadyState, suspendedInMonth
+  newStore, applyExamEvent, applyMakeupPass, applyMakeupFail, revertExamEvent, allowanceForMonth, getRec, seedSteadyState, suspendedInMonth
 };

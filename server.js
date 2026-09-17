@@ -1232,9 +1232,38 @@ app.delete('/api/admin/results/:id', authRequired('admin'), requirePermission('r
   results.splice(idx, 1);
   await saveJSON('exam_results.json', results);
 
+  // 人手 DELETE 成績記錄時，**同步撤銷津貼 store 入面對應嘅考試事件**。
+  // allowance.json 係獨立於 exam_results.json 嘅 store；淨係 delete 成績會殘留 orphan suspension，
+  // 令津貼頁繼續顯示「不合格」。所以要按 (員工編號, 卷, 考試月) 精確回退。
+  let allowanceReverted = null;
+  try {
+    if (emp) {
+      const examYM = `${target.year}-${String(target.month).padStart(2, '0')}`;
+      const allowStore = await loadJSON('allowance.json', {});
+      const rev = AAL.revertExamEvent(allowStore, emp.emp_number, target.topic_id, examYM);
+      if (rev.changed) {
+        const rr = allowStore[emp.emp_number][target.topic_id];
+        rr.last_auto_update = new Date().toISOString();
+        rr.audit = rr.audit || [];
+        rr.audit.push({
+          at: new Date().toISOString(),
+          source: 'result-delete',
+          actor: req.session.username || 'admin',
+          exam_month: examYM,
+          result: 'reverted'
+        });
+        await saveJSON('allowance.json', allowStore);
+        allowanceReverted = rev;
+        console.log(`[allowance] 撤銷 ${empLabel} Topic=${target.topic_id} ${examYM}（${rev.window}，status=${rev.status}）`);
+      }
+    }
+  } catch (e) {
+    console.error('[allowance] revert on result-delete failed', empLabel, target.topic_id, e && e.message);
+  }
+
   console.log(`[Admin ${req.session.username}] 刪除成績記錄 ID=${rid}, 員工=${empLabel}, Topic=${target.topic_id}, 時間=${target.submitted_at}`);
 
-  res.json({ success:true, message:`已刪除 ${empLabel} 嘅成績記錄`, deletedAnswers: beforeAns - answers.length });
+  res.json({ success:true, message:`已刪除 ${empLabel} 嘅成績記錄`, deletedAnswers: beforeAns - answers.length, allowanceReverted });
 });
 
 app.get('/api/admin/export-csv', authRequired('admin'), requirePermission('results'), async (req, res) => {
