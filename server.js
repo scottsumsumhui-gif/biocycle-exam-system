@@ -3041,7 +3041,8 @@ app.put('/api/admin/worktime/records/:id', authRequired('admin'), requirePermiss
     const s = await sanitizeWorktimePayload(req.body || {}, me);
     if (!s.ok) return res.status(400).json({ success: false, error: s.error });
     recs[idx] = { ...recs[idx], ...s.value, jobs_synced_from: null, updated_at: nowStr() };
-    syncTeamJobs(recs, recs[idx], employees);
+    // admin 修正單人記錄（例如補返隊員名單）可以帶 skip_sync:true，避免用呢位員工嘅單覆蓋隊友
+    if (req.body.skip_sync !== true) syncTeamJobs(recs, recs[idx], employees);
     await saveJSON(WORKTIME_FILE, recs);
     res.json({ success: true, record: recs[idx] });
   } catch (e) { res.status(500).json({ success: false, error: '修改失敗' }); }
