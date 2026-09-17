@@ -46,10 +46,23 @@ const ALL_PERMISSION_KEYS = Object.keys(ADMIN_PERMISSIONS);
 
 // Built-in defaults for job levels. Used as a fallback if data/job_levels.json is missing
 // (e.g. on Vercel cold start). The file in data/ takes precedence once it exists.
+// 一律 20 題選擇題 —— 問答題／作文題已於 2026-09-16 全面取消。
+// 描述用字必須與 getExamCriteria() 一致：
+//   初級（junior / P.junior）最多錯 4；高級（senior / P.senior / D.supervisor / PD.supervisor）最多錯 2；
+//   管理職級（supervisor / P.supervisor / AAM / DGM / GM / OPM）免考。
 const BUILTIN_JOB_LEVELS = [
-  { key: 'junior',     label: '初級技術員', description: '考試：20題選擇題，最多錯4題（80%合格）', is_builtin: true, order: 1 },
-  { key: 'senior',     label: '高級技術員', description: '考試：20題選擇題，最多錯2題（90%合格）', is_builtin: true, order: 2 },
-  { key: 'supervisor', label: '技術員主管', description: '考試：20題選擇題+3題問答，最多錯2題（90%合格）', is_builtin: true, order: 3 }
+  { key: 'junior',         label: '初級技術員',                    description: '考試：20題選擇題，最多錯4題（答對16題／80%合格）', is_builtin: true,  order: 1 },
+  { key: 'senior',         label: '高級技術員',                    description: '考試：20題選擇題，最多錯2題（答對18題／90%合格）', is_builtin: true,  order: 2 },
+  { key: 'supervisor',     label: '技術員主管',                    description: '不用考試（管理職級）',                            is_builtin: true,  order: 3 },
+  { key: 'P.junior',       label: '見習技術員',                    description: '考試：20題選擇題，最多錯4題（答對16題／80%合格）', is_builtin: false, order: 4 },
+  { key: 'P.senior',       label: '見習高級技術員',                description: '考試：20題選擇題，最多錯2題（答對18題／90%合格）', is_builtin: false, order: 5 },
+  { key: 'D.supervisor',   label: '技術員副主管',                  description: '考試：20題選擇題，最多錯2題（答對18題／90%合格）', is_builtin: false, order: 6 },
+  { key: 'PD.supervisor',  label: '見習技術員副主管',              description: '考試：20題選擇題，最多錯2題（答對18題／90%合格）', is_builtin: false, order: 7 },
+  { key: 'P.supervisor',   label: '見習技術員主管',                description: '不用考試（管理職級）',                            is_builtin: false, order: 8 },
+  { key: 'OPM',            label: '技術員經理',                    description: '不用考試（管理職級）',                            is_builtin: false, order: 9 },
+  { key: 'AAM',            label: 'Assistant Accounting Manager',  description: '不用考試（管理職級）',                            is_builtin: false, order: 10 },
+  { key: 'DGM',            label: 'DGM',                           description: '不用考試（管理職級）',                            is_builtin: false, order: 11 },
+  { key: 'GM',             label: 'GM',                            description: '不用考試（管理職級）',                            is_builtin: false, order: 12 }
 ];
 const JOB_LEVEL_FILE = 'job_levels.json';
 
