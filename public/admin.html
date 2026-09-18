@@ -198,10 +198,12 @@ async function showQuizAdmin() {
     ]);
     const records = rRes.records || [];
     const questions = qRes.questions || [];
+    window._quizRecords = records;
+    window._quizQuestions = questions;
     let recRows = '';
-    if (!records.length) recRows = '<tr><td colspan="6" class="text-muted">暫時未有人做測驗</td></tr>';
+    if (!records.length) recRows = '<tr><td colspan="7" class="text-muted">暫時未有人做測驗</td></tr>';
     records.forEach(r => {
-      recRows += `<tr><td>${esc(r.emp_number)}</td><td>${esc(r.name)}</td><td>${esc(r.group || '')}</td><td>${r.correct}/${r.total}</td><td>${r.percent}%</td><td>${esc((r.submitted_at || '').replace('T', ' ').slice(0, 19))}</td></tr>`;
+      recRows += `<tr><td>${esc(r.emp_number)}</td><td>${esc(r.name)}</td><td>${esc(r.group || '')}</td><td>${r.correct}/${r.total}</td><td>${r.percent}%</td><td>${esc((r.submitted_at || '').replace('T', ' ').slice(0, 19))}</td><td><button class="btn btn-sm btn-outline" onclick="showQuizDetail('${r.id}')">詳細</button></td></tr>`;
     });
     let qRows = '';
     questions.forEach(q => {
@@ -227,11 +229,57 @@ async function showQuizAdmin() {
         <span class="text-muted">共 ${records.length} 人做咗</span>
         <button class="btn btn-sm btn-outline" onclick="exportQuiz()">匯出 CSV</button>
       </div>
-      <table class="data-table"><thead><tr><th>員工編號</th><th>姓名</th><th>組別</th><th>答對</th><th>答對率</th><th>提交時間</th></tr></thead><tbody>${recRows}</tbody></table>
+      <table class="data-table"><thead><tr><th>員工編號</th><th>姓名</th><th>組別</th><th>答對</th><th>答對率</th><th>提交時間</th><th>詳細</th></tr></thead><tbody>${recRows}</tbody></table>
       <h3 style="margin-top:24px">題目管理（${questions.length} 題）</h3>
       <table class="data-table"><thead><tr><th>ID</th><th>類別</th><th>題目</th><th>選項</th><th>答案</th><th>操作</th></tr></thead><tbody>${qRows}</tbody></table>
       <div id="quizEditBox"></div>`;
   } catch (e) { alert('載入失敗'); }
+}
+
+// 睇某員工逐題對錯（admin）
+function showQuizDetail(recId) {
+  const rec = (window._quizRecords || []).find(r => r.id === recId);
+  if (!rec) return;
+  const qmap = {};
+  (window._quizQuestions || []).forEach(q => { qmap[q.id] = q; });
+  const optText = (q, key) => {
+    const o = (q.options || []).find(x => String(x.key) === String(key));
+    return o ? `${key}. ${o.text}` : (key == null ? '未答' : key);
+  };
+  let rows = '';
+  (rec.details || []).forEach((d, i) => {
+    const q = qmap[d.qid] || {};
+    const ok = d.correct;
+    const badge = ok
+      ? '<span style="color:#1a8a4f;font-weight:700">✓ 對</span>'
+      : '<span style="color:#d12b2b;font-weight:700">✗ 錯</span>';
+    const chosenLine = ok
+      ? `<span style="color:#1a8a4f">${esc(optText(q, d.chosen))}</span>`
+      : `<span style="color:#d12b2b">佢揀：${esc(optText(q, d.chosen))}</span><br><span style="color:#1a8a4f">正確：${esc(optText(q, q.answer))}</span>`;
+    rows += `<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="font-weight:700;margin-bottom:4px">Q${i+1}. <span class="text-muted">[${esc(q.category||'')}]</span> ${esc(q.question||'')}</div>
+      <div style="font-size:14px">${chosenLine}</div>
+      ${q.explanation ? `<div style="font-size:13px;color:#555;margin-top:4px">💡 ${esc(q.explanation)}</div>` : ''}
+      <div style="margin-top:4px">${badge}</div>
+    </div>`;
+  });
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'quizDetailModal';
+  overlay.innerHTML = `<div class="modal-content" style="max-width:560px">
+    <div class="modal-header">
+      <h3>${esc(rec.name)}（${esc(rec.emp_number)}）— 逐題對錯</h3>
+      <button class="modal-close" onclick="closeQuizDetail()">&times;</button>
+    </div>
+    <div class="modal-body">${rows || '<p class="text-muted">無逐題資料</p>'}</div>
+    <div class="modal-footer"><button class="btn btn-sm btn-outline" onclick="closeQuizDetail()">關閉</button></div>
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeQuizDetail(); });
+  document.body.appendChild(overlay);
+}
+function closeQuizDetail() {
+  const el = document.getElementById('quizDetailModal');
+  if (el) el.remove();
 }
 
 function quizQForm(q) {
