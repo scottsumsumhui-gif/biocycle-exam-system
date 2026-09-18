@@ -1178,7 +1178,7 @@ function renderTapSpeed() {
     </div>
     <p class="text-muted">5 秒內盡量撳下面個掣，撳幾多下計幾多分。</p>
     <div id="tapCount" style="font-size:64px;font-weight:800;text-align:center;margin:14px 0">0</div>
-    <button id="tapBtn" class="btn btn-primary btn-block" style="font-size:24px;padding:30px" onclick="tapSpeedAdd()">撳！</button>
+    <button id="tapBtn" class="btn btn-primary btn-block" style="font-size:24px;padding:30px;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent" onpointerdown="tapSpeedTap(event)">撳！</button>
     <div class="h-center" id="tapStatus" style="margin:12px 0">撳「開始」</div>
     <div class="h-center"><button class="btn btn-outline" id="tapStartBtn" onclick="tapSpeedStart()">開始</button></div>
     <div id="gameResult"></div>
@@ -1186,11 +1186,13 @@ function renderTapSpeed() {
   tapSpeedState = { count: 0, running: false, timer: null };
   loadGameBoard('tapspeed');
 }
-function tapSpeedAdd() {
+function tapSpeedTap(e) {
+  if (e) e.preventDefault(); // 防止手機雙擊放大 / 文字選取，令快撳即時計數
   if (!tapSpeedState.running) return;
   tapSpeedState.count++;
   document.getElementById('tapCount').textContent = tapSpeedState.count;
 }
+function tapSpeedAdd() { tapSpeedTap(); }
 function tapSpeedStart() {
   tapSpeedState = { count: 0, running: true, timer: null };
   document.getElementById('tapCount').textContent = '0';
