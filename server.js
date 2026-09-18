@@ -4537,7 +4537,7 @@ const GAMES = {
   stroop: { id: 'stroop', name: '色字測試', desc: '撳文字嘅顏色（唔係字義），愈快愈高分', unit: '分', lowerIsBetter: false, min: 0, max: 750 },
   nummem: { id: 'nummem', name: '記憶數字', desc: '記低閃過嘅數字，越長越好', unit: '位', lowerIsBetter: false, min: 0, max: 20 },
   tapspeed: { id: 'tapspeed', name: '狂撳測試', desc: '限時 5 秒盡量撳，撳幾多下', unit: '下', lowerIsBetter: false, min: 0, max: 100 },
-  dirreact: { id: 'dirreact', name: '方向反應', desc: '出箭嘴撳對應方向，啱幾多', unit: '分', lowerIsBetter: false, min: 0, max: 15 },
+  dirreact: { id: 'dirreact', name: '方向反應', desc: '出箭嘴撳對應方向，愈快愈高分', unit: '分', lowerIsBetter: false, min: 0, max: 750 },
   math: { id: 'math', name: '數學心算', desc: '限時計算式，愈快愈高分', unit: '分', lowerIsBetter: false, min: 0, max: 750 }
 };
 const GAME_IDS = Object.keys(GAMES);

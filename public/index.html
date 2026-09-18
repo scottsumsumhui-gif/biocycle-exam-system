@@ -1211,7 +1211,7 @@ function renderDirReact() {
       <h2>🧭 方向反應</h2>
       <button class="btn btn-sm btn-outline" onclick="renderGamesHome()">← 返遊戲列表</button>
     </div>
-    <p class="text-muted">出箭嘴撳對應方向（↑→↓←），15 題計啱幾多。</p>
+    <p class="text-muted">出箭嘴撳對應方向（↑→↓←），答對愈快分愈高（每題滿分 50，答錯 0 分），15 題滿分 750。</p>
     <div id="dirArrow" style="font-size:64px;text-align:center;margin:18px 0;height:74px">—</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:240px;margin:0 auto">
       <button class="btn btn-block" style="font-size:22px" onclick="dirAns('↑')">↑</button>
@@ -1223,14 +1223,14 @@ function renderDirReact() {
     <div class="h-center"><button class="btn btn-primary" id="dirStartBtn" onclick="dirStart()">開始</button></div>
     <div id="gameResult"></div>
     <div id="gameBoard"></div>`;
-  dirState = { round: 0, total: 15, correct: 0, active: false, cur: '' };
+  dirState = { round: 0, total: 15, correct: 0, score: 0, active: false, cur: '', shownAt: 0 };
   loadGameBoard('dirreact');
 }
-function dirStart() { dirState = { round: 0, total: 15, correct: 0, active: true, cur: '' }; dirRound(); }
+function dirStart() { dirState = { round: 0, total: 15, correct: 0, score: 0, active: true, cur: '', shownAt: 0 }; dirRound(); }
 function dirRound() {
   if (dirState.round >= dirState.total) {
-    document.getElementById('dirStatus').textContent = '完成！啱 ' + dirState.correct + ' / ' + dirState.total;
-    submitGameScore('dirreact', dirState.correct);
+    document.getElementById('dirStatus').textContent = '完成！啱 ' + dirState.correct + ' / ' + dirState.total + '，得分 ' + dirState.score + ' 分';
+    submitGameScore('dirreact', dirState.score);
     return;
   }
   dirState.round++;
@@ -1238,10 +1238,15 @@ function dirRound() {
   dirState.cur = a;
   document.getElementById('dirArrow').textContent = a;
   document.getElementById('dirStatus').textContent = '第 ' + dirState.round + ' / ' + dirState.total + ' 題';
+  dirState.shownAt = performance.now();
 }
 function dirAns(d) {
   if (!dirState.active) return;
-  if (d === dirState.cur) dirState.correct++;
+  if (d === dirState.cur) {
+    dirState.correct++;
+    const ms = performance.now() - dirState.shownAt;
+    dirState.score += Math.max(0, 50 - Math.floor(ms / 100));
+  }
   dirRound();
 }
 
