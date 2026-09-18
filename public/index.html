@@ -78,15 +78,10 @@
         <div class="module-title">意見箱</div>
         <div class="module-desc">匿名發表意見 / 建議</div>
       </div>
-      <div class="module-card" onclick="showQuiz()">
-        <div class="module-icon">🧩</div>
-        <div class="module-title">邏輯測驗</div>
-        <div class="module-desc">智力挑戰 / 每人一次</div>
-      </div>
       <div class="module-card" onclick="showGames()">
         <div class="module-icon">🎮</div>
         <div class="module-title">小遊戲</div>
-        <div class="module-desc">反應測試 / 2048 / 排行榜</div>
+        <div class="module-desc">邏輯測驗 / 反應測試 / 2048 / 排行榜</div>
       </div>
     </div>
     <div class="h-center" >
@@ -740,7 +735,7 @@ function renderQuiz() {
   if (quizState.phase === 'intro') {
     const total = quizState.questions.length;
     if (!total) {
-      el.innerHTML = '<h1>🧩 邏輯測驗</h1><p>題庫暫時未有題目，請聯絡 admin。</p><div class="h-center"><button class="btn btn-outline btn-sm" onclick="showHome()">返回主板面</button></div>';
+      el.innerHTML = '<h1>🧩 邏輯測驗</h1><p>題庫暫時未有題目，請聯絡 admin。</p><div class="h-center"><button class="btn btn-outline btn-sm" onclick="showGames()">返回小遊戲</button></div>';
       return;
     }
     el.innerHTML = `
@@ -751,7 +746,7 @@ function renderQuiz() {
         <p>唔限時，但建議一次過做完。</p>
       </div>
       <button class="btn btn-primary btn-block" onclick="quizStart()">開始測驗 Start</button>
-      <div class="h-center" style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="showHome()">返回主板面</button></div>`;
+      <div class="h-center" style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="showGames()">返回小遊戲</button></div>`;
     return;
   }
   const i = quizState.idx;
@@ -772,7 +767,7 @@ function renderQuiz() {
       <button class="btn btn-sm btn-outline" onclick="quizPrev()" ${i === 0 ? 'disabled' : ''}>← 上一題</button>
       ${isLast ? `<button class="btn btn-sm btn-primary" onclick="quizSubmit()">交卷</button>` : `<button class="btn btn-sm btn-primary" onclick="quizNext()">下一題 →</button>`}
     </div>
-    <div class="h-center" style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="showHome()">暫停 / 返回</button></div>`;
+    <div class="h-center" style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="showGames()">暫停 / 返回</button></div>`;
 }
 
 function quizStart() { quizState.phase = 'doing'; renderQuiz(); }
@@ -814,7 +809,7 @@ function quizReviewHTML() {
     </div>
     <p class="text-muted small">你已經完成呢份測驗（每人限一次）。以下係逐題檢討：</p>
     ${rows}
-    <div class="h-center" style="margin-top:16px"><button class="btn btn-outline btn-sm" onclick="showHome()">返回主板面</button></div>`;
+    <div class="h-center" style="margin-top:16px"><button class="btn btn-outline btn-sm" onclick="showGames()">返回小遊戲</button></div>`;
 }
 
 function showHome() {
@@ -885,6 +880,12 @@ function renderGamesHome() {
       <div class="game-pick-best">你嘅最佳：${my}</div>
     </div>`;
   });
+  // 邏輯測驗收埋入小遊戲模塊（唔屬 meta，獨立 screen）
+  cards += `<div class="game-pick" onclick="showQuiz()" style="border-color:#146B4F">
+    <div class="game-pick-title">🧩 邏輯與智力測驗</div>
+    <div class="game-pick-desc">20 題挑戰 · 每人限一次</div>
+    <div class="game-pick-best">計分 · 可睇逐題檢討</div>
+  </div>`;
   el.innerHTML = `
     <div class="h-between" style="align-items:center">
       <h1>🎮 小遊戲</h1>
