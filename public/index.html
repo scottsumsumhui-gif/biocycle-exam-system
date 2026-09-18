@@ -847,6 +847,8 @@ function ensureGamesCss() {
   .rt-idle{background:#eef2ee;color:#146B4F}
   .rt-wait{background:#fdecea;color:#a33}
   .rt-go{background:#d6f5d6;color:#1a7a1a}
+  .simon-btn{height:110px;border-radius:14px;cursor:pointer;opacity:.5;transition:.12s;touch-action:manipulation}
+  .simon-btn:active{opacity:1}
   .rt-early{background:#fff3cd;color:#8a6d00}
   .rt-done{background:#146B4F;color:#fff}
   .g2048-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#bbada0;padding:8px;border-radius:10px;max-width:320px;margin:10px 0;touch-action:none}
@@ -900,6 +902,9 @@ function openGame(id) {
   gameState.current = id;
   if (id === 'reaction') renderReaction();
   else if (id === '2048') render2048();
+  else if (id === 'simon') renderSimon();
+  else if (id === 'stroop') renderStroop();
+  else if (id === 'nummem') renderNumMem();
 }
 
 // ---------- 反應測試 ----------
@@ -972,6 +977,186 @@ function rtClick() {
     rtState.phase = 'done';
     if (btn) btn.textContent = '再玩一次';
     submitGameScore('reaction', ms);
+  }
+}
+
+// ---------- 記憶閃燈 (Simon) ----------
+function renderSimon() {
+  const el = document.getElementById('gameArea');
+  el.innerHTML = `
+    <div class="h-between" style="margin:14px 0;align-items:center">
+      <h2>💡 記憶閃燈</h2>
+      <button class="btn btn-sm btn-outline" onclick="renderGamesHome()">← 返遊戲列表</button>
+    </div>
+    <p class="text-muted">跟住閃燈順序撳。過咗幾多關就攞幾多分。</p>
+    <div id="simonPad" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:260px;margin:14px auto">
+      <div class="simon-btn" data-c="0" style="background:#e74c3c" onclick="simonTap(0)"></div>
+      <div class="simon-btn" data-c="1" style="background:#27ae60" onclick="simonTap(1)"></div>
+      <div class="simon-btn" data-c="2" style="background:#f1c40f" onclick="simonTap(2)"></div>
+      <div class="simon-btn" data-c="3" style="background:#2980b9" onclick="simonTap(3)"></div>
+    </div>
+    <div class="h-center" id="simonStatus" style="margin:10px 0">撳「開始」</div>
+    <div class="h-center"><button class="btn btn-primary" id="simonStartBtn" onclick="simonStart()">開始</button></div>
+    <div id="gameResult"></div>
+    <div id="gameBoard"></div>`;
+  simonState = { seq: [], input: 0, accepting: false, timer: null };
+  loadGameBoard('simon');
+}
+function simonFlash(i) {
+  const btns = document.querySelectorAll('#simonPad .simon-btn');
+  if (!btns[i]) return;
+  btns[i].style.opacity = '1'; btns[i].style.transform = 'scale(1.08)';
+  setTimeout(() => { btns[i].style.opacity = '0.5'; btns[i].style.transform = 'scale(1)'; }, 380);
+}
+function simonStart() {
+  simonState = { seq: [], input: 0, accepting: false, timer: null };
+  simonNext();
+}
+function simonNext() {
+  simonState.seq.push(Math.floor(Math.random()*4));
+  simonState.input = 0; simonState.accepting = false;
+  const st = document.getElementById('simonStatus');
+  st.textContent = '記緊…（第 ' + simonState.seq.length + ' 關）';
+  let i = 0;
+  const play = () => {
+    if (i >= simonState.seq.length) {
+      st.textContent = '輪到你！撳返個順序';
+      simonState.accepting = true; return;
+    }
+    simonFlash(simonState.seq[i]); i++;
+    simonState.timer = setTimeout(play, 620);
+  };
+  simonState.timer = setTimeout(play, 500);
+}
+function simonTap(c) {
+  if (!simonState.accepting) return;
+  simonFlash(c);
+  const st = document.getElementById('simonStatus');
+  if (c !== simonState.seq[simonState.input]) {
+    simonState.accepting = false;
+    st.textContent = '錯！過咗 ' + (simonState.seq.length - 1) + ' 關';
+    submitGameScore('simon', simonState.seq.length - 1);
+    return;
+  }
+  simonState.input++;
+  if (simonState.input >= simonState.seq.length) {
+    simonState.accepting = false;
+    st.textContent = '過咗第 ' + simonState.seq.length + ' 關！準備下一關…';
+    simonState.timer = setTimeout(() => simonNext(), 900);
+  }
+}
+
+// ---------- 色字測試 (Stroop) ----------
+const STROOP_COLORS = [
+  { name: '紅', hex: '#e74c3c' }, { name: '綠', hex: '#27ae60' },
+  { name: '藍', hex: '#2980b9' }, { name: '黃', hex: '#f1c40f' }
+];
+function renderStroop() {
+  const el = document.getElementById('gameArea');
+  el.innerHTML = `
+    <div class="h-between" style="margin:14px 0;align-items:center">
+      <h2>🎨 色字測試</h2>
+      <button class="btn btn-sm btn-outline" onclick="renderGamesHome()">← 返遊戲列表</button>
+    </div>
+    <p class="text-muted">撳文字「顯示嘅顏色」（唔係字面意思）。15 題計你啱幾多。</p>
+    <div id="stroopWord" style="font-size:46px;font-weight:800;text-align:center;margin:22px 0;height:60px"></div>
+    <div id="stroopBtns" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:300px;margin:0 auto"></div>
+    <div class="h-center" id="stroopStatus" style="margin:12px 0">撳「開始」</div>
+    <div class="h-center"><button class="btn btn-primary" id="stroopStartBtn" onclick="stroopStart()">開始</button></div>
+    <div id="gameResult"></div>
+    <div id="gameBoard"></div>`;
+  stroopState = { round: 0, total: 15, correct: 0, active: false, currentColor: '' };
+  loadGameBoard('stroop');
+}
+function stroopStart() {
+  stroopState = { round: 0, total: 15, correct: 0, active: true, currentColor: '' };
+  stroopRound();
+}
+function stroopRound() {
+  if (stroopState.round >= stroopState.total) {
+    document.getElementById('stroopStatus').textContent = '完成！啱 ' + stroopState.correct + ' / ' + stroopState.total;
+    submitGameScore('stroop', stroopState.correct);
+    return;
+  }
+  stroopState.round++;
+  const word = STROOP_COLORS[Math.floor(Math.random()*STROOP_COLORS.length)];
+  const color = STROOP_COLORS[Math.floor(Math.random()*STROOP_COLORS.length)];
+  stroopState.currentColor = color.name;
+  const w = document.getElementById('stroopWord');
+  w.textContent = word.name; w.style.color = color.hex;
+  const btns = document.getElementById('stroopBtns');
+  const shuffled = STROOP_COLORS.slice().sort(() => Math.random() - 0.5);
+  btns.innerHTML = '';
+  shuffled.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'btn btn-block'; b.style.background = c.hex; b.style.color = '#fff';
+    b.textContent = c.name; b.onclick = () => stroopAns(c.name);
+    btns.appendChild(b);
+  });
+  document.getElementById('stroopStatus').textContent = '第 ' + stroopState.round + ' / ' + stroopState.total + ' 題';
+}
+function stroopAns(name) {
+  if (!stroopState.active) return;
+  if (name === stroopState.currentColor) stroopState.correct++;
+  stroopRound();
+}
+
+// ---------- 記憶數字 (Number Memory) ----------
+function renderNumMem() {
+  const el = document.getElementById('gameArea');
+  el.innerHTML = `
+    <div class="h-between" style="margin:14px 0;align-items:center">
+      <h2>🔢 記憶數字</h2>
+      <button class="btn btn-sm btn-outline" onclick="renderGamesHome()">← 返遊戲列表</button>
+    </div>
+    <p class="text-muted">記低閃過嘅數字（由 3 位起，每過一關加 1 位），越長越好。</p>
+    <div id="nummemShow" style="font-size:40px;font-weight:800;text-align:center;letter-spacing:6px;margin:20px 0;height:54px"></div>
+    <div id="nummemInput" style="display:none;max-width:300px;margin:0 auto">
+      <input id="nummemVal" inputmode="numeric" class="wt-time" style="text-align:center;font-size:22px" placeholder="入返啱啱啲數字">
+      <div class="h-center" style="margin-top:10px"><button class="btn btn-primary" onclick="nummemCheck()">確定</button></div>
+    </div>
+    <div class="h-center" id="nummemStatus" style="margin:12px 0">撳「開始」</div>
+    <div class="h-center"><button class="btn btn-primary" id="nummemStartBtn" onclick="nummemStart()">開始</button></div>
+    <div id="gameResult"></div>
+    <div id="gameBoard"></div>`;
+  nummemState = { len: 3, seq: '', active: false };
+  loadGameBoard('nummem');
+}
+function nummemStart() {
+  nummemState = { len: 3, seq: '', active: false };
+  nummemRound();
+}
+function nummemRound() {
+  let str = '';
+  for (let i=0;i<nummemState.len;i++) str += Math.floor(Math.random()*10);
+  nummemState.seq = str; nummemState.active = false;
+  const show = document.getElementById('nummemShow');
+  const input = document.getElementById('nummemInput');
+  const status = document.getElementById('nummemStatus');
+  input.style.display = 'none';
+  show.textContent = str; show.style.color = '#146B4F';
+  status.textContent = '記緊…（' + nummemState.len + ' 位）';
+  setTimeout(() => {
+    show.textContent = '？？？'; show.style.color = '#999';
+    input.style.display = 'block';
+    document.getElementById('nummemVal').value = '';
+    status.textContent = '撳入返啲數字';
+    nummemState.active = true;
+    const vi = document.getElementById('nummemVal'); if (vi) vi.focus();
+  }, 1500);
+}
+function nummemCheck() {
+  if (!nummemState.active) return;
+  const v = document.getElementById('nummemVal').value.trim();
+  if (v === nummemState.seq) {
+    document.getElementById('nummemStatus').textContent = '啱！過咗 ' + nummemState.len + ' 位';
+    nummemState.len++;
+    if (nummemState.len > 20) { submitGameScore('nummem', 20); return; }
+    setTimeout(() => nummemRound(), 600);
+  } else {
+    const reached = Math.max(0, nummemState.len - 1);
+    document.getElementById('nummemStatus').textContent = '錯！你記到 ' + reached + ' 位（正確：' + nummemState.seq + '）';
+    submitGameScore('nummem', reached);
   }
 }
 
@@ -1096,7 +1281,7 @@ async function submitGameScore(game, score) {
   try {
     const res = await fetch(API + '/api/games/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ game, score }) });
     const r = await res.json();
-    const out = document.getElementById('rtResult') || document.getElementById('g2048Msg');
+    const out = document.getElementById('gameResult') || document.getElementById('rtResult') || document.getElementById('g2048Msg');
     if (!r.success) { if (out) out.innerHTML = `<p class="error-msg">提交失敗：${r.error||''}</p>`; return; }
     const isNew = r.isNewBest ? '🏆 新最佳！' : '';
     if (out) out.innerHTML = `<div style="margin-top:12px;padding:14px;border-radius:10px;background:#eef2ee;text-align:center">
@@ -1106,7 +1291,7 @@ async function submitGameScore(game, score) {
     const m = gameState.meta.find(g => g.id === game); if (m) m.myBest = r.best;
     loadGameBoard(game);
   } catch (e) {
-    const out = document.getElementById('rtResult') || document.getElementById('g2048Msg');
+    const out = document.getElementById('gameResult') || document.getElementById('rtResult') || document.getElementById('g2048Msg');
     if (out) out.innerHTML = '<p class="error-msg">提交失敗</p>';
   }
 }
