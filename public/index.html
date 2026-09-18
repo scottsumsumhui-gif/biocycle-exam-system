@@ -951,6 +951,22 @@ function rtClick() {
   }
   if (rtState.phase === 'go') {
     const ms = Math.round(performance.now() - rtState.t0);
+    if (ms < 80) {
+      // 撳落去嗰刻 timer 啱啱著火（快撳滑過 gap）—— 人類極限約 150ms，<80ms 唔算數
+      box.className = 'rt-box rt-early';
+      box.textContent = '太快啦！唔算數，再試';
+      rtState.phase = 'idle';
+      if (btn) btn.textContent = '再試';
+      return;
+    }
+    if (ms > 5000) {
+      // 綠色出咗太耐先撳，超出 server 上限
+      box.className = 'rt-box rt-early';
+      box.textContent = '太耐先撳！唔算數，再試';
+      rtState.phase = 'idle';
+      if (btn) btn.textContent = '再試';
+      return;
+    }
     box.className = 'rt-box rt-done';
     box.textContent = ms + ' ms';
     rtState.phase = 'done';
