@@ -2172,6 +2172,35 @@ function otExtraPct(totalHours) {
 
 // 計算指定月份 (YYYY-MM) 嘅全員 OT 出糧報表。
 // Normal Hours = ot_evening_hours (20:00 前)；Special Hours = ot_night_hours (20:00 後)。
+// ===== 夜急單津貼（2026-09-18）=====
+// 晚上 8 時後急單：每張單 $300，由當日做嗰張單嘅隊員平分（1 人=$300、2 人=$150/人…）。
+// 純加項：唔影響 OT 計算（OT 照計）。聚合 key = 日期+單號（防止唔同月份重複單號撞埋）。
+const NIGHT_JOB_ALLOWANCE = 300;
+function calcNightAllowance(records) {
+  const byKey = new Map();
+  for (const r of records) {
+    for (const j of (r.jobs || [])) {
+      if (!j.night_allowance) continue;
+      const key = (r.date || '') + '|' + String(j.client_no || '');
+      if (!byKey.has(key)) byKey.set(key, { date: r.date, client_no: j.client_no, emps: new Map() });
+      byKey.get(key).emps.set(r.emp_id, { emp_id: r.emp_id, emp_number: r.emp_number, emp_name: r.emp_name });
+    }
+  }
+  const perEmp = new Map();
+  for (const g of byKey.values()) {
+    const heads = g.emps.size;
+    const share = Math.round((NIGHT_JOB_ALLOWANCE / heads) * 100) / 100;
+    for (const [empId] of g.emps) {
+      if (!perEmp.has(empId)) perEmp.set(empId, { items: [], total: 0 });
+      const p = perEmp.get(empId);
+      p.items.push({ date: g.date, client_no: g.client_no, heads, share });
+      p.total = Math.round((p.total + share) * 100) / 100;
+    }
+  }
+  for (const p of perEmp.values()) p.items.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  return perEmp;
+}
+
 async function buildMonthlyOt(month) {
   const prefix = month + '-';
   const all = (await loadJSON(WORKTIME_FILE, [])).map(ensureWorktimeOtSplit).filter(r => (r.date || '').startsWith(prefix));
@@ -2179,6 +2208,7 @@ async function buildMonthlyOt(month) {
   const jobLevels = await getJobLevels();
   const labelOf = k => (jobLevels.find(l => l.key === k) || {}).label || k;
   const dowName = ['日', '一', '二', '三', '四', '五', '六'];
+  const naMap = calcNightAllowance(all); // 夜急單津貼（純加項，OT 照計）
   const reports = [];
   for (const e of employees) {
     if (OT_EXCLUDE_LEVELS.has(e.level)) continue;       // 管理層跳過
@@ -2218,7 +2248,9 @@ async function buildMonthlyOt(month) {
       total_special_hours: Math.round(tSpecial * 100) / 100,
       total_hours: totalHours,
       gross_ot_hkd: Math.round(gross * 100) / 100,
-      extra_pct: pct, extra_ot_hkd: extra, total_ot_hkd: totalHkd
+      extra_pct: pct, extra_ot_hkd: extra, total_ot_hkd: totalHkd,
+      night_allowance_hkd: (naMap.get(e.id) || { total: 0 }).total,
+      night_allowance_items: (naMap.get(e.id) || { items: [] }).items
     });
   }
   reports.sort((a, b) => (a.emp_number || '').localeCompare(b.emp_number || ''));
@@ -2849,7 +2881,7 @@ async function sanitizeWorktimePayload(body, emp) {
       if (types.length === 0) return { ok: false, error: '每張單請選擇至少一個工作類型' };
       if (start && parseHM(start) === null) return { ok: false, error: '單開始時間格式唔正確' };
       if (end && parseHM(end) === null) return { ok: false, error: '單完結時間格式唔正確' };
-      jobs.push({ client_no, start, end, types, remarks, no_sync: j.no_sync === true });
+      jobs.push({ client_no, start, end, types, remarks, no_sync: j.no_sync === true, night_allowance: j.night_allowance === true });
     }
   }
 
@@ -3140,7 +3172,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
         rows.push(['總當值(h)', round1(rec.total_duty_hours), '標準(h)', round1(rec.standard_hours), 'OT(h)', fmtQH(rec.ot_hours), '20:00前OT(h)', fmtQH(rec.ot_evening_hours), '20:00後OT(h)', fmtQH(rec.ot_night_hours)]);
         if (rec.jobs && rec.jobs.length) {
           rows.push(['單號', '開始', '完結', '工作類型', '備註']);
-          for (const j of rec.jobs) rows.push([j.client_no || '—', j.start || '—', j.end || '—', (j.types || []).join('/') || '—', j.remarks || '—']);
+          for (const j of rec.jobs) rows.push([j.client_no || '—', j.start || '—', j.end || '—', ((j.types || []).join('/') || '—') + (j.night_allowance ? ' 🌙急單' : ''), j.remarks || '—']);
         }
         if (rec.remark) rows.push(['備註', rec.remark]);
         rows.push([]);
@@ -3807,6 +3839,14 @@ app.get('/api/admin/worktime/monthly-ot/export', authRequired('admin'), requireP
       rows.push(['當月 OT 總時數', r.total_hours, 'Gross OT HKD', r.gross_ot_hkd]);
       rows.push(['Extra % (' + Math.round(r.extra_pct * 100) + '%)', '', 'Extra OT HKD', r.extra_ot_hkd]);
       rows.push(['Total OT HKD', r.total_ot_hkd]);
+      if ((r.night_allowance_items || []).length) {
+        rows.push([]);
+        rows.push(['夜急單津貼（每張 $300 由當日隊員平分，OT 照計）']);
+        rows.push(['日期', '單號', '分攤人數', '每人金額 HKD']);
+        for (const it of r.night_allowance_items) rows.push([it.date, it.client_no || '—', it.heads + ' 人', it.share]);
+        rows.push(['夜急單津貼小計 HKD', r.night_allowance_hkd]);
+        rows.push(['總計（OT + 夜急單津貼）HKD', Math.round((r.total_ot_hkd + r.night_allowance_hkd) * 100) / 100]);
+      }
       const sheetName = (r.emp_name || r.emp_number || '員工').replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 28);
       const ws = XLSX.utils.aoa_to_sheet(rows);
       ws['!cols'] = [

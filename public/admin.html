@@ -2726,11 +2726,11 @@ async function renderMonthlyOt() {
     document.getElementById('otExportLink').href = API + '/api/admin/worktime/monthly-ot/export?month=' + encodeURIComponent(month);
     if (!rep.length) { res.innerHTML = '<p style="color:var(--text-light)">本月無 OT 記錄</p>'; return; }
     let html = '<div class="table-scroll"><table class="data-table"><thead><tr>'
-      + '<th>員工編號</th><th>姓名</th><th>職級</th><th>Total OT(h)</th><th>Gross OT(HKD)</th><th>Extra%</th><th>Extra(HKD)</th><th>Total OT(HKD)</th><th></th>'
+      + '<th>員工編號</th><th>姓名</th><th>職級</th><th>Total OT(h)</th><th>Gross OT(HKD)</th><th>Extra%</th><th>Extra(HKD)</th><th>Total OT(HKD)</th><th>夜急單津貼</th><th></th>'
       + '</tr></thead><tbody>';
-    let gGross = 0, gExtra = 0, gTotal = 0;
+    let gGross = 0, gExtra = 0, gTotal = 0, gAllow = 0;
     for (const e of rep) {
-      gGross += e.gross_ot_hkd; gExtra += e.extra_ot_hkd; gTotal += e.total_ot_hkd;
+      gGross += e.gross_ot_hkd; gExtra += e.extra_ot_hkd; gTotal += e.total_ot_hkd; gAllow += (e.night_allowance_hkd || 0);
       html += '<tr>'
         + '<td>' + esc(e.emp_number) + '</td>'
         + '<td>' + esc(e.emp_name) + '</td>'
@@ -2740,11 +2740,12 @@ async function renderMonthlyOt() {
         + '<td>' + (e.extra_pct * 100).toFixed(0) + '%</td>'
         + '<td>' + e.extra_ot_hkd.toFixed(2) + '</td>'
         + '<td><b>' + e.total_ot_hkd.toFixed(2) + '</b></td>'
+        + '<td>' + (e.night_allowance_hkd ? '<b style="color:var(--primary)">$' + e.night_allowance_hkd.toFixed(2) + '</b>' : '—') + '</td>'
         + '<td><button class="btn btn-xs btn-outline" onclick="toggleOtDetail(\'' + e.emp_id + '\')">明細</button></td>'
         + '</tr>'
-        + '<tr id="otDetail-' + e.emp_id + '" style="display:none"><td colspan="9">' + renderOtDetail(e) + '</td></tr>';
+        + '<tr id="otDetail-' + e.emp_id + '" style="display:none"><td colspan="10">' + renderOtDetail(e) + '</td></tr>';
     }
-    html += '</tbody><tfoot><tr><td colspan="4"><b>全員合計</b></td><td><b>' + gGross.toFixed(2) + '</b></td><td></td><td><b>' + gExtra.toFixed(2) + '</b></td><td><b>' + gTotal.toFixed(2) + '</b></td><td></td></tr></tfoot></table></div>';
+    html += '</tbody><tfoot><tr><td colspan="4"><b>全員合計</b></td><td><b>' + gGross.toFixed(2) + '</b></td><td></td><td><b>' + gExtra.toFixed(2) + '</b></td><td><b>' + gTotal.toFixed(2) + '</b></td><td><b>' + (gAllow ? '$' + gAllow.toFixed(2) : '—') + '</b></td><td></td></tr></tfoot></table></div>';
     res.innerHTML = html;
   } catch (e) { res.innerHTML = '<p>載入失敗</p>'; }
 }
@@ -2757,6 +2758,12 @@ function renderOtDetail(e) {
   }
   h += '<tr><td colspan="4"><b>合計</b></td><td><b>' + e.total_normal_hours.toFixed(2) + '</b></td><td></td><td><b>' + e.total_special_hours.toFixed(2) + '</b></td><td></td><td><b>' + e.gross_ot_hkd.toFixed(2) + '</b></td></tr>';
   h += '</tbody></table></div>';
+  if ((e.night_allowance_items || []).length) {
+    h += '<div style="font-weight:700;margin:10px 0 4px">🌙 夜急單津貼（每張 $300 由當日隊員平分，OT 照計）— 小計 $' + (e.night_allowance_hkd || 0).toFixed(2) + '</div>';
+    h += '<div class="table-scroll"><table class="data-table"><thead><tr><th>日期</th><th>單號</th><th>分攤人數</th><th>每人金額(HKD)</th></tr></thead><tbody>';
+    for (const it of e.night_allowance_items) h += '<tr><td>' + esc(it.date) + '</td><td>' + esc(it.client_no || '—') + '</td><td>' + it.heads + ' 人</td><td>' + it.share.toFixed(2) + '</td></tr>';
+    h += '</tbody></table></div>';
+  }
   return h;
 }
 
