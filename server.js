@@ -4534,7 +4534,7 @@ const GAMES = {
   reaction: { id: 'reaction', name: '反應測試', desc: '見到綠色就撳，越快越好', unit: 'ms', lowerIsBetter: true, min: 80, max: 5000 },
   '2048': { id: '2048', name: '2048', desc: '合併相同數字，分數越高越好', unit: '分', lowerIsBetter: false, min: 0, max: 5000000 },
   simon: { id: 'simon', name: '記憶閃燈', desc: '跟住閃燈順序撳，越長越好', unit: '關', lowerIsBetter: false, min: 0, max: 50 },
-  stroop: { id: 'stroop', name: '色字測試', desc: '撳文字嘅顏色（唔係字義），啱越多越好', unit: '分', lowerIsBetter: false, min: 0, max: 100 },
+  stroop: { id: 'stroop', name: '色字測試', desc: '撳文字嘅顏色（唔係字義），愈快愈高分', unit: '分', lowerIsBetter: false, min: 0, max: 750 },
   nummem: { id: 'nummem', name: '記憶數字', desc: '記低閃過嘅數字，越長越好', unit: '位', lowerIsBetter: false, min: 0, max: 20 }
 };
 const GAME_IDS = Object.keys(GAMES);

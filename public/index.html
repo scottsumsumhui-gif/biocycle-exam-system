@@ -1058,24 +1058,24 @@ function renderStroop() {
       <h2>🎨 色字測試</h2>
       <button class="btn btn-sm btn-outline" onclick="renderGamesHome()">← 返遊戲列表</button>
     </div>
-    <p class="text-muted">撳文字「顯示嘅顏色」（唔係字面意思）。15 題計你啱幾多。</p>
+    <p class="text-muted">撳文字「顯示嘅顏色」（唔係字面意思）。15 題限時搶分：答得愈快分愈高（每題滿分 50，答錯 0 分），15 題滿分 750。</p>
     <div id="stroopWord" style="font-size:46px;font-weight:800;text-align:center;margin:22px 0;height:60px"></div>
     <div id="stroopBtns" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:300px;margin:0 auto"></div>
     <div class="h-center" id="stroopStatus" style="margin:12px 0">撳「開始」</div>
     <div class="h-center"><button class="btn btn-primary" id="stroopStartBtn" onclick="stroopStart()">開始</button></div>
     <div id="gameResult"></div>
     <div id="gameBoard"></div>`;
-  stroopState = { round: 0, total: 15, correct: 0, active: false, currentColor: '' };
+  stroopState = { round: 0, total: 15, correct: 0, score: 0, active: false, currentColor: '', shownAt: 0 };
   loadGameBoard('stroop');
 }
 function stroopStart() {
-  stroopState = { round: 0, total: 15, correct: 0, active: true, currentColor: '' };
+  stroopState = { round: 0, total: 15, correct: 0, score: 0, active: true, currentColor: '', shownAt: 0 };
   stroopRound();
 }
 function stroopRound() {
   if (stroopState.round >= stroopState.total) {
-    document.getElementById('stroopStatus').textContent = '完成！啱 ' + stroopState.correct + ' / ' + stroopState.total;
-    submitGameScore('stroop', stroopState.correct);
+    document.getElementById('stroopStatus').textContent = '完成！啱 ' + stroopState.correct + ' / ' + stroopState.total + '，得分 ' + stroopState.score + ' 分';
+    submitGameScore('stroop', stroopState.score);
     return;
   }
   stroopState.round++;
@@ -1086,6 +1086,7 @@ function stroopRound() {
   w.textContent = word.name; w.style.color = color.hex;
   const btns = document.getElementById('stroopBtns');
   const shuffled = STROOP_COLORS.slice().sort(() => Math.random() - 0.5);
+  stroopState.shownAt = performance.now();
   btns.innerHTML = '';
   shuffled.forEach(c => {
     const b = document.createElement('button');
@@ -1097,7 +1098,11 @@ function stroopRound() {
 }
 function stroopAns(name) {
   if (!stroopState.active) return;
-  if (name === stroopState.currentColor) stroopState.correct++;
+  if (name === stroopState.currentColor) {
+    stroopState.correct++;
+    const ms = performance.now() - stroopState.shownAt;
+    stroopState.score += Math.max(0, 50 - Math.floor(ms / 100));
+  }
   stroopRound();
 }
 
