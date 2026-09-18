@@ -905,6 +905,9 @@ function openGame(id) {
   else if (id === 'simon') renderSimon();
   else if (id === 'stroop') renderStroop();
   else if (id === 'nummem') renderNumMem();
+  else if (id === 'tapspeed') renderTapSpeed();
+  else if (id === 'dirreact') renderDirReact();
+  else if (id === 'math') renderMath();
 }
 
 // ---------- 反應測試 ----------
@@ -1163,6 +1166,134 @@ function nummemCheck() {
     document.getElementById('nummemStatus').textContent = '錯！你記到 ' + reached + ' 位（正確：' + nummemState.seq + '）';
     submitGameScore('nummem', reached);
   }
+}
+
+// ---------- 狂撳測試 (Tap-speed) ----------
+function renderTapSpeed() {
+  const el = document.getElementById('gameArea');
+  el.innerHTML = `
+    <div class="h-between" style="margin:14px 0;align-items:center">
+      <h2>👆 狂撳測試</h2>
+      <button class="btn btn-sm btn-outline" onclick="renderGamesHome()">← 返遊戲列表</button>
+    </div>
+    <p class="text-muted">5 秒內盡量撳下面個掣，撳幾多下計幾多分。</p>
+    <div id="tapCount" style="font-size:64px;font-weight:800;text-align:center;margin:14px 0">0</div>
+    <button id="tapBtn" class="btn btn-primary btn-block" style="font-size:24px;padding:30px" onclick="tapSpeedAdd()">撳！</button>
+    <div class="h-center" id="tapStatus" style="margin:12px 0">撳「開始」</div>
+    <div class="h-center"><button class="btn btn-outline" id="tapStartBtn" onclick="tapSpeedStart()">開始</button></div>
+    <div id="gameResult"></div>
+    <div id="gameBoard"></div>`;
+  tapSpeedState = { count: 0, running: false, timer: null };
+  loadGameBoard('tapspeed');
+}
+function tapSpeedAdd() {
+  if (!tapSpeedState.running) return;
+  tapSpeedState.count++;
+  document.getElementById('tapCount').textContent = tapSpeedState.count;
+}
+function tapSpeedStart() {
+  tapSpeedState = { count: 0, running: true, timer: null };
+  document.getElementById('tapCount').textContent = '0';
+  document.getElementById('tapStatus').textContent = '5 秒倒數！撳！';
+  tapSpeedState.timer = setTimeout(() => {
+    tapSpeedState.running = false;
+    document.getElementById('tapStatus').textContent = '時間到！共 ' + tapSpeedState.count + ' 下';
+    submitGameScore('tapspeed', tapSpeedState.count);
+  }, 5000);
+}
+
+// ---------- 方向反應 (Direction Reaction) ----------
+const DIR_ARROWS = ['↑', '→', '↓', '←'];
+function renderDirReact() {
+  const el = document.getElementById('gameArea');
+  el.innerHTML = `
+    <div class="h-between" style="margin:14px 0;align-items:center">
+      <h2>🧭 方向反應</h2>
+      <button class="btn btn-sm btn-outline" onclick="renderGamesHome()">← 返遊戲列表</button>
+    </div>
+    <p class="text-muted">出箭嘴撳對應方向（↑→↓←），15 題計啱幾多。</p>
+    <div id="dirArrow" style="font-size:64px;text-align:center;margin:18px 0;height:74px">—</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:240px;margin:0 auto">
+      <button class="btn btn-block" style="font-size:22px" onclick="dirAns('↑')">↑</button>
+      <button class="btn btn-block" style="font-size:22px" onclick="dirAns('→')">→</button>
+      <button class="btn btn-block" style="font-size:22px" onclick="dirAns('↓')">↓</button>
+      <button class="btn btn-block" style="font-size:22px" onclick="dirAns('←')">←</button>
+    </div>
+    <div class="h-center" id="dirStatus" style="margin:12px 0">撳「開始」</div>
+    <div class="h-center"><button class="btn btn-primary" id="dirStartBtn" onclick="dirStart()">開始</button></div>
+    <div id="gameResult"></div>
+    <div id="gameBoard"></div>`;
+  dirState = { round: 0, total: 15, correct: 0, active: false, cur: '' };
+  loadGameBoard('dirreact');
+}
+function dirStart() { dirState = { round: 0, total: 15, correct: 0, active: true, cur: '' }; dirRound(); }
+function dirRound() {
+  if (dirState.round >= dirState.total) {
+    document.getElementById('dirStatus').textContent = '完成！啱 ' + dirState.correct + ' / ' + dirState.total;
+    submitGameScore('dirreact', dirState.correct);
+    return;
+  }
+  dirState.round++;
+  const a = DIR_ARROWS[Math.floor(Math.random() * 4)];
+  dirState.cur = a;
+  document.getElementById('dirArrow').textContent = a;
+  document.getElementById('dirStatus').textContent = '第 ' + dirState.round + ' / ' + dirState.total + ' 題';
+}
+function dirAns(d) {
+  if (!dirState.active) return;
+  if (d === dirState.cur) dirState.correct++;
+  dirRound();
+}
+
+// ---------- 數學心算 (Math) ----------
+function renderMath() {
+  const el = document.getElementById('gameArea');
+  el.innerHTML = `
+    <div class="h-between" style="margin:14px 0;align-items:center">
+      <h2>➕ 數學心算</h2>
+      <button class="btn btn-sm btn-outline" onclick="renderGamesHome()">← 返遊戲列表</button>
+    </div>
+    <p class="text-muted">限時計算式，答對愈快分愈高（每題滿分 50，答錯 0 分），15 題滿分 750。</p>
+    <div id="mathQ" style="font-size:40px;font-weight:800;text-align:center;margin:18px 0;height:50px">—</div>
+    <div id="mathBtns" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:300px;margin:0 auto"></div>
+    <div class="h-center" id="mathStatus" style="margin:12px 0">撳「開始」</div>
+    <div class="h-center"><button class="btn btn-primary" id="mathStartBtn" onclick="mathStart()">開始</button></div>
+    <div id="gameResult"></div>
+    <div id="gameBoard"></div>`;
+  mathState = { round: 0, total: 15, correct: 0, score: 0, active: false, ans: 0, shownAt: 0 };
+  loadGameBoard('math');
+}
+function mathStart() { mathState = { round: 0, total: 15, correct: 0, score: 0, active: true, ans: 0, shownAt: 0 }; mathRound(); }
+function mathRound() {
+  if (mathState.round >= mathState.total) {
+    document.getElementById('mathStatus').textContent = '完成！啱 ' + mathState.correct + ' / ' + mathState.total + '，得分 ' + mathState.score + ' 分';
+    submitGameScore('math', mathState.score);
+    return;
+  }
+  mathState.round++;
+  const t = Math.floor(Math.random() * 3);
+  let a, b, ans, op;
+  if (t === 0) { a = Math.floor(Math.random() * 50) + 1; b = Math.floor(Math.random() * 50) + 1; ans = a + b; op = '+'; }
+  else if (t === 1) { a = Math.floor(Math.random() * 40) + 10; b = Math.floor(Math.random() * a); ans = a - b; op = '-'; }
+  else { a = Math.floor(Math.random() * 12) + 2; b = Math.floor(Math.random() * 12) + 2; ans = a * b; op = '×'; }
+  mathState.ans = ans;
+  const opts = new Set([ans]);
+  while (opts.size < 4) { const d = ans + Math.floor(Math.random() * 20) - 10; if (d >= 0) opts.add(d); }
+  const arr = Array.from(opts).sort(() => Math.random() - 0.5);
+  document.getElementById('mathQ').textContent = a + op + b + ' = ?';
+  const btns = document.getElementById('mathBtns'); btns.innerHTML = '';
+  arr.forEach(v => { const btn = document.createElement('button'); btn.className = 'btn btn-block'; btn.textContent = v; btn.onclick = () => mathAns(v); btns.appendChild(btn); });
+  document.getElementById('mathStatus').textContent = '第 ' + mathState.round + ' / ' + mathState.total + ' 題';
+  mathState.shownAt = performance.now();
+}
+function mathAns(v) {
+  if (!mathState.active) return;
+  if (v === mathState.ans) {
+    mathState.correct++;
+    const ms = performance.now() - mathState.shownAt;
+    mathState.score += Math.max(0, 50 - Math.floor(ms / 100));
+  }
+  mathRound();
 }
 
 // ---------- 2048 ----------
