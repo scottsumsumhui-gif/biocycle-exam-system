@@ -4486,6 +4486,73 @@ app.get('/api/admin/quiz/export', authRequired('admin'), requirePermission('quiz
   }
 });
 
+// ===================== GAMES (小遊戲 + 排行榜) =====================
+// 員工可以無限玩，每次送分數；系統記錄每人每款遊戲最佳分，並提供全員排行榜。
+// Stores: game_scores.json（按 game id 分組，key = employee_id）。
+// ⚠️ 呢個 store 含員工名 + 分數，runtime 數據，唔 commit（已加 .gitignore）。
+const GAMES = {
+  reaction: { id: 'reaction', name: '反應測試', desc: '見到綠色就撳，越快越好', unit: 'ms', lowerIsBetter: true, min: 80, max: 5000 },
+  '2048': { id: '2048', name: '2048', desc: '合併相同數字，分數越高越好', unit: '分', lowerIsBetter: false, min: 0, max: 5000000 }
+};
+const GAME_IDS = Object.keys(GAMES);
+
+app.get('/api/games/meta', authRequired('employee'), async (req, res) => {
+  try {
+    const store = await loadJSON('game_scores.json', {});
+    const games = GAME_IDS.map(g => {
+      const e = (store[g] || {})[req.session.user_id];
+      return { ...GAMES[g], myBest: e ? e.best : null };
+    });
+    res.json({ games });
+  } catch (e) { res.status(500).json({ error: '讀取失敗' }); }
+});
+
+app.post('/api/games/submit', authRequired('employee'), async (req, res) => {
+  try {
+    const gameId = req.body && req.body.game;
+    const g = GAMES[gameId];
+    if (!g) return res.status(400).json({ error: '未知遊戲' });
+    let score = Number(req.body && req.body.score);
+    if (!isFinite(score)) return res.status(400).json({ error: '分數無效' });
+    score = Math.round(score);
+    if (score < g.min || score > g.max) return res.status(400).json({ error: '分數超出合理範圍' });
+    const employees = await loadJSON('employees.json', []);
+    const emp = employees.find(e => e.id === req.session.user_id);
+    if (!emp) return res.status(401).json({ error: '員工不存在' });
+    const store = await loadJSON('game_scores.json', {});
+    if (!store[gameId]) store[gameId] = {};
+    const prev = store[gameId][emp.id];
+    const isBetter = !prev || (g.lowerIsBetter ? score < prev.best : score > prev.best);
+    const best = isBetter ? score : (prev ? prev.best : score);
+    store[gameId][emp.id] = {
+      employee_id: emp.id,
+      emp_number: emp.emp_number,
+      name: emp.name,
+      best,
+      plays: (prev ? prev.plays : 0) + 1,
+      last_played: nowStr()
+    };
+    await saveJSON('game_scores.json', store);
+    const entries = Object.values(store[gameId]).sort((a, b) => g.lowerIsBetter ? a.best - b.best : b.best - a.best);
+    const rank = entries.findIndex(e => e.employee_id === emp.id) + 1;
+    res.json({ success: true, best, isNewBest: isBetter, rank, total: entries.length });
+  } catch (e) { res.status(500).json({ error: '提交失敗：' + e.message }); }
+});
+
+app.get('/api/games/leaderboard', authRequired('employee'), async (req, res) => {
+  try {
+    const gameId = req.query.game;
+    const g = GAMES[gameId];
+    if (!g) return res.status(400).json({ error: '未知遊戲' });
+    const store = await loadJSON('game_scores.json', {});
+    const all = Object.values(store[gameId] || {}).sort((a, b) => g.lowerIsBetter ? a.best - b.best : b.best - a.best);
+    const leaderboard = all.slice(0, 20).map((e, i) => ({ rank: i + 1, name: e.name, emp_number: e.emp_number, best: e.best, plays: e.plays }));
+    const me = (store[gameId] || {})[req.session.user_id];
+    const myRank = me ? all.findIndex(e => e.employee_id === req.session.user_id) + 1 : null;
+    res.json({ game: g, leaderboard, myRank, myBest: me ? me.best : null, total: all.length });
+  } catch (e) { res.status(500).json({ error: '讀取排行榜失敗' }); }
+});
+
 // Start server locally only (not on Vercel)
 if (!isVercel) {
   app.listen(PORT, () => {
