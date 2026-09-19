@@ -832,6 +832,8 @@ let gameState = { meta: [], current: null };
 let rtState = { phase: 'idle', t0: 0, timer: null };
 let g2048 = null;
 let g2048Bound = false;
+let schulteState = { next: 1, total: 25, running: false, t0: 0, tiles: [] };
+let mjState = null;
 
 function ensureGamesCss() {
   if (document.getElementById('gamesCss')) return;
@@ -908,6 +910,8 @@ function openGame(id) {
   else if (id === 'tapspeed') renderTapSpeed();
   else if (id === 'dirreact') renderDirReact();
   else if (id === 'math') renderMath();
+  else if (id === 'schulte') renderSchulte();
+  else if (id === 'mahjong') renderMahjong();
 }
 
 // ---------- 反應測試 ----------
@@ -1301,6 +1305,168 @@ function mathAns(v) {
     mathState.score += Math.max(0, 50 - Math.floor(ms / 100));
   }
   mathRound();
+}
+
+// ---------- 舒爾特方格 (Schulte) ----------
+function renderSchulte() {
+  const el = document.getElementById('gameArea');
+  el.innerHTML = `
+    <div class="h-between" style="margin:14px 0;align-items:center">
+      <h2>🔢 舒爾特方格</h2>
+      <button class="btn btn-sm btn-outline" onclick="renderGamesHome()">← 返遊戲列表</button>
+    </div>
+    <p class="text-muted">由 1 撳到 25，次序啱、愈快愈高分（約 8 秒內封頂 1500）。撳錯要撳返正確嗰個。</p>
+    <div id="schulteGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:340px;margin:14px auto;touch-action:manipulation"></div>
+    <div class="h-center" id="schulteStatus" style="margin:12px 0">撳「開始」</div>
+    <div class="h-center"><button class="btn btn-primary" id="schulteStartBtn" onclick="schulteStart()">開始</button></div>
+    <div id="gameResult"></div>
+    <div id="gameBoard"></div>`;
+  schulteState = { next: 1, total: 25, running: false, t0: 0, tiles: [] };
+  loadGameBoard('schulte');
+}
+function schulteStart() {
+  const nums = Array.from({ length: 25 }, (_, i) => i + 1);
+  for (let i = nums.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [nums[i], nums[j]] = [nums[j], nums[i]]; }
+  schulteState = { next: 1, total: 25, running: true, t0: performance.now(), tiles: nums };
+  const grid = document.getElementById('schulteGrid');
+  grid.innerHTML = nums.map(n => `<button class="btn" style="font-size:22px;padding:14px 0;aspect-ratio:1;touch-action:manipulation" onclick="schulteTap(${n}, this)">${n}</button>`).join('');
+  document.getElementById('schulteStatus').textContent = '由 1 開始撳！';
+}
+function schulteTap(n, btn) {
+  if (!schulteState.running) return;
+  if (n !== schulteState.next) {
+    document.getElementById('schulteStatus').textContent = '撳錯，要撳 ' + schulteState.next;
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.style.opacity = .4; }
+  schulteState.next++;
+  if (schulteState.next > schulteState.total) {
+    schulteState.running = false;
+    const ms = performance.now() - schulteState.t0;
+    const score = Math.max(0, 1500 - Math.floor(ms / 10));
+    document.getElementById('schulteStatus').textContent = '完成！用咗 ' + (ms / 1000).toFixed(2) + ' 秒，得分 ' + score + ' 分';
+    submitGameScore('schulte', score);
+  } else {
+    document.getElementById('schulteStatus').textContent = '撳 ' + schulteState.next;
+  }
+}
+
+// ---------- 上海麻雀 (Mahjong Solitaire) ----------
+const MAHJONG_FACES = ['🀀','🀁','🀂','🀃','🀄','🀅','🀆','🀇','🀈','🀉','🀊','🀋','🀌','🀍','🀎','🀏','🀐','🀑','🀒','🀓','🀔','🀕','🀖','🀗','🀘','🀙','🀚','🀛','🀜','🀝','🀞','🀟','🀠','🀡','🀢','🀣'];
+const MJ_TILE = 32;     // 一粒牌像素寬高
+const MJ_HALF = MJ_TILE / 2;
+const MJ_LIFT = 11;     // 每層抬高（3D 感）
+function mjBuildLayout() {
+  // 三層疊疊樂，共 144 隻（半格座標 x,y 用 half-unit）
+  const pos = [];
+  const push = (cx, cy, cols, rows, z, ox, oy) => {
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) pos.push({ x: ox + c * 2, y: oy + r * 2, z });
+  };
+  push(0, 0, 12, 8, 0, 0, 0);   // 底層 96
+  push(0, 0, 6, 6, 1, 3, 1);    // 中層 36（半格偏移）
+  push(0, 0, 6, 2, 2, 3, 3);    // 頂層 12
+  return pos; // 96+36+12 = 144
+}
+function mjIsFree(tiles, t) {
+  const occ = (x, y, z) => tiles.some(o => !o.removed && o.x === x && o.y === y && o.z === z);
+  // 上面有冚住？
+  for (const o of tiles) {
+    if (o.removed || o === t) continue;
+    if (o.z === t.z + 1 && o.x < t.x + 2 && o.x + 2 > t.x && o.y < t.y + 2 && o.y + 2 > t.y) return false;
+  }
+  const leftBlocked = occ(t.x - 2, t.y, t.z);
+  const rightBlocked = occ(t.x + 2, t.y, t.z);
+  return !(leftBlocked && rightBlocked);
+}
+function renderMahjong() {
+  const el = document.getElementById('gameArea');
+  el.innerHTML = `
+    <div class="h-between" style="margin:14px 0;align-items:center">
+      <h2>🀄 上海麻雀</h2>
+      <button class="btn btn-sm btn-outline" onclick="renderGamesHome()">← 返遊戲列表</button>
+    </div>
+    <p class="text-muted">撳兩粒相同嘅麻雀配對消除，消除晒就贏。上面冚住或左右都塞住嘅牌撳唔到。</p>
+    <div class="h-center" style="margin:6px 0;gap:8px">
+      <span id="mjLeft" class="text-muted">剩餘 144</span>
+      <button class="btn btn-sm btn-outline" onclick="mjReshuffle()">洗牌</button>
+      <button class="btn btn-sm btn-outline" onclick="mjGiveUp()">放棄</button>
+    </div>
+    <div id="mjBoard" style="position:relative;margin:12px auto;touch-action:manipulation"></div>
+    <div class="h-center" id="mjStatus" style="margin:8px 0">撳「開始」</div>
+    <div class="h-center"><button class="btn btn-primary" id="mjStartBtn" onclick="mjStart()">開始</button></div>
+    <div id="gameResult"></div>
+    <div id="gameBoard"></div>`;
+  loadGameBoard('mahjong');
+}
+function mjStart() {
+  const pos = mjBuildLayout();
+  let faces = [];
+  for (const f of MAHJONG_FACES) { faces.push(f, f, f, f); } // 36×4 = 144
+  for (let i = faces.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [faces[i], faces[j]] = [faces[j], faces[i]]; }
+  mjState = { tiles: pos.map((p, i) => ({ ...p, id: i, face: faces[i], removed: false })), sel: null, t0: performance.now(), running: true };
+  mjDraw();
+}
+function mjDraw() {
+  const board = document.getElementById('mjBoard');
+  const tiles = mjState.tiles;
+  const maxX = Math.max(...tiles.map(t => t.x)) + 2;
+  const maxY = Math.max(...tiles.map(t => t.y)) + 2;
+  board.style.width = (maxX * MJ_HALF) + 'px';
+  board.style.height = (maxY * MJ_HALF) + 'px';
+  board.style.maxWidth = '94vw';
+  let html = '';
+  tiles.forEach(t => {
+    if (t.removed) return;
+    const free = mjIsFree(tiles, t);
+    const left = t.x * MJ_HALF;
+    const top = t.y * MJ_HALF - t.z * MJ_LIFT;
+    const dim = free ? '' : 'opacity:.55;filter:grayscale(.4)';
+    const sel = mjState.sel === t.id ? 'outline:3px solid #F59E0B;' : '';
+    html += `<button onclick="mjTap(${t.id})" style="position:absolute;left:${left}px;top:${top}px;width:${MJ_TILE-2}px;height:${MJ_TILE-2}px;font-size:22px;line-height:${MJ_TILE-2}px;text-align:center;background:#fdfdfa;border:1px solid #b9b09a;border-radius:5px;box-shadow:1px 1px 0 #8d8470;${dim}${sel}cursor:${free?'pointer':'default'};touch-action:manipulation">${t.face}</button>`;
+  });
+  board.innerHTML = html;
+  const left = tiles.filter(t => !t.removed).length;
+  document.getElementById('mjLeft').textContent = '剩餘 ' + left;
+  if (left === 0 && mjState.running) {
+    mjState.running = false;
+    const ms = performance.now() - mjState.t0;
+    const score = Math.max(0, 2500 - Math.floor(ms / 10));
+    document.getElementById('mjStatus').textContent = '通晒！用咗 ' + (ms / 1000).toFixed(1) + ' 秒，得分 ' + score + ' 分';
+    submitGameScore('mahjong', score);
+  }
+}
+function mjTap(id) {
+  if (!mjState || !mjState.running) return;
+  const t = mjState.tiles.find(x => x.id === id);
+  if (!t || t.removed || !mjIsFree(mjState.tiles, t)) return;
+  if (mjState.sel === null) { mjState.sel = id; mjDraw(); return; }
+  if (mjState.sel === id) { mjState.sel = null; mjDraw(); return; }
+  const a = mjState.tiles.find(x => x.id === mjState.sel);
+  if (a.face === t.face) {
+    a.removed = true; t.removed = true; mjState.sel = null;
+    document.getElementById('mjStatus').textContent = '配對成功！';
+  } else {
+    mjState.sel = id;
+    document.getElementById('mjStatus').textContent = '唔同，再揀過';
+  }
+  mjDraw();
+}
+function mjReshuffle() {
+  if (!mjState || !mjState.running) return;
+  const remain = mjState.tiles.filter(t => !t.removed);
+  const faces = remain.map(t => t.face);
+  for (let i = faces.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [faces[i], faces[j]] = [faces[j], faces[i]]; }
+  remain.forEach((t, i) => { t.face = faces[i]; });
+  mjState.sel = null;
+  mjDraw();
+}
+function mjGiveUp() {
+  if (!mjState || !mjState.running) return;
+  mjState.running = false;
+  const cleared = (144 - mjState.tiles.filter(t => !t.removed).length) / 2;
+  const score = cleared * 30;
+  document.getElementById('mjStatus').textContent = '已放棄，消除咗 ' + cleared + ' 對，得分 ' + score + ' 分';
+  submitGameScore('mahjong', score);
 }
 
 // ---------- 2048 ----------
