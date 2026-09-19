@@ -1824,7 +1824,10 @@ app.get('/api/admin/warehouse/stock', authRequired('admin'), requirePermission('
 
 app.get('/api/admin/warehouse/export', authRequired('admin'), requirePermission('warehouse'), async (req, res) => {
   try {
-    const tx = await loadJSON(WH_TX, []);
+    const monthFilter = (req.query.month || '').toString().trim();
+    let txAll = await loadJSON(WH_TX, []);
+    if (/^\d{4}-\d{2}$/.test(monthFilter)) txAll = txAll.filter(t => (t.created_at || '').slice(0, 7) === monthFilter);
+    const tx = txAll;
     const items = await loadJSON(WH_ITEMS, []);
     const itemMap = {}; items.forEach(i => itemMap[i.id] = i);
     const stock = await computeStock();
@@ -1855,7 +1858,8 @@ app.get('/api/admin/warehouse/export', authRequired('admin'), requirePermission(
 
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename="warehouse_transactions.xlsx"');
+    const fname = /^\d{4}-\d{2}$/.test(monthFilter) ? `warehouse_transactions_${monthFilter}.xlsx` : 'warehouse_transactions.xlsx';
+    res.setHeader('Content-Disposition', 'attachment; filename="' + fname + '"');
     res.send(buf);
   } catch (e) {
     res.status(500).json({ success: false, error: '匯出失敗' });
