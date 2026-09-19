@@ -1353,18 +1353,19 @@ function schulteTap(n, btn) {
 
 // ---------- 上海麻雀 (Mahjong Solitaire) ----------
 const MAHJONG_FACES = ['🀀','🀁','🀂','🀃','🀄','🀅','🀆','🀇','🀈','🀉','🀊','🀋','🀌','🀍','🀎','🀏','🀐','🀑','🀒','🀓','🀔','🀕','🀖','🀗','🀘','🀙','🀚','🀛','🀜','🀝','🀞','🀟','🀠','🀡','🀢','🀣'];
-const MJ_TILE = 32;     // 一粒牌像素寬高
+const MJ_TILE = 40;     // 一粒牌像素寬高
 const MJ_HALF = MJ_TILE / 2;
-const MJ_LIFT = 11;     // 每層抬高（3D 感）
+const MJ_LIFT = 8;      // 每層抬高（3D 感）
+const MJ_SHIFT = 4;     // 每層向右偏移（睇到疊層）
 function mjBuildLayout() {
-  // 三層疊疊樂，共 144 隻（半格座標 x,y 用 half-unit）
+  // 三層疊疊樂，共 144 隻（半格座標 x,y 用 half-unit，整格對齊夠企理）
   const pos = [];
-  const push = (cx, cy, cols, rows, z, ox, oy) => {
+  const push = (cols, rows, z, ox, oy) => {
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) pos.push({ x: ox + c * 2, y: oy + r * 2, z });
   };
-  push(0, 0, 12, 8, 0, 0, 0);   // 底層 96
-  push(0, 0, 6, 6, 1, 3, 1);    // 中層 36（半格偏移）
-  push(0, 0, 6, 2, 2, 3, 3);    // 頂層 12
+  push(12, 8, 0, 0, 0);   // 底層 96
+  push(6, 6, 1, 6, 2);    // 中層 36（成格偏移）
+  push(6, 2, 2, 6, 6);    // 頂層 12
   return pos; // 96+36+12 = 144
 }
 function mjIsFree(tiles, t) {
@@ -1411,18 +1412,22 @@ function mjDraw() {
   const tiles = mjState.tiles;
   const maxX = Math.max(...tiles.map(t => t.x)) + 2;
   const maxY = Math.max(...tiles.map(t => t.y)) + 2;
-  board.style.width = (maxX * MJ_HALF) + 'px';
-  board.style.height = (maxY * MJ_HALF) + 'px';
+  board.style.width = (maxX * MJ_HALF + 20) + 'px';
+  board.style.height = (maxY * MJ_HALF + 10) + 'px';
   board.style.maxWidth = '94vw';
+  board.style.overflowX = 'auto';
   let html = '';
   tiles.forEach(t => {
     if (t.removed) return;
     const free = mjIsFree(tiles, t);
-    const left = t.x * MJ_HALF;
+    const left = t.x * MJ_HALF + t.z * MJ_SHIFT;
     const top = t.y * MJ_HALF - t.z * MJ_LIFT;
-    const dim = free ? '' : 'opacity:.55;filter:grayscale(.4)';
-    const sel = mjState.sel === t.id ? 'outline:3px solid #F59E0B;' : '';
-    html += `<button onclick="mjTap(${t.id})" style="position:absolute;left:${left}px;top:${top}px;width:${MJ_TILE-2}px;height:${MJ_TILE-2}px;font-size:22px;line-height:${MJ_TILE-2}px;text-align:center;background:#fdfdfa;border:1px solid #b9b09a;border-radius:5px;box-shadow:1px 1px 0 #8d8470;${dim}${sel}cursor:${free?'pointer':'default'};touch-action:manipulation">${t.face}</button>`;
+    const sel = mjState.sel === t.id;
+    const style = free
+      ? 'background:#fff;border:2px solid #2e9e6b;box-shadow:0 2px 5px rgba(0,0,0,.28)'
+      : 'background:#e9e6da;border:1px solid #b9b09a;box-shadow:1px 1px 0 #a89f88;opacity:.92';
+    const selStyle = sel ? ';outline:3px solid #F59E0B;outline-offset:1px;z-index:99' : '';
+    html += `<button onclick="mjTap(${t.id})" style="position:absolute;left:${left}px;top:${top}px;width:${MJ_TILE-2}px;height:${MJ_TILE-2}px;font-size:24px;font-weight:700;line-height:${MJ_TILE-2}px;text-align:center;border-radius:6px;color:#222;${style}${selStyle}cursor:${free?'pointer':'default'};touch-action:manipulation">${t.face}</button>`;
   });
   board.innerHTML = html;
   const left = tiles.filter(t => !t.removed).length;
