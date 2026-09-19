@@ -1315,7 +1315,7 @@ function renderSchulte() {
       <h2>🔢 舒爾特方格</h2>
       <button class="btn btn-sm btn-outline" onclick="renderGamesHome()">← 返遊戲列表</button>
     </div>
-    <p class="text-muted">由 1 撳到 25，次序啱、愈快愈高分（約 8 秒內封頂 1500）。撳錯要撳返正確嗰個。</p>
+    <p class="text-muted">由 1 撳到 25，次序啱、愈快愈高分（無上限）。撳錯要撳返正確嗰個。</p>
     <div id="schulteGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:340px;margin:14px auto;touch-action:manipulation"></div>
     <div class="h-center" id="schulteStatus" style="margin:12px 0">撳「開始」</div>
     <div class="h-center"><button class="btn btn-primary" id="schulteStartBtn" onclick="schulteStart()">開始</button></div>
@@ -1343,7 +1343,7 @@ function schulteTap(n, btn) {
   if (schulteState.next > schulteState.total) {
     schulteState.running = false;
     const ms = performance.now() - schulteState.t0;
-    const score = Math.max(0, 1500 - Math.floor(ms / 10));
+    const score = Math.max(0, Math.round(50000 / (ms / 1000))); // 愈快愈高分，無上限
     document.getElementById('schulteStatus').textContent = '完成！用咗 ' + (ms / 1000).toFixed(2) + ' 秒，得分 ' + score + ' 分';
     submitGameScore('schulte', score);
   } else {
