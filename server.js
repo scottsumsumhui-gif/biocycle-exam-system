@@ -2932,7 +2932,9 @@ function syncTeamJobs(recs, source, employees) {
     const fromInfo = { emp_id: source.emp_id, emp_name: source.emp_name || '', at: nowStr() };
     const tIdx = recs.findIndex(r => r.emp_id === tid && r.date === source.date);
     if (tIdx >= 0) {
-      recs[tIdx].jobs = JSON.parse(JSON.stringify(jobsCopy));
+      // 保留隊友自己剔咗「此單不同步」嘅私單（如夜急單），只更新可同步嗰批，避免成個替換清走隊友嘅單
+      const keepPrivate = (recs[tIdx].jobs || []).filter(j => j && j.no_sync === true);
+      recs[tIdx].jobs = [...keepPrivate, ...JSON.parse(JSON.stringify(jobsCopy))];
       recs[tIdx].jobs_synced_from = fromInfo;
       recs[tIdx].updated_at = nowStr();
     } else {
