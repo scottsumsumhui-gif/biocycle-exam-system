@@ -54,6 +54,7 @@
     <button class="nav-btn" data-tab="commission" onclick="showTab('commission')" id="tabCommission">&#128176; 服務銷售佣金</button>
     <button class="nav-btn" data-tab="fleet" onclick="showTab('fleet')" id="tabFleet">&#128663; 車輛管理</button>
     <button class="nav-btn" data-tab="worktime" onclick="showTab('worktime')" id="tabWorktime">&#9201; 工時記錄</button>
+    <button class="nav-btn" data-tab="meetings" onclick="showTab('meetings')" id="tabMeetings">&#128220; 會議記錄</button>
     <button class="nav-btn" data-tab="feedback" onclick="showTab('feedback')" id="tabFeedback">&#128172; 意見箱</button>
     <button class="nav-btn" data-tab="monthlyOt" onclick="showTab('monthlyOt')" id="tabMonthlyOt">&#128176; 月度OT出糧</button>
     <button class="nav-btn" data-tab="allowance" onclick="showTab('allowance')" id="tabAllowance">&#128176; 津貼 Allowance</button>
@@ -181,6 +182,7 @@ function showTab(tab) {
     case 'commission': loadCommissionAdmin(); break;
     case 'fleet': loadFleetAdmin(); break;
     case 'worktime': loadWorktimeAdmin(); break;
+    case 'meetings': loadMeetingsAdmin(); break;
     case 'feedback': loadFeedbackAdmin(); break;
     case 'monthlyOt': loadMonthlyOtAdmin(); break;
     case 'allowance': loadAllowanceAdmin(); break;
@@ -2320,6 +2322,102 @@ async function deleteWorktimeAdmin(id) {
     if (!res.ok) { alert(data.error || '刪除失敗'); return; }
     wtAdminCache.records = wtAdminCache.records.filter(r => r.id !== id);
     loadWorktimeRecordsAdmin();
+  } catch (e) { alert('刪除失敗'); }
+}
+
+// ===== MEETINGS ADMIN (會議記錄) =====
+async function loadMeetingsAdmin() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = '<div class="loading">載入中...</div>';
+  let list = [];
+  try {
+    const res = await fetch(API + '/api/admin/meetings', { credentials: 'include' });
+    const data = await res.json();
+    if (!data.success) { body.innerHTML = '<p>' + esc(data.error || '載入失敗') + '</p>'; return; }
+    list = data.meetings || [];
+  } catch (e) { body.innerHTML = '<p>載入失敗</p>'; return; }
+  const today = new Date();
+  const ymd = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+  let html = '<h2>&#128220; 會議記錄 Meeting Records</h2>';
+  html += '<p class="text-muted">開完會喺度上傳文字版會議記錄，員工喺前台「記錄 → 會議記錄」睇到內容。</p>';
+  // 新增表單
+  html += '<div style="border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px;background:var(--card-bg)">' +
+    '<h3 style="margin-bottom:10px">＋ 上傳新會議記錄</h3>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">' +
+      '<div class="form-group mb-0"><label>會議標題</label><input type="text" id="meetTitle" placeholder="例：九月技術會議" style="min-width:240px"></div>' +
+      '<div class="form-group mb-0"><label>會議日期</label><input type="date" id="meetDate" value="' + ymd + '"></div>' +
+    '</div>' +
+    '<div class="form-group"><label>會議內容（文字版）</label>' +
+      '<textarea id="meetContent" rows="8" placeholder="貼上／輸入會議內容…" style="width:100%;font-family:inherit;line-height:1.6"></textarea></div>' +
+    '<button class="btn btn-primary" onclick="submitMeeting()">上傳會議記錄</button>' +
+    '<span id="meetMsg" style="margin-left:10px"></span>' +
+  '</div>';
+  // 列表
+  html += '<h3>已上傳會議（' + list.length + '）</h3>';
+  if (!list.length) {
+    html += '<p style="color:var(--text-light)">暫時未有會議記錄。</p>';
+  } else {
+    html += '<div class="table-scroll"><table class="data-table"><thead><tr><th>日期</th><th>標題</th><th>內容預覽</th><th>上傳人</th><th>上傳時間</th><th>操作</th></tr></thead><tbody>';
+    for (const m of list) {
+      const prev = String(m.content || '').replace(/\s+/g, ' ').slice(0, 40) + (String(m.content || '').length > 40 ? '…' : '');
+      html += '<tr>' +
+        '<td style="white-space:nowrap">' + esc(m.date) + '</td>' +
+        '<td style="font-weight:600">' + esc(m.title) + '</td>' +
+        '<td style="color:var(--text-light);max-width:280px">' + esc(prev) + '</td>' +
+        '<td>' + esc(m.by_name || '') + '</td>' +
+        '<td style="white-space:nowrap">' + esc(String(m.created_at || '').slice(0, 16)) + '</td>' +
+        '<td style="white-space:nowrap">' +
+          '<button class="btn btn-xs btn-outline" onclick="viewMeeting(' + m.id + ')">睇全文</button> ' +
+          '<button class="btn btn-xs btn-outline" style="color:var(--accent)" onclick="delMeeting(' + m.id + ')">刪除</button>' +
+        '</td></tr>';
+    }
+    html += '</tbody></table></div>';
+  }
+  body.innerHTML = html;
+  window._meetings = list;
+}
+
+async function submitMeeting() {
+  const msg = document.getElementById('meetMsg');
+  const payload = {
+    title: (document.getElementById('meetTitle') || {}).value || '',
+    date: (document.getElementById('meetDate') || {}).value || '',
+    content: (document.getElementById('meetContent') || {}).value || ''
+  };
+  try {
+    const res = await fetch(API + '/api/admin/meetings', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const d = await res.json();
+    if (!d.success) { msg.innerHTML = '<span style="color:var(--accent)">' + esc(d.error || '上傳失敗') + '</span>'; return; }
+    msg.innerHTML = '<span style="color:var(--success)">✅ 已上傳，員工即刻睇到</span>';
+    setTimeout(loadMeetingsAdmin, 800);
+  } catch (e) {
+    msg.innerHTML = '<span style="color:var(--accent)">上傳失敗</span>';
+  }
+}
+
+function viewMeeting(id) {
+  const m = (window._meetings || []).find(x => String(x.id) === String(id));
+  if (!m) return;
+  const w = window.open('', '_blank');
+  w.document.write('<html><head><meta charset="utf-8"><title>' + esc(m.title) + '</title></head>' +
+    '<body style="font-family:sans-serif;max-width:800px;margin:32px auto;padding:0 16px;line-height:1.8">' +
+    '<h1 style="font-size:22px">' + esc(m.title) + '</h1>' +
+    '<p style="color:#777">日期：' + esc(m.date) + ' ｜ 上傳：' + esc(m.by_name || '') + '</p>' +
+    '<hr><div style="white-space:pre-wrap">' + esc(m.content) + '</div></body></html>');
+  w.document.close();
+}
+
+async function delMeeting(id) {
+  if (!confirm('確定刪除呢份會議記錄？刪咗就救唔返。')) return;
+  try {
+    const res = await fetch(API + '/api/admin/meetings/' + id, { method: 'DELETE', credentials: 'include' });
+    const d = await res.json();
+    if (!d.success) { alert(d.error || '刪除失敗'); return; }
+    loadMeetingsAdmin();
   } catch (e) { alert('刪除失敗'); }
 }
 

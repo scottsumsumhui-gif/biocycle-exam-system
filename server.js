@@ -41,6 +41,7 @@ const ADMIN_PERMISSIONS = {
   guaranteed_pay:    '保證薪酬 Guaranteed Pay',
   allowance:         '津貼 Allowance',
   monthly_ot_payroll:'月度OT出糧 OT Payroll',
+  meetings:          '會議記錄 Meeting Records',
   quiz:              '邏輯測驗 Quiz'
 };
 const ALL_PERMISSION_KEYS = Object.keys(ADMIN_PERMISSIONS);
@@ -3314,6 +3315,76 @@ app.post('/api/admin/worktime/night-jobs/decide', authRequired('admin'), require
     res.json({ success: true, key, status: decisions[key].status });
   } catch (e) {
     res.status(500).json({ success: false, error: '操作失敗' });
+  }
+});
+
+// ===== 會議記錄 Meeting Records（2026-09-22）=====
+// admin 後台上傳文字版會議記錄，員工前台「記錄 → 會議記錄」睇。存 meeting_records.json（陣列）。
+const MEETINGS_FILE = 'meeting_records.json';
+async function loadMeetings() {
+  let list = await loadJSON(MEETINGS_FILE, []);
+  if (!Array.isArray(list)) list = [];
+  return list;
+}
+function meetingSort(a, b) {
+  return String(b.date || '').localeCompare(String(a.date || '')) ||
+         String(b.created_at || '').localeCompare(String(a.created_at || ''));
+}
+// 員工：睇全部會議記錄（唯讀）
+app.get('/api/meetings', authRequired('employee'), async (req, res) => {
+  try {
+    const list = await loadMeetings();
+    res.json({ success: true, meetings: list.sort(meetingSort) });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '載入失敗' });
+  }
+});
+// admin：管理列表（同員工一樣內容，方便核對）
+app.get('/api/admin/meetings', authRequired('admin'), requirePermission('meetings'), async (req, res) => {
+  try {
+    const list = await loadMeetings();
+    res.json({ success: true, meetings: list.sort(meetingSort) });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '載入失敗' });
+  }
+});
+// admin：新增會議記錄
+app.post('/api/admin/meetings', authRequired('admin'), requirePermission('meetings'), async (req, res) => {
+  try {
+    const { title, date, content } = req.body || {};
+    if (!String(title || '').trim()) return res.status(400).json({ success: false, error: '請填標題' });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date || ''))) return res.status(400).json({ success: false, error: '日期格式錯誤 (YYYY-MM-DD)' });
+    if (!String(content || '').trim()) return res.status(400).json({ success: false, error: '請填會議內容' });
+    const admins = await loadJSON('admins.json', []);
+    const me = admins.find(a => a.id === req.session.user_id);
+    const list = await loadMeetings();
+    const m = {
+      id: Date.now(),
+      title: String(title).trim().slice(0, 120),
+      date: String(date),
+      content: String(content),
+      created_at: nowStr(),
+      by: req.session.user_id,
+      by_name: (me && (me.display_name || me.username)) || ('admin#' + req.session.user_id)
+    };
+    list.push(m);
+    await saveJSON(MEETINGS_FILE, list);
+    res.json({ success: true, meeting: m });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '儲存失敗' });
+  }
+});
+// admin：刪除會議記錄
+app.delete('/api/admin/meetings/:id', authRequired('admin'), requirePermission('meetings'), async (req, res) => {
+  try {
+    let list = await loadMeetings();
+    const before = list.length;
+    list = list.filter(m => String(m.id) !== String(req.params.id));
+    if (list.length === before) return res.status(404).json({ success: false, error: '找不到記錄（可能已刪除）' });
+    await saveJSON(MEETINGS_FILE, list);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '刪除失敗' });
   }
 });
 

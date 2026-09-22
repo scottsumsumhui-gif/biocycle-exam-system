@@ -70,8 +70,8 @@
       </div>
       <div class="module-card" onclick="showMyRecords()">
         <div class="module-icon">📊</div>
-        <div class="module-title">我的記錄</div>
-        <div class="module-desc">考試津貼 / 當月 OT</div>
+        <div class="module-title">記錄</div>
+        <div class="module-desc">考試津貼 / 當月 OT / 會議記錄</div>
       </div>
       <div class="module-card" onclick="showFeedbackBox()">
         <div class="module-icon">💬</div>
@@ -282,16 +282,18 @@
   </div>
 </div>
 
-<!-- MY RECORDS (我的記錄：考試津貼 + 當月 OT) -->
+<!-- MY RECORDS (記錄：考試津貼 + 當月 OT + 會議記錄) -->
 <div id="myRecordsScreen" class="screen" style="display:none">
   <div class="wide-card">
-    <h2>&#128202; 我的記錄 My Records</h2>
+    <h2>&#128202; 記錄 My Records</h2>
     <div style="display:flex;gap:8px;margin-bottom:16px">
       <button id="myTabAllow" class="btn btn-sm btn-primary" style="flex:1" onclick="switchMyTab('allow')">考試津貼</button>
       <button id="myTabOt" class="btn btn-sm btn-outline" style="flex:1" onclick="switchMyTab('ot')">當月 OT</button>
+      <button id="myTabMeet" class="btn btn-sm btn-outline" style="flex:1" onclick="switchMyTab('meet')">會議記錄</button>
     </div>
     <div id="myAllowPane"></div>
     <div id="myOtPane" style="display:none"></div>
+    <div id="myMeetPane" style="display:none"></div>
     <button class="btn btn-outline btn-block mt-16" onclick="showHome()">返回主板面 Back</button>
   </div>
 </div>
@@ -2744,16 +2746,17 @@ async function showMyResults() {
   }
 }
 
-// ===== MY RECORDS (我的記錄：考試津貼 + 當月 OT) =====
+// ===== MY RECORDS (記錄：考試津貼 + 當月 OT + 會議記錄) =====
 function switchMyTab(tab) {
-  const a = document.getElementById('myAllowPane');
-  const o = document.getElementById('myOtPane');
-  const bA = document.getElementById('myTabAllow');
-  const bO = document.getElementById('myTabOt');
-  if (!a || !o) return;
+  const panes = { allow: 'myAllowPane', ot: 'myOtPane', meet: 'myMeetPane' };
+  const btns = { allow: 'myTabAllow', ot: 'myTabOt', meet: 'myTabMeet' };
   const on = 'btn btn-sm btn-primary', off = 'btn btn-sm btn-outline';
-  if (tab === 'ot') { a.style.display = 'none'; o.style.display = ''; bO.className = on; bA.className = off; }
-  else { a.style.display = ''; o.style.display = 'none'; bA.className = on; bO.className = off; }
+  for (const k of Object.keys(panes)) {
+    const p = document.getElementById(panes[k]);
+    const b = document.getElementById(btns[k]);
+    if (p) p.style.display = (k === tab) ? '' : 'none';
+    if (b) b.className = (k === tab) ? on : off;
+  }
 }
 
 function recentMonths(n) {
@@ -2783,6 +2786,47 @@ async function showMyRecords() {
   switchMyTab('allow');
   loadMyAllowance();
   loadMyOt();
+  loadMyMeetings();
+}
+
+// ===== 會議記錄（員工前台睇，admin 後台上傳）=====
+async function loadMyMeetings() {
+  const el = document.getElementById('myMeetPane');
+  if (!el) return;
+  el.innerHTML = '<p style="color:var(--text-light)">載入中…</p>';
+  try {
+    const res = await fetch(API + '/api/meetings', { credentials: 'include' });
+    const d = await res.json();
+    if (!d.success) { el.innerHTML = '<p style="color:var(--accent)">載入失敗</p>'; return; }
+    const list = d.meetings || [];
+    if (!list.length) { el.innerHTML = '<p style="color:var(--text-light)">暫時未有會議記錄。</p>'; return; }
+    let html = '';
+    list.forEach((m, i) => {
+      html += '<div style="border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--card-bg)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">' +
+          '<div style="font-weight:700;font-size:15px">' + qesc(m.title) + '</div>' +
+          '<div style="font-size:12px;color:var(--text-light);white-space:nowrap">' + qesc(m.date) + '</div>' +
+        '</div>' +
+        '<div id="meetBody-' + i + '" style="display:none;margin-top:8px;white-space:pre-wrap;line-height:1.7;font-size:14px;color:var(--text);border-top:1px dashed var(--border);padding-top:8px">' + qesc(m.content) + '</div>' +
+        '<div style="margin-top:6px"><button class="btn btn-sm btn-outline" onclick="toggleMeeting(' + i + ')">展開內容</button></div>' +
+      '</div>';
+    });
+    el.innerHTML = html;
+    window._meetToggle = {};
+  } catch (e) {
+    el.innerHTML = '<p style="color:var(--accent)">載入失敗</p>';
+  }
+}
+function toggleMeeting(i) {
+  const body = document.getElementById('meetBody-' + i);
+  if (!body) return;
+  const show = body.style.display === 'none';
+  body.style.display = show ? '' : 'none';
+  // 對應掣字眼
+  const btns = document.querySelectorAll('#myMeetPane button');
+  for (const b of btns) {
+    if (b.getAttribute('onclick') === 'toggleMeeting(' + i + ')') b.textContent = show ? '收起內容' : '展開內容';
+  }
 }
 
 async function loadMyAllowance() {
