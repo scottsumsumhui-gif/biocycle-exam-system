@@ -2734,6 +2734,7 @@ function loadMonthlyOtAdmin() {
       <button class="btn btn-primary" onclick="renderMonthlyOt()">計算</button>
       <a id="otExportLink" class="btn btn-outline" style="margin-left:8px" target="_blank">匯出 Excel</a>
     </div>
+    <div id="nightJobsBox"></div>
     <div id="otResult"><p class="text-muted">選擇月份後按「計算」。</p></div>
   `;
 }
@@ -2746,11 +2747,14 @@ async function renderMonthlyOt() {
   try {
     const r = await fetch(API + '/api/admin/worktime/monthly-ot?month=' + encodeURIComponent(month), { credentials: 'include' });
     const data = await r.json();
-    if (!data.success) { res.innerHTML = '<p>' + esc(data.error || '載入失敗') + '</p>'; return; }
+    if (!data.success) { res.innerHTML = '<p>' + esc(data.error || '載入失敗') + '</p>'; renderNightJobs(null); return; }
+    renderNightJobs(data);
     const rep = data.reports || [];
     document.getElementById('otExportLink').href = API + '/api/admin/worktime/monthly-ot/export?month=' + encodeURIComponent(month);
     if (!rep.length) { res.innerHTML = '<p style="color:var(--text-light)">本月無 OT 記錄</p>'; return; }
-    let html = '<div class="table-scroll"><table class="data-table"><thead><tr>'
+    let html = '';
+    if (data.night_pending > 0) html += '<p style="color:#b45309;font-weight:700;margin:0 0 8px">⚠️ 有 ' + data.night_pending + ' 張夜急單津貼待批准——批准前唔會計入下表嘅「夜急單津貼」欄。</p>';
+    html += '<div class="table-scroll"><table class="data-table"><thead><tr>'
       + '<th>員工編號</th><th>姓名</th><th>職級</th><th>Total OT(h)</th><th>Gross OT(HKD)</th><th>Extra%</th><th>Extra(HKD)</th><th>Total OT(HKD)</th><th>夜急單津貼</th><th></th>'
       + '</tr></thead><tbody>';
     let gGross = 0, gExtra = 0, gTotal = 0, gAllow = 0;
@@ -2784,7 +2788,7 @@ function renderOtDetail(e) {
   h += '<tr><td colspan="4"><b>合計</b></td><td><b>' + e.total_normal_hours.toFixed(2) + '</b></td><td></td><td><b>' + e.total_special_hours.toFixed(2) + '</b></td><td></td><td><b>' + e.gross_ot_hkd.toFixed(2) + '</b></td></tr>';
   h += '</tbody></table></div>';
   if ((e.night_allowance_items || []).length) {
-    h += '<div style="font-weight:700;margin:10px 0 4px">🌙 夜急單津貼（每張 $300 由當日隊員平分，OT 照計）— 小計 $' + (e.night_allowance_hkd || 0).toFixed(2) + '</div>';
+    h += '<div style="font-weight:700;margin:10px 0 4px">🌙 夜急單津貼（每張 $300 由當日隊員平分，admin 批准後生效）— 小計 $' + (e.night_allowance_hkd || 0).toFixed(2) + '</div>';
     h += '<div class="table-scroll"><table class="data-table"><thead><tr><th>日期</th><th>單號</th><th>分攤人數</th><th>每人金額(HKD)</th></tr></thead><tbody>';
     for (const it of e.night_allowance_items) h += '<tr><td>' + esc(it.date) + '</td><td>' + esc(it.client_no || '—') + '</td><td>' + it.heads + ' 人</td><td>' + it.share.toFixed(2) + '</td></tr>';
     h += '</tbody></table></div>';
@@ -2795,6 +2799,68 @@ function renderOtDetail(e) {
 function toggleOtDetail(id) {
   const el = document.getElementById('otDetail-' + id);
   if (el) el.style.display = (el.style.display === 'none') ? '' : 'none';
+}
+
+// ===== 夜急單津貼批准（2026-09-22）：待批准先至計入出糧表 =====
+function renderNightJobs(data) {
+  const box = document.getElementById('nightJobsBox');
+  if (!box) return;
+  if (!data || !data.success) { box.innerHTML = ''; return; }
+  const jobs = data.night_jobs || [];
+  window._nightJobs = jobs; // 畀 decideNightJob 用 index 攞資料（避免 client_no 入 JS string 走樣）
+  const pending = jobs.filter(j => j.status === 'pending');
+  let h = '<div style="border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;'
+    + (pending.length ? 'border-color:#d97706;background:#fffdf5' : '') + '">';
+  h += '<h3 style="margin:0 0 8px;font-size:16px">🌙 夜急單津貼批准'
+    + (pending.length ? ' — <span style="color:#b45309">待批准 ' + pending.length + ' 張</span>' : ' <span style="color:var(--primary);font-size:13px">（全部已處理）</span>')
+    + '</h3>';
+  if (!jobs.length) {
+    h += '<p class="text-muted" style="margin:0">本月無夜急單津貼記錄。員工喺工時記錄剔咗「夜急單」嘅單會喺呢度等待批准，批准後先計入下面出糧表。</p>';
+  } else {
+    h += '<div class="table-scroll"><table class="data-table"><thead><tr><th>日期</th><th>單號</th><th>隊員</th><th>每人分額</th><th>狀態</th><th>操作</th></tr></thead><tbody>';
+    for (const j of jobs) {
+      const idx = window._nightJobs.indexOf(j);
+      const badge = j.status === 'pending'
+        ? '<span style="color:#b45309;font-weight:700">⏳ 待批准</span>'
+        : j.status === 'approved'
+          ? '<span style="color:var(--primary);font-weight:700">✅ 已批准</span>' + (j.auto ? ' <small class="text-muted">（自動）</small>' : '')
+          : '<span style="color:#b91c1c;font-weight:700">❌ 已拒絕</span>';
+      const meta = j.decided_by ? '<br><small class="text-muted">' + esc(j.decided_by) + (j.decided_at ? ' · ' + esc(j.decided_at) : '') + '</small>' : '';
+      const ops = j.status === 'pending'
+        ? '<button class="btn btn-xs btn-primary" onclick="decideNightJob(' + idx + ',\'approve\')">批准</button> '
+          + '<button class="btn btn-xs btn-outline" style="color:#b91c1c;border-color:#b91c1c" onclick="decideNightJob(' + idx + ',\'reject\')">拒絕</button>'
+        : '<button class="btn btn-xs btn-outline" onclick="decideNightJob(' + idx + ',\'' + (j.status === 'approved' ? 'reject' : 'approve') + '\')">更改</button>';
+      h += '<tr' + (j.status === 'pending' ? ' style="background:#fffbf0"' : '') + '>'
+        + '<td>' + esc(j.date) + '</td>'
+        + '<td>' + esc(j.client_no || '—') + '</td>'
+        + '<td>' + esc(j.members.join('、')) + '（' + j.heads + ' 人）</td>'
+        + '<td>$' + j.share.toFixed(2) + '</td>'
+        + '<td>' + badge + meta + '</td>'
+        + '<td style="white-space:nowrap">' + ops + '</td>'
+        + '</tr>';
+    }
+    h += '</tbody></table></div>';
+    h += '<p class="text-muted" style="margin:8px 0 0;font-size:12px">每張夜急單 $300 由當日隊員平分；批准後自動計入月度 OT 出糧表「夜急單津貼」欄。可隨時按「更改」改判。</p>';
+  }
+  h += '</div>';
+  box.innerHTML = h;
+}
+
+async function decideNightJob(idx, action) {
+  const j = (window._nightJobs || [])[idx];
+  if (!j) return;
+  const label = action === 'approve' ? '批准' : '拒絕';
+  if (!confirm('確定' + label + '呢張夜急單？\n日期：' + j.date + '\n單號：' + (j.client_no || '—') + '\n隊員：' + j.members.join('、') + '（' + j.heads + ' 人，每人 $' + j.share.toFixed(2) + '）')) return;
+  try {
+    const r = await fetch(API + '/api/admin/worktime/night-jobs/decide', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: j.date, client_no: j.client_no || '', action })
+    });
+    const d = await r.json();
+    if (!d.success) { alert(d.error || '操作失敗'); return; }
+    renderMonthlyOt(); // 批准卡 + 出糧表一齊重新載入
+  } catch (e) { alert('操作失敗'); }
 }
 
 // Keep the admin session alive while the panel is open (long-lived 30-day TTL,

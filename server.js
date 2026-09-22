@@ -2179,13 +2179,50 @@ function otExtraPct(totalHours) {
 // ===== 夜急單津貼（2026-09-18）=====
 // 晚上 8 時後急單：每張單 $300，由當日做嗰張單嘅隊員平分（1 人=$300、2 人=$150/人…）。
 // 純加項：唔影響 OT 計算（OT 照計）。聚合 key = 日期+單號（防止唔同月份重複單號撞埋）。
+// ===== 夜急單批准（2026-09-22）=====
+// 夜急單津貼要 admin 批准先計入月度 OT 出糧表。決定集中存 night_job_approvals.json，
+// key = 'date|client_no'；冇決定 = 待批准（pending）。舊記錄（功能上線前）一次性自動批准。
 const NIGHT_JOB_ALLOWANCE = 300;
-function calcNightAllowance(records) {
+const NIGHT_APPROVALS_FILE = 'night_job_approvals.json';
+// 功能上線日：呢日之前建立嘅記錄先會喺遷移時自動批准；上線後（含當日）新提交一律 pending
+const NIGHT_MIGRATE_CUTOFF = '2026-09-22';
+async function loadNightDecisions() {
+  let d = await loadJSON(NIGHT_APPROVALS_FILE, {});
+  if (!d || typeof d !== 'object' || Array.isArray(d)) d = {};
+  if (d.__migrated !== true) {
+    // 一次性遷移：功能上線前已存在嘅夜急單自動批准，免得舊津貼喺出糧表突然消失。
+    // ⚠️ 只批「上線日前建立」嘅記錄——上線後（含當日）新提交嘅一律 pending 等 admin 批。
+    const recs = await loadJSON(WORKTIME_FILE, []);
+    let n = 0;
+    for (const r of recs) {
+      if (!r || !Array.isArray(r.jobs)) continue;
+      const created = String(r.created_at || r.updated_at || '').slice(0, 10).replace('T', ' ');
+      if (created >= NIGHT_MIGRATE_CUTOFF) continue;
+      for (const j of r.jobs) {
+        if (!j || !j.night_allowance) continue;
+        const key = (r.date || '') + '|' + String(j.client_no || '');
+        if (!d[key]) {
+          d[key] = { status: 'approved', auto: true, by: 'system', by_name: '系統（功能上線前舊記錄自動批准）', at: nowStr() };
+          n++;
+        }
+      }
+    }
+    d.__migrated = true;
+    await saveJSON(NIGHT_APPROVALS_FILE, d);
+    console.log('[night-jobs] 遷移完成：自動批准 ' + n + ' 張上線前舊夜急單');
+  }
+  return d;
+}
+function nightJobKey(date, clientNo) { return (date || '') + '|' + String(clientNo == null ? '' : clientNo); }
+
+function calcNightAllowance(records, decisions) {
   const byKey = new Map();
   for (const r of records) {
     for (const j of (r.jobs || [])) {
       if (!j.night_allowance) continue;
-      const key = (r.date || '') + '|' + String(j.client_no || '');
+      const key = nightJobKey(r.date, j.client_no);
+      const dec = decisions && decisions[key];
+      if (!dec || dec.status !== 'approved') continue; // ⭐ 未批准（或被拒絕）唔計入出糧表
       if (!byKey.has(key)) byKey.set(key, { date: r.date, client_no: j.client_no, emps: new Map() });
       byKey.get(key).emps.set(r.emp_id, { emp_id: r.emp_id, emp_number: r.emp_number, emp_name: r.emp_name });
     }
@@ -2205,6 +2242,36 @@ function calcNightAllowance(records) {
   return perEmp;
 }
 
+// 夜急單批准總覽（admin 頁頂用）：所有出現過嘅夜急單 key + 現時狀態
+function buildNightJobOverview(records, decisions) {
+  const byKey = new Map();
+  for (const r of records) {
+    for (const j of (r.jobs || [])) {
+      if (!j || !j.night_allowance) continue;
+      const key = nightJobKey(r.date, j.client_no);
+      if (!byKey.has(key)) byKey.set(key, { date: r.date, client_no: j.client_no, members: new Map() });
+      byKey.get(key).members.set(r.emp_id, ((r.emp_number || '') + ' ' + (r.emp_name || '')).trim());
+    }
+  }
+  const items = [];
+  for (const [key, g] of byKey) {
+    const dec = (decisions && decisions[key]) || null;
+    const heads = g.members.size;
+    const share = Math.round((NIGHT_JOB_ALLOWANCE / heads) * 100) / 100;
+    items.push({
+      key, date: g.date, client_no: g.client_no, heads, share, total: NIGHT_JOB_ALLOWANCE,
+      members: [...g.members.values()],
+      status: dec && (dec.status === 'approved' || dec.status === 'rejected') ? dec.status : 'pending',
+      auto: !!(dec && dec.auto),
+      decided_by: dec ? (dec.by_name || dec.by || '') : '',
+      decided_at: dec ? (dec.at || '') : ''
+    });
+  }
+  const rank = { pending: 0, approved: 1, rejected: 2 };
+  items.sort((a, b) => (rank[a.status] - rank[b.status]) || (b.date || '').localeCompare(a.date || ''));
+  return items;
+}
+
 async function buildMonthlyOt(month) {
   const prefix = month + '-';
   const all = (await loadJSON(WORKTIME_FILE, [])).map(ensureWorktimeOtSplit).filter(r => (r.date || '').startsWith(prefix));
@@ -2212,7 +2279,8 @@ async function buildMonthlyOt(month) {
   const jobLevels = await getJobLevels();
   const labelOf = k => (jobLevels.find(l => l.key === k) || {}).label || k;
   const dowName = ['日', '一', '二', '三', '四', '五', '六'];
-  const naMap = calcNightAllowance(all); // 夜急單津貼（純加項，OT 照計）
+  const decisions = await loadNightDecisions();
+  const naMap = calcNightAllowance(all, decisions); // 夜急單津貼（純加項，OT 照計；只計已批准）
   const reports = [];
   for (const e of employees) {
     if (OT_EXCLUDE_LEVELS.has(e.level)) continue;       // 管理層跳過
@@ -3216,9 +3284,36 @@ app.get('/api/admin/worktime/monthly-ot', authRequired('admin'), requirePermissi
     if (!month) month = todayHK().slice(0, 7); // 預設當月 YYYY-MM
     if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ success: false, error: '月份格式錯誤 (YYYY-MM)' });
     const reports = await buildMonthlyOt(month);
-    res.json({ success: true, month, reports });
+    // 夜急單批准總覽（頁頂批准卡用）：待批准先至計入 reports 嘅津貼欄
+    const all = (await loadJSON(WORKTIME_FILE, [])).map(ensureWorktimeOtSplit).filter(r => (r.date || '').startsWith(month + '-'));
+    const decisions = await loadNightDecisions();
+    const night_jobs = buildNightJobOverview(all, decisions);
+    res.json({ success: true, month, reports, night_jobs, night_pending: night_jobs.filter(n => n.status === 'pending').length });
   } catch (e) {
     res.status(500).json({ success: false, error: '計算失敗' });
+  }
+});
+
+// 夜急單津貼批准／拒絕（admin，worktime 權限）
+app.post('/api/admin/worktime/night-jobs/decide', authRequired('admin'), requirePermission('worktime'), async (req, res) => {
+  try {
+    const { date, client_no, action } = req.body || {};
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date || ''))) return res.status(400).json({ success: false, error: '日期格式錯誤' });
+    if (!['approve', 'reject'].includes(action)) return res.status(400).json({ success: false, error: 'action 錯誤' });
+    const admins = await loadJSON('admins.json', []);
+    const me = admins.find(a => a.id === req.session.user_id);
+    const decisions = await loadNightDecisions();
+    const key = nightJobKey(date, client_no);
+    decisions[key] = {
+      status: action === 'approve' ? 'approved' : 'rejected',
+      by: req.session.user_id,
+      by_name: (me && (me.display_name || me.username)) || ('admin#' + req.session.user_id),
+      at: nowStr()
+    };
+    await saveJSON(NIGHT_APPROVALS_FILE, decisions);
+    res.json({ success: true, key, status: decisions[key].status });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '操作失敗' });
   }
 });
 
