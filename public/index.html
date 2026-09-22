@@ -704,6 +704,71 @@ const DAILY_QUOTES = [
   { text: '今日的努力，是明日福報的種子。', source: '佛法啟示' }
 ];
 
+// ===== 節日主題系統 =====
+// 加節日：喺 FESTIVALS 加一版（start = 節日前 7 日，end = 節日當日；過咗 end 自動回復正常版面）
+// theme 對應 CSS body.fest-<theme>（style 喺 ensureFestivalCss()）
+const FESTIVALS = [
+  { key: 'midautumn2026', theme: 'midautumn',
+    start: '2026-09-18', end: '2026-09-25',
+    title: '🥮 中秋節快樂！',
+    sub: '人月兩團圓 · 祝你和家人佳節愉快' }
+];
+
+function getActiveFestival() {
+  const d = new Date();
+  const today = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  return FESTIVALS.find(f => today >= f.start && today <= f.end) || null;
+}
+
+function ensureFestivalCss() {
+  if (document.getElementById('festivalCss')) return;
+  const s = document.createElement('style'); s.id = 'festivalCss';
+  s.textContent = `
+  body.fest-midautumn .brand-bar{background:linear-gradient(135deg,#41295a 0%,#2F0743 45%,#1a2f5e 100%)}
+  body.fest-midautumn .brand-bar .bb-logo{color:#ffd97a}
+  body.fest-midautumn .brand-bar .bb-user{color:#ffe9b3}
+  /* 白色卡位變暖金色調（節日氣氛，唔再純白） */
+  body.fest-midautumn .center-card{position:relative;background:linear-gradient(180deg,#fffdf3 0%,#fff4d6 100%);
+    border-top-color:#d4a017;box-shadow:0 6px 24px rgba(212,160,23,.22);padding-top:88px}
+  body.fest-midautumn .center-card > div[style*="border-left:4px solid var(--primary)"]{border-left-color:#d4a017 !important}
+  /* 燈籠掛喺白色卡頂 */
+  .fest-deco{position:absolute;top:0;left:0;right:0;height:64px;pointer-events:none;z-index:6;
+    display:flex;justify-content:space-around;align-items:flex-start}
+  .fest-deco .lantern{font-size:28px;line-height:1;transform-origin:top center;animation:swing 3s ease-in-out infinite;
+    text-shadow:0 4px 10px rgba(0,0,0,.3)}
+  .fest-deco .lantern:nth-child(2){font-size:36px;animation-delay:.7s}
+  .fest-deco .lantern:nth-child(3){font-size:24px;animation-delay:1.3s}
+  .fest-deco .lantern:nth-child(4){font-size:32px;animation-delay:.4s}
+  .fest-deco .lantern:nth-child(5){font-size:26px;animation-delay:1s}
+  @keyframes swing{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+  .fest-banner{margin:18px 0 6px;padding:14px 20px;border-radius:12px;text-align:center;
+    background:linear-gradient(135deg,#fff7e0 0%,#ffedb8 100%);border:1px solid #e8c96a;
+    box-shadow:0 2px 8px rgba(212,160,23,.15)}
+  .fest-banner .fest-title{font-size:20px;font-weight:700;color:#8a5a00}
+  .fest-banner .fest-sub{font-size:13px;color:#a0781e;margin-top:4px}
+  `;
+  document.head.appendChild(s);
+}
+
+function applyFestivalTheme() {
+  const f = getActiveFestival();
+  document.body.classList.remove('fest-midautumn');
+  let deco = document.getElementById('festDeco');
+  if (deco) deco.remove();
+  if (f) {
+    ensureFestivalCss();
+    document.body.classList.add('fest-' + f.theme);
+    // 燈籠掛喺 home 白色卡頂
+    const card = document.querySelector('#homeScreen .center-card');
+    if (card) {
+      deco = document.createElement('div'); deco.id = 'festDeco'; deco.className = 'fest-deco';
+      deco.innerHTML = '<span class="lantern">🏮</span><span class="lantern">🏮</span><span class="lantern">🏮</span><span class="lantern">🏮</span><span class="lantern">🏮</span>';
+      card.insertBefore(deco, card.firstChild);
+    }
+  }
+  return f;
+}
+
 function getDailyQuote() {
   // 用日期做 seed：同一天永遠返回同一句，翌日自動換
   const now = new Date();
@@ -815,10 +880,12 @@ function quizReviewHTML() {
 function showHome() {
   if (!empData) { showScreen('loginScreen'); return; }
   const q = getDailyQuote();
+  const fest = applyFestivalTheme(); // 節日主題（body class + banner）
   document.getElementById('homeHeader').innerHTML =
     `<h1>你好，${empData.name}！</h1>` +
     `<div style="margin:6px 0 0"><button class="btn btn-sm btn-outline" id="bgMusicBtn" onclick="toggleBgMusic()">🎵 播放音樂</button></div>` +
     `<p style="color:var(--text-light)">請選擇要進入的功能：</p>` +
+    (fest ? `<div class="fest-banner"><div class="fest-title">${fest.title}</div><div class="fest-sub">${fest.sub}</div></div>` : '') +
     `<div style="margin:20px 0; padding:20px 24px; border-radius:12px; background:linear-gradient(135deg,#f0f7f0 0%,#e8f5e8 100%); border-left:4px solid var(--primary); box-shadow:0 1px 3px rgba(0,0,0,0.06)">` +
     `<span style="color:var(--primary-dark);font-size:18px;line-height:1.8;font-weight:500">🪷 ${q.text}</span>` +
     `</div>`;
