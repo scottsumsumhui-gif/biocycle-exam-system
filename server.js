@@ -2085,7 +2085,10 @@ function worktimeStandardHours(dateStr) {
 
 // Compute OT. Base = schedule_in + standard (late arrival does NOT reduce OT).
 // Public holiday: all worked hours count as OT (standard = 0). Leave days: 0.
-function computeWorktimeOt({ day_status, date, schedule_in, actual_in, off_time }) {
+// night_recovery（開夜番晏）：琴晚夜急單遲收，今日提早收工 — OT 提早由 18:00 起計；
+// 用 min() 只會縮短標準窗口（平日 20:00 → 18:00），星期六 5h 等短日子唔會被拉長。
+// 深夜加成分界（WORKTIME_NIGHT_CUT 20:00）照舊不變。
+function computeWorktimeOt({ day_status, date, schedule_in, actual_in, off_time, night_recovery }) {
   const zero = { total_duty_hours: 0, standard_hours: 0, ot_hours: 0, ot_evening_hours: 0, ot_night_hours: 0 };
   if (day_status === '大假' || day_status === '病假') return zero;
   const std = worktimeStandardHours(date);
@@ -2115,7 +2118,8 @@ function computeWorktimeOt({ day_status, date, schedule_in, actual_in, off_time 
   let off = o; if (off < s) off += 1440; // crossed midnight
   const a = parseHM(actual_in);
   const actualStart = (a == null) ? s : a;
-  const standardEnd = s + std * 60;
+  let standardEnd = s + std * 60;
+  if (night_recovery) standardEnd = Math.min(standardEnd, 18 * 60); // 開夜番晏：OT 由 18:00 起計
   // OT = worked hours outside the standard window. If they start after the standard end
   // (e.g. a 22:00 night shift), count from their actual start, not the 19:00 standard end.
   const effStart = Math.max(standardEnd, actualStart);
@@ -2141,7 +2145,7 @@ function withinWorktimeWindow(dateStr) {
 function ensureWorktimeOtSplit(rec) {
   if (rec == null) return rec;
   if (typeof rec.ot_night_hours === 'number' && typeof rec.ot_evening_hours === 'number') return rec;
-  const ot = computeWorktimeOt({ day_status: rec.day_status, date: rec.date, schedule_in: rec.schedule_in, actual_in: rec.actual_in, off_time: rec.off_time });
+  const ot = computeWorktimeOt({ day_status: rec.day_status, date: rec.date, schedule_in: rec.schedule_in, actual_in: rec.actual_in, off_time: rec.off_time, night_recovery: rec.night_recovery === true });
   return { ...rec, ot_hours: ot.ot_hours, ot_evening_hours: ot.ot_evening_hours, ot_night_hours: ot.ot_night_hours, total_duty_hours: ot.total_duty_hours, standard_hours: ot.standard_hours };
 }
 
@@ -2939,6 +2943,8 @@ async function sanitizeWorktimePayload(body, emp) {
   const off_time = (body.off_time || '').toString().trim();
   if (off_time && parseHM(off_time) === null) return { ok: false, error: '請填寫正確嘅下班時間' };
   vals.off_time = off_time;
+  // 開夜番晏（琴晚夜急單遲收，今日提早收工）— 剔咗 OT 由 18:00 起計
+  const night_recovery = body.night_recovery === true;
   const remark = (body.remark == null ? '' : String(body.remark)).trim().slice(0, 200);
 
   const rawJobs = Array.isArray(body.jobs) ? body.jobs : [];
@@ -2976,10 +2982,10 @@ async function sanitizeWorktimePayload(body, emp) {
       return { ok: false, error: '今日隊員必須 1 至 4 人' };
   }
 
-  const ot = computeWorktimeOt({ day_status, date, schedule_in: vals.schedule_in, actual_in: vals.actual_in, off_time: vals.off_time });
+  const ot = computeWorktimeOt({ day_status, date, schedule_in: vals.schedule_in, actual_in: vals.actual_in, off_time: vals.off_time, night_recovery: night_recovery });
   return {
     ok: true, value: {
-      date, day_status, holiday_work,
+      date, day_status, holiday_work, night_recovery,
       schedule_in: vals.schedule_in, actual_in: vals.actual_in, off_time: vals.off_time,
       remark, jobs, members,
       emp_id: emp.id, emp_number: emp.emp_number || '', emp_name: emp.name || '',
@@ -3020,6 +3026,7 @@ function syncTeamJobs(recs, source, employees) {
         emp_name: t.emp_name || (emp && emp.name) || '',
         day_status: '正常上班',
         holiday_work: false,
+        night_recovery: false,
         schedule_in: '', actual_in: '', off_time: '',
         remark: '',
         jobs: JSON.parse(JSON.stringify(jobsCopy)),
@@ -3245,6 +3252,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
           rows.push(['隊員', memText]);
         }
         rows.push(['總當值(h)', round1(rec.total_duty_hours), '標準(h)', round1(rec.standard_hours), 'OT(h)', fmtQH(rec.ot_hours), '20:00前OT(h)', fmtQH(rec.ot_evening_hours), '20:00後OT(h)', fmtQH(rec.ot_night_hours)]);
+        if (rec.night_recovery) rows.push(['🌙 開夜番晏', '琴晚夜急單遲收，OT 由 18:00 起計（20:00 後照舊深夜價）']);
         if (rec.jobs && rec.jobs.length) {
           rows.push(['單號', '開始', '完結', '工作類型', '備註']);
           for (const j of rec.jobs) rows.push([j.client_no || '—', j.start || '—', j.end || '—', ((j.types || []).join('/') || '—') + (j.night_allowance ? ' 🌙急單' : ''), j.remarks || '—']);

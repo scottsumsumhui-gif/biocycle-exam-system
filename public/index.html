@@ -551,6 +551,15 @@
         <div><label>實際上班</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtActualIn" placeholder="--:--"></div>
         <div><label>下班時間</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtOff" placeholder="--:--"></div>
       </div>
+      <div class="mt-8" id="wtNightRecoveryBox">
+        <label style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:14px">
+          <input type="checkbox" id="wtNightRecovery" onchange="wtNightRecoveryChange()">
+          🌙 開夜番晏（琴晚開夜急單遲收工，今日早走）
+        </label>
+        <div id="wtNightRecoveryHint" style="display:none; font-size:12px; color:#8e44ad; margin:4px 0 0 24px">
+          已剔：今日 OT 由 <b>18:00</b> 起計（20:00 後照舊深夜價），無論幾點開始上班都一樣
+        </div>
+      </div>
       <div class="mt-10" >
         <label>今日隊員（1-4 人）</label>
         <div id="wtMembers" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px"></div>
@@ -3364,6 +3373,8 @@ async function wtDateChange() {
   document.getElementById('wtMembers').innerHTML = '';
   document.getElementById('wtJobs').innerHTML = '';
   document.getElementById('wtHolidayWork').checked = false;
+  document.getElementById('wtNightRecovery').checked = false;
+  wtNightRecoveryChange();
   document.getElementById('wtScheduleIn').value = '';
   document.getElementById('wtActualIn').value = '';
   document.getElementById('wtOff').value = '';
@@ -3380,6 +3391,8 @@ async function wtDateChange() {
       document.getElementById('wtScheduleIn').value = rec.schedule_in || '';
       document.getElementById('wtActualIn').value = rec.actual_in || '';
       document.getElementById('wtOff').value = rec.off_time || '';
+      document.getElementById('wtNightRecovery').checked = rec.night_recovery === true;
+      wtNightRecoveryChange();
       document.getElementById('wtRemark').value = rec.remark || '';
       if (rec.jobs && rec.jobs.length) rec.jobs.forEach(j => wtAddJob(j)); else wtAddJob();
       const mems = (rec.members && rec.members.length) ? rec.members : [];
@@ -3466,6 +3479,13 @@ function wtMsg(t, ok) {
   document.getElementById('wtMsg').innerHTML = `<span style="color:${ok ? 'var(--success)' : 'var(--accent)'}">${t}</span>`;
 }
 
+// 開夜番晏 checkbox 提示
+function wtNightRecoveryChange() {
+  const c = document.getElementById('wtNightRecovery');
+  const h = document.getElementById('wtNightRecoveryHint');
+  if (c && h) h.style.display = c.checked ? '' : 'none';
+}
+
 async function submitWorktime() {
   const date = document.getElementById('wtDate').value;
   if (!date) { wtMsg('請選擇日期', false); return; }
@@ -3476,6 +3496,7 @@ async function submitWorktime() {
   const isWorking = (day_status === '正常上班' || day_status === '留守公司' || holiday_work);
   const payload = {
     date, day_status, holiday_work,
+    night_recovery: document.getElementById('wtNightRecovery').checked,
     schedule_in: wtNormalizeTime(document.getElementById('wtScheduleIn').value),
     actual_in: wtNormalizeTime(document.getElementById('wtActualIn').value),
     off_time: wtNormalizeTime(document.getElementById('wtOff').value),
@@ -3517,9 +3538,11 @@ async function submitWorktime() {
       if (gap < 0) gap = 0; // 防護：正常情況下收工應喺尾單之後
       if (gap > 60) {
         // 判斷是否有 OT：標準工時 Mon-Fri=10h, Sat=5h；實際下班超過標準結束時間 = 有 OT
+        // 剔咗「開夜番晏」→ 標準結束最早 18:00（同 server computeWorktimeOt 一致）
         const dow = new Date(date + 'T00:00:00+08:00').getDay();
         const stdHours = (dow === 6) ? 5 : 10; // Sat=5, Mon-Fri=10
-        const stdEndM = wtAnchor + stdHours * 60;
+        let stdEndM = wtAnchor + stdHours * 60;
+        if (document.getElementById('wtNightRecovery').checked) stdEndM = Math.min(stdEndM, 18 * 60);
         const actualStartM = wtParseHM(payload.actual_in);
         const effStartM = (actualStartM != null) ? Math.max(stdEndM, actualStartM) : stdEndM;
         const hasOT = (offM > effStartM);
