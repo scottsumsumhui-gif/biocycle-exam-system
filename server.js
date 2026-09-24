@@ -3657,7 +3657,7 @@ async function loadGp() {
 // 參考數據（只供 Admin 參考，唔會自動判定）：遲到次數 + 病假天數，由 worktime 計
 async function computeGpRefs(prevMonth) {
   const refs = {};
-  const ensure = (n) => { if (!refs[n]) refs[n] = { lateCount: 0, sickDays: 0 }; return refs[n]; };
+  const ensure = (n) => { if (!refs[n]) refs[n] = { lateCount: 0, sickDays: 0, lateDates: [], sickDates: [] }; return refs[n]; };
   let wt = [];
   try { wt = await loadJSON('worktime.json', []); } catch (e) { wt = []; }
   const monthRecs = wt.filter(r => r && r.date && String(r.date).slice(0, 7) === prevMonth);
@@ -3684,9 +3684,16 @@ async function computeGpRefs(prevMonth) {
     if (!isLate && !isSick) continue;
     for (const n of nums) {
       const r = ensure(n);
-      if (isLate) r.lateCount++;
-      if (isSick) r.sickDays++;
+      if (isLate) { r.lateCount++; r.lateDates.push(dateKey); }
+      if (isSick) { r.sickDays++; r.sickDates.push(dateKey); }
     }
+  }
+  // 日期排序 + 去重（同一人同一日只計一次；次數跟去重後日期一致）
+  for (const r of Object.values(refs)) {
+    r.lateDates = [...new Set(r.lateDates)].sort();
+    r.sickDates = [...new Set(r.sickDates)].sort();
+    r.lateCount = r.lateDates.length;
+    r.sickDays = r.sickDates.length;
   }
   return refs;
 }
@@ -3777,7 +3784,7 @@ app.get('/api/admin/guaranteed-pay', authRequired('admin'), requirePermission('g
         exam_blocks: empBlocks,
         status_source: dec ? 'manual' : (autoSusp ? 'auto' : 'default'),
         override_granted: overrideGranted,
-        refs: { lateCount: (refs[empNo] || {}).lateCount || 0, sickDays: (refs[empNo] || {}).sickDays || 0, examFails: examFails[empNo] || [] }
+        refs: { lateCount: (refs[empNo] || {}).lateCount || 0, sickDays: (refs[empNo] || {}).sickDays || 0, lateDates: (refs[empNo] || {}).lateDates || [], sickDates: (refs[empNo] || {}).sickDates || [], examFails: examFails[empNo] || [] }
       });
     }
     rows.sort((a, b) => {
@@ -3862,7 +3869,8 @@ app.post('/api/admin/guaranteed-pay/auto-incidents', authRequired('admin'), requ
     const examFails = await computeGpExamFails(prevMonth);
     let nextId = gp.incidents.length ? Math.max(...gp.incidents.map(x => Number(x.id) || 0)) + 1 : 1;
     const by = req.session ? (req.session.username || '') : '';
-    const added = [], skipped = [];
+    const fmtDates = (ds) => (ds || []).map(d => { const p = String(d).split('-'); return p.length === 3 ? (Number(p[1]) + '/' + Number(p[2])) : d; }).join('、');
+    const added = [], skipped = [], updated = [];
     for (const emp of employees) {
       if (!GP_LEVELS.includes(emp.level)) continue;
       if (String(emp.emp_number || '').startsWith('TEST')) continue;
@@ -3871,17 +3879,23 @@ app.post('/api/admin/guaranteed-pay/auto-incidents', authRequired('admin'), requ
       const fails = examFails[empNo] || [];
       const items = [];
       if (fails.length) items.push({ category: '考試不合格', note: fails.join('、') });
-      if (r.lateCount) items.push({ category: '遲到', note: r.lateCount + ' 次' });
-      if (r.sickDays) items.push({ category: '病假', note: r.sickDays + ' 日' });
+      if (r.lateCount) items.push({ category: '遲到', note: r.lateCount + ' 次（' + fmtDates(r.lateDates) + '）' });
+      if (r.sickDays) items.push({ category: '病假', note: r.sickDays + ' 日（' + fmtDates(r.sickDates) + '）' });
       for (const it of items) {
         const dup = gp.incidents.find(i => String(i.emp_number) === empNo && i.month === prevMonth && i.category === it.category);
+        // 舊嘅 auto 記錄如果 note 過時（例如之前帶入時得 1 日病假，而家 4 日）→ 自動更新，唔好永遠停喺舊數
+        if (dup && dup.source === 'auto' && dup.note !== it.note) {
+          dup.note = it.note; dup.by = by; dup.at = new Date().toISOString(); dup.updated_at = new Date().toISOString();
+          updated.push({ emp_number: empNo, name: emp.name, category: it.category, detail: it.note });
+          continue;
+        }
         if (dup) { skipped.push({ emp_number: empNo, name: emp.name, category: it.category, reason: '已存在' }); continue; }
         gp.incidents.push({ id: nextId++, emp_number: empNo, month: prevMonth, category: it.category, note: String(it.note || '').slice(0, 300), source: 'auto', by, at: new Date().toISOString() });
         added.push({ emp_number: empNo, name: emp.name, category: it.category, detail: String(it.note || '') });
       }
     }
     await saveJSON(GP_FILE, gp);
-    res.json({ success: true, month, prevMonth, added, skipped, addedCount: added.length, skippedCount: skipped.length });
+    res.json({ success: true, month, prevMonth, added, skipped, updated, addedCount: added.length, skippedCount: skipped.length, updatedCount: updated.length });
   } catch (e) {
     console.error('[guaranteed-pay] auto-incidents failed', e && e.message);
     res.status(500).json({ success: false, error: '帶入失敗' });

@@ -2642,10 +2642,11 @@ function renderGuaranteedPay(data) {
       + '<div><b>' + esc(r.name) + '</b> <span style="color:#666;font-size:13px">' + esc(r.emp_number) + ' &middot; ' + esc(r.level_label) + ' &middot; ' + (r.has_driving ? '有駕駛資格' : '無駕駛資格') + '</span></div>'
       + '<div style="margin-left:auto"><span style="background:' + (suspended ? '#fdecea' : '#e8f5e9') + ';color:' + (suspended ? '#a32d2d' : '#2e7d32') + ';font-size:12px;padding:4px 12px;border-radius:999px">' + (suspended ? '&#128683; ' + Number(data.month.slice(5, 7)) + ' 月停發' : '&#10003; ' + Number(data.month.slice(5, 7)) + ' 月有包薪') + '</span></div></div>';
     html += '<div style="font-size:13px;color:#555;margin-top:6px">包薪線：' + (r.guaranteed_amount ? ('HKD $' + Number(r.guaranteed_amount).toLocaleString()) : '<span style="color:#c62828">未設定</span>') + '</div>';
+    const gpFmtDates = (ds) => (ds || []).map(d => { const p = String(d).split('-'); return p.length === 3 ? (Number(p[1]) + '/' + Number(p[2])) : d; }).join('、');
     const ref = [];
     if (r.refs.examFails.length) ref.push('考試唔合格：' + r.refs.examFails.join('、'));
-    if (r.refs.lateCount) ref.push('遲到 ' + r.refs.lateCount + ' 次');
-    if (r.refs.sickDays) ref.push('病假 ' + r.refs.sickDays + ' 日');
+    if (r.refs.lateCount) ref.push('遲到 ' + r.refs.lateCount + ' 次' + (r.refs.lateDates && r.refs.lateDates.length ? '（' + gpFmtDates(r.refs.lateDates) + '）' : ''));
+    if (r.refs.sickDays) ref.push('病假 ' + r.refs.sickDays + ' 日' + (r.refs.sickDates && r.refs.sickDates.length ? '（' + gpFmtDates(r.refs.sickDates) + '）' : ''));
     html += '<div style="font-size:12px;color:#888;margin-top:4px">' + data.prevMonth + ' 參考：' + (ref.length ? ref.join(' &middot; ') : '無') + '</div>';
     const auto = r.exam_auto;
     if (auto) {
@@ -2747,21 +2748,22 @@ async function gpAutoIncidents() {
   if (!cands.length) { alert('參考月份 ' + _gpData.prevMonth + ' 冇人有數字（考試唔合格 / 遲到 / 病假），唔使帶入。'); return; }
   const lines = cands.map(r => {
     const t = [];
+    const fd = (ds) => (ds || []).map(d => { const p = String(d).split('-'); return p.length === 3 ? (Number(p[1]) + '/' + Number(p[2])) : d; }).join('、');
     if (r.refs.examFails && r.refs.examFails.length) t.push('考試唔合格 (' + r.refs.examFails.join('、') + ')');
-    if (r.refs.lateCount) t.push('遲到 ' + r.refs.lateCount + ' 次');
-    if (r.refs.sickDays) t.push('病假 ' + r.refs.sickDays + ' 日');
+    if (r.refs.lateCount) t.push('遲到 ' + r.refs.lateCount + ' 次' + (r.refs.lateDates && r.refs.lateDates.length ? ' (' + fd(r.refs.lateDates) + ')' : ''));
+    if (r.refs.sickDays) t.push('病假 ' + r.refs.sickDays + ' 日' + (r.refs.sickDates && r.refs.sickDates.length ? ' (' + fd(r.refs.sickDates) + ')' : ''));
     return r.emp_number + ' ' + r.name + ' → ' + t.join('、');
   });
   const msg = '將依據 ' + _gpData.prevMonth + ' 參考數據，自動加入 ' + _gpData.prevMonth + ' 違規記錄：\n\n'
     + lines.join('\n')
-    + '\n\n共 ' + cands.length + ' 位同事。相同月份 + 相同類別已存在嘅會自動跳過，唔會重複。\n'
+    + '\n\n共 ' + cands.length + ' 位同事。已存在嘅會跳過；auto 記錄如果數字過時（例如之後再補病假）會自動更新至最新。\n'
     + '帶入後仍需你自己撳「停 1 個月」先會停發包薪。\n\n確定帶入？';
   if (!confirm(msg)) return;
   try {
     const r = await fetch(API + '/api/admin/guaranteed-pay/auto-incidents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ month }) });
     const j = await r.json();
     if (!j.success) { alert(j.error || '帶入失敗'); return; }
-    alert('已帶入：新增 ' + j.addedCount + ' 條違規記錄，跳過 ' + j.skippedCount + ' 條（已存在）。\n\n如需停發，請逐個撳「停 1 個月」批示。');
+    alert('已帶入：新增 ' + j.addedCount + ' 條，更新過時 ' + (j.updatedCount || 0) + ' 條，跳過 ' + j.skippedCount + ' 條（已存在）。\n\n如需停發，請逐個撳「停 1 個月」批示。');
     window._gpMonth = month;
     loadGuaranteedPayAdmin();
   } catch (e) { alert('帶入失敗'); }
