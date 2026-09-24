@@ -45,12 +45,12 @@
   
   <nav class="admin-nav">
     <button class="nav-btn active" data-tab="home" onclick="showTab('home')" id="tabHome">&#127968; 首頁</button>
-    <button class="nav-btn" data-tab="dashboard" onclick="showTab('dashboard')" id="tabDashboard">&#128202; Dashboard</button>
+    <button class="nav-btn" data-tab="dashboard" onclick="showTab('dashboard')" id="tabDashboard" style="display:none">&#128202; Dashboard</button>
     <button class="nav-btn" data-tab="employees" onclick="showTab('employees')" id="tabEmployees">&#128101; 員工管理</button>
     <button class="nav-btn" data-tab="admins" onclick="showTab('admins')" id="tabAdmins">&#128272; 管理員</button>
     <button class="nav-btn" data-tab="examConfig" onclick="showTab('examConfig')" id="tabExamConfig">&#128197; 考試配置</button>
     <button class="nav-btn" data-tab="results" onclick="showTab('results')" id="tabResults">&#128203; 成績查看</button>
-    <button class="nav-btn" data-tab="grading" onclick="showTab('grading')" id="tabGrading">&#128221; 問答評分</button>
+    <button class="nav-btn" data-tab="grading" onclick="showTab('grading')" id="tabGrading" style="display:none">&#128221; 問答評分</button>
     <button class="nav-btn" data-tab="questionBank" onclick="showTab('questionBank')" id="tabQuestionBank">&#128218; 題庫管理</button>
     <button class="nav-btn" data-tab="warehouse" onclick="showTab('warehouse')" id="tabWarehouse">&#128230; 倉存管理</button>
     <button class="nav-btn" data-tab="commission" onclick="showTab('commission')" id="tabCommission">&#128176; 服務銷售佣金</button>
@@ -157,8 +157,10 @@ function hasPerm(key) {
   return Array.isArray(adminData.permissions) && adminData.permissions.includes(key);
 }
 function applyNavPermissions() {
+  const HIDDEN_TABS = ['dashboard', 'grading']; // 2026-09-24 收埋：Dashboard（同首頁重複）+ 問答評分（問答題已取消）
   document.querySelectorAll('.nav-btn').forEach(b => {
     const tab = b.dataset.tab;
+    if (HIDDEN_TABS.includes(tab)) { b.style.display = 'none'; return; }
     const need = TAB_PERMISSION_MAP[tab];
     if (!need) return;
     b.style.display = hasPerm(need) ? '' : 'none';
