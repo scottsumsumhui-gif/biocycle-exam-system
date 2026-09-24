@@ -2837,8 +2837,9 @@ function loadMonthlyOtAdmin() {
       <a id="otExportLink" class="btn btn-outline" style="margin-left:8px" target="_blank">匯出 Excel</a>
     </div>
     <div id="nightJobsBox"></div>
-    <div id="otResult"><p class="text-muted">選擇月份後按「計算」。</p></div>
+    <div id="otResult"><p class="text-muted">計算中...</p></div>
   `;
+  renderMonthlyOt(); // 入頁自動計算當月
 }
 
 async function renderMonthlyOt() {
@@ -2891,8 +2892,8 @@ function renderOtDetail(e) {
   h += '</tbody></table></div>';
   if ((e.night_allowance_items || []).length) {
     h += '<div style="font-weight:700;margin:10px 0 4px">🌙 夜急單津貼（每張 $300 由當日隊員平分，admin 批准後生效）— 小計 $' + (e.night_allowance_hkd || 0).toFixed(2) + '</div>';
-    h += '<div class="table-scroll"><table class="data-table"><thead><tr><th>日期</th><th>單號</th><th>分攤人數</th><th>每人金額(HKD)</th></tr></thead><tbody>';
-    for (const it of e.night_allowance_items) h += '<tr><td>' + esc(it.date) + '</td><td>' + esc(it.client_no || '—') + '</td><td>' + it.heads + ' 人</td><td>' + it.share.toFixed(2) + '</td></tr>';
+    h += '<div class="table-scroll"><table class="data-table"><thead><tr><th>日期</th><th>單號</th><th>分攤人數</th><th>每人金額(HKD)</th><th>批准人</th><th>批准日期</th></tr></thead><tbody>';
+    for (const it of e.night_allowance_items) h += '<tr><td>' + esc(it.date) + '</td><td>' + esc(it.client_no || '—') + '</td><td>' + it.heads + ' 人</td><td>' + it.share.toFixed(2) + '</td><td>' + esc(it.approved_by || '—') + '</td><td>' + esc(it.approved_at || '—') + '</td></tr>';
     h += '</tbody></table></div>';
   }
   return h;

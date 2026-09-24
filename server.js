@@ -2236,10 +2236,11 @@ function calcNightAllowance(records, decisions) {
   for (const g of byKey.values()) {
     const heads = g.emps.size;
     const share = Math.round((NIGHT_JOB_ALLOWANCE / heads) * 100) / 100;
+    const dec = (decisions && decisions[nightJobKey(g.date, g.client_no)]) || {};
     for (const [empId] of g.emps) {
       if (!perEmp.has(empId)) perEmp.set(empId, { items: [], total: 0 });
       const p = perEmp.get(empId);
-      p.items.push({ date: g.date, client_no: g.client_no, heads, share });
+      p.items.push({ date: g.date, client_no: g.client_no, heads, share, approved_by: (dec.by_name || '—'), approved_at: String(dec.at || '').slice(0, 10) });
       p.total = Math.round((p.total + share) * 100) / 100;
     }
   }
@@ -4037,8 +4038,8 @@ app.get('/api/admin/worktime/monthly-ot/export', authRequired('admin'), requireP
       if ((r.night_allowance_items || []).length) {
         rows.push([]);
         rows.push(['夜急單津貼（每張 $300 由當日隊員平分，OT 照計）']);
-        rows.push(['日期', '單號', '分攤人數', '每人金額 HKD']);
-        for (const it of r.night_allowance_items) rows.push([it.date, it.client_no || '—', it.heads + ' 人', it.share]);
+        rows.push(['日期', '單號', '分攤人數', '每人金額 HKD', '批准人', '批准日期']);
+        for (const it of r.night_allowance_items) rows.push([it.date, it.client_no || '—', it.heads + ' 人', it.share, it.approved_by || '—', it.approved_at || '—']);
         rows.push(['夜急單津貼小計 HKD', r.night_allowance_hkd]);
         rows.push(['總計（OT + 夜急單津貼）HKD', Math.round((r.total_ot_hkd + r.night_allowance_hkd) * 100) / 100]);
       }
