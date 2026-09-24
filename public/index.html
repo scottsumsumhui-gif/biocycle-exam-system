@@ -550,6 +550,7 @@
         <div><label>上班時間</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtScheduleIn" placeholder="--:--"></div>
         <div><label>實際上班</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtActualIn" placeholder="--:--"></div>
         <div><label>下班時間</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtOff" placeholder="--:--"></div>
+        <div style="align-self:flex-end"><button class="btn btn-primary btn-sm" onclick="submitWorktime()">儲存</button><br><span id="wtMsgTop" style="font-size:12px"></span></div>
       </div>
       <div class="mt-8" id="wtNightRecoveryBox">
         <label style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:14px">
@@ -3334,6 +3335,7 @@ async function showWorktime() {
   document.getElementById('wtDate').value = d.toISOString().substring(0, 10);
   document.getElementById('wtResult').innerHTML = '';
   document.getElementById('wtMsg').textContent = '';
+  const mt = document.getElementById('wtMsgTop'); if (mt) mt.textContent = '';
   wtAddJob();
   await wtDateChange();
   await loadWtWeek();
@@ -3368,6 +3370,7 @@ async function wtDateChange() {
   warn.style.display = (dow === 0) ? '' : 'none';
   document.getElementById('wtResult').innerHTML = '';
   document.getElementById('wtMsg').textContent = '';
+  const mt2 = document.getElementById('wtMsgTop'); if (mt2) mt2.textContent = '';
   if (!date) return;
   // 清空舊狀態
   document.getElementById('wtMembers').innerHTML = '';
@@ -3476,7 +3479,10 @@ function wtAddMember(selectedId) {
 }
 
 function wtMsg(t, ok) {
-  document.getElementById('wtMsg').innerHTML = `<span style="color:${ok ? 'var(--success)' : 'var(--accent)'}">${t}</span>`;
+  const html = `<span style="color:${ok ? 'var(--success)' : 'var(--accent)'}">${t}</span>`;
+  document.getElementById('wtMsg').innerHTML = html;
+  const top = document.getElementById('wtMsgTop');
+  if (top) top.innerHTML = html;
 }
 
 // 開夜番晏 checkbox 提示
