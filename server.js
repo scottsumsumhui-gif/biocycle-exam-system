@@ -2306,6 +2306,7 @@ async function buildMonthlyOt(month) {
         dow: dowName[d.getUTCDay()],
         from: r.schedule_in || (r.actual_in || '—'),
         to: r.off_time || '—',
+        status: (r.day_status || '') + (r.day_status === '公眾假期' && r.holiday_work ? '（開工）' : ''),
         normal_hours: Math.round(normal * 100) / 100,
         normal_rate: rate.normal,
         special_hours: Math.round(special * 100) / 100,
@@ -4010,12 +4011,12 @@ app.get('/api/admin/worktime/monthly-ot/export', authRequired('admin'), requireP
       rows.push(['月度 OT 出糧表 — ' + r.emp_name + ' (' + r.emp_number + ')']);
       rows.push(['職級', r.level_label, '月份', month]);
       rows.push([]);
-      rows.push(['日期', '星期', '上班', '下班', 'Normal Hours(20:00前)', 'Normal Rate', 'Special Hours(20:00後)', 'Special Rate', 'Total OT (HKD)']);
+      rows.push(['日期', '星期', '上班', '下班', '狀態', 'Normal Hours(20:00前)', 'Normal Rate', 'Special Hours(20:00後)', 'Special Rate', 'Total OT (HKD)']);
       for (const d of r.days) {
-        rows.push([d.date, d.dow, d.from, d.to, d.normal_hours, d.normal_rate, d.special_hours, d.special_rate, d.day_total]);
+        rows.push([d.date, d.dow, d.from, d.to, d.status, d.normal_hours, d.normal_rate, d.special_hours, d.special_rate, d.day_total]);
       }
       rows.push([]);
-      rows.push(['合計', '', '', '', r.total_normal_hours, '', r.total_special_hours, '', r.gross_ot_hkd]);
+      rows.push(['合計', '', '', '', '', r.total_normal_hours, '', r.total_special_hours, '', r.gross_ot_hkd]);
       rows.push(['當月 OT 總時數', r.total_hours, 'Gross OT HKD', r.gross_ot_hkd]);
       rows.push(['Extra % (' + Math.round(r.extra_pct * 100) + '%)', '', 'Extra OT HKD', r.extra_ot_hkd]);
       rows.push(['Total OT HKD', r.total_ot_hkd]);
@@ -4030,12 +4031,12 @@ app.get('/api/admin/worktime/monthly-ot/export', authRequired('admin'), requireP
       const sheetName = (r.emp_name || r.emp_number || '員工').replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 28);
       const ws = XLSX.utils.aoa_to_sheet(rows);
       ws['!cols'] = [
-        { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
+        { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 12 },
         { wch: 30 }, { wch: 14 }, { wch: 32 }, { wch: 14 }, { wch: 20 }
       ];
       ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } }
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } }
       ];
       XLSX.utils.book_append_sheet(wb, ws, sheetName);
     }
