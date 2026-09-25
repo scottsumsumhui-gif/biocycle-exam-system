@@ -3440,10 +3440,20 @@ function wtAddJob(preset) {
       <input type="checkbox" class="wt-night-in" ${preset.night_allowance ? 'checked' : ''}> 🌙 夜急單津貼（$300 / 做單隊員平分）
     </label>
     <div class="wt-full" style="margin-top:8px">備註 <input type="text" class="wt-remarks wt-full" value="${preset.remarks || ''}"></div>
-    <div style="margin-top:8px; text-align:right"><button class="btn btn-xs btn-outline" onclick="wtRemoveJob(this)">刪除</button></div>
+    <div style="margin-top:8px; text-align:right; display:flex; justify-content:flex-end; gap:8px">
+      <button class="btn btn-primary btn-xs" onclick="wtAddJobAndScroll(this)">＋ 新增下一單</button>
+      <button class="btn btn-xs btn-outline" onclick="wtRemoveJob(this)">刪除</button>
+    </div>
   `;
   box.appendChild(div);
   div.querySelectorAll('.wt-start, .wt-end').forEach(wtBindTimeInput);
+}
+
+function wtAddJobAndScroll(btn) {
+  wtAddJob();
+  const jobs = document.querySelectorAll('#wtJobs .wt-job');
+  const last = jobs[jobs.length - 1];
+  if (last) last.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function wtRemoveJob(btn) {
