@@ -3276,13 +3276,13 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
         const d = parseDateUTC(date);
         const label = (d.getUTCMonth() + 1) + '/' + d.getUTCDate() + '(' + dowName[d.getUTCDay()] + ')';
         if (!rec) {
-          if (d.getUTCDay() !== 0) push(['日期', label, '狀態', '無記錄'], { bold: [0, 2], muted: true });
+          if (d.getUTCDay() !== 0) { push(['日期', label, '狀態', '無記錄'], { bold: [0, 2], muted: true }); push([]); }
           continue;
         }
-        if (d.getUTCDay() === 0) { push(['日期', label, '狀態', '休息日'], { bold: [0, 2], muted: true }); continue; }
+        if (d.getUTCDay() === 0) { push(['日期', label, '狀態', '休息日'], { bold: [0, 2], muted: true }); push([]); continue; }
         weekOt += rec.ot_hours || 0; weekDuty += rec.total_duty_hours || 0;
         weekEveningOt += rec.ot_evening_hours || 0; weekNightOt += rec.ot_night_hours || 0;
-        push(['日期', label, '狀態', rec.day_status], { bold: [0, 2], fill: 'F2F2F2' });
+        push(['日期', label, '狀態', rec.day_status], { bold: [0, 2], fill: 'DDEBF7' });
         push(['上班時間', rec.schedule_in || '—', '實際上班', rec.actual_in || '—', '下班時間', rec.off_time || '—'], { bold: [0, 2, 4] });
         if (rec.members && rec.members.length) {
           const memText = rec.members.map(m => (m.emp_name && m.emp_number ? `${m.emp_name} (${m.emp_number})` : (m.emp_name || m.emp_number || ''))).join('、');
