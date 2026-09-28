@@ -3295,6 +3295,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
           for (const j of rec.jobs) push([j.client_no || '—', j.start || '—', j.end || '—', ((j.types || []).join('/') || '—') + (j.night_allowance ? ' 🌙急單' : ''), j.remarks || '—'], {});
         }
         if (rec.remark) push(['備註', rec.remark], { bold: [0], wrap: [1] });
+        push([]); // 每日之間留空行做分隔
       }
       push(['本週合計', '總當值: ' + round1(weekDuty) + 'h', 'OT: ' + fmtQH(weekOt) + 'h', '20:00前OT: ' + fmtQH(weekEveningOt) + 'h', '20:00後OT: ' + fmtQH(weekNightOt) + 'h'], { allBold: true, fill: 'FFF2CC' });
       const sheetName = (emp.name || emp.number || '員工').replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 28);
