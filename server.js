@@ -3295,7 +3295,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
           for (const j of rec.jobs) push([j.client_no || '—', j.start || '—', j.end || '—', ((j.types || []).join('/') || '—') + (j.night_allowance ? ' 🌙急單' : ''), j.remarks || '—'], {});
         }
         if (rec.remark) push(['備註', rec.remark], { bold: [0], wrap: [1] });
-        push([]); // 每日之間留空行做分隔
+        push([], { spacer: true }); // 每日之間留深色分隔條
       }
       push(['本週合計', '總當值: ' + round1(weekDuty) + 'h', 'OT: ' + fmtQH(weekOt) + 'h', '20:00前OT: ' + fmtQH(weekEveningOt) + 'h', '20:00後OT: ' + fmtQH(weekNightOt) + 'h'], { allBold: true, fill: 'FFF2CC' });
       const sheetName = (emp.name || emp.number || '員工').replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 28);
@@ -3306,7 +3306,13 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
       for (let i = 0; i < rows.length; i++) {
         const meta = metas[i], cells = rows[i];
         const r = ws.addRow(cells); // 空行都要 addRow（分隔行），否則行號會錯位
-        if (!cells.length) continue;
+        if (!cells.length) {
+          if (meta.spacer) { // 深色分隔條 A–J 填灰
+            for (let c = 1; c <= 10; c++) r.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBFBFBF' } };
+            r.height = 6;
+          }
+          continue;
+        }
         if (meta.title) {
           ws.mergeCells(r.number, 1, r.number, 10);
           r.getCell(1).font = { bold: true, size: 14, color: { argb: 'FF1F4E79' } };

@@ -128,6 +128,8 @@ function waitServer(tries) {
         for (let c = 1; c <= 10; c++) if (prev.getCell(c).value != null) prevEmpty = false;
         check('日期行之間有分隔空行（row ' + prevNum + '）', prevEmpty);
         check('空行冇框線', !(prev.getCell(5).border && prev.getCell(5).border.top && prev.getCell(5).border.top.style), JSON.stringify(prev.getCell(5).border));
+        const fillA = prev.getCell(1).fill;
+        check('分隔條填灰 BFBFBF', fillA && fillA.pattern === 'solid' && fillA.fgColor && fillA.fgColor.argb === 'FFBFBFBF', JSON.stringify(fillA));
       }
     }
 
