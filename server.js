@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const XLSX = require('xlsx');
+const ExcelJS = require('exceljs'); // 有樣式支援（框線／粗體／填色），SheetJS 社區版冇
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -3259,60 +3260,90 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
       }
       byEmp[r.emp_id].recs.push(r);
     }
-    const wb = XLSX.utils.book_new();
+    const wb = new ExcelJS.Workbook();
     for (const empId of Object.keys(byEmp)) {
       const emp = byEmp[empId];
       const round1 = v => Math.round((v || 0) * 10) / 10;
       const fmtQH = v => Math.round((v || 0) * 100) / 100; // OT 以 0.25h 單位，2 位小數顯示
-      const rows = [];
-      rows.push(['技術員工時記錄 — ' + emp.name + ' (' + emp.number + ')']);
-      rows.push(['週次', weekStart + ' 至 ' + weekEnd]);
-      rows.push([]);
+      // rows + metas：每行帶樣式提示（粗體欄／填色／斜體灰）
+      const rows = [], metas = [];
+      const push = (cells, meta) => { rows.push(cells); metas.push(meta || {}); };
+      push(['技術員工時記錄 — ' + emp.name + ' (' + emp.number + ')'], { title: true });
+      push(['週次', weekStart + ' 至 ' + weekEnd], { bold: [0] });
       let weekOt = 0, weekDuty = 0, weekEveningOt = 0, weekNightOt = 0;
       for (const date of dates) {
         const rec = emp.recs.find(r => r.date === date);
         const d = parseDateUTC(date);
         const label = (d.getUTCMonth() + 1) + '/' + d.getUTCDate() + '(' + dowName[d.getUTCDay()] + ')';
         if (!rec) {
-          if (d.getUTCDay() !== 0) rows.push(['日期', label, '狀態', '無記錄']);
+          if (d.getUTCDay() !== 0) push(['日期', label, '狀態', '無記錄'], { bold: [0, 2], muted: true });
           continue;
         }
-        if (d.getUTCDay() === 0) { rows.push(['日期', label, '狀態', '休息日']); continue; }
+        if (d.getUTCDay() === 0) { push(['日期', label, '狀態', '休息日'], { bold: [0, 2], muted: true }); continue; }
         weekOt += rec.ot_hours || 0; weekDuty += rec.total_duty_hours || 0;
         weekEveningOt += rec.ot_evening_hours || 0; weekNightOt += rec.ot_night_hours || 0;
-        rows.push(['日期', label, '狀態', rec.day_status]);
-        rows.push(['上班時間', rec.schedule_in || '—', '實際上班', rec.actual_in || '—', '下班時間', rec.off_time || '—']);
+        push(['日期', label, '狀態', rec.day_status], { bold: [0, 2], fill: 'F2F2F2' });
+        push(['上班時間', rec.schedule_in || '—', '實際上班', rec.actual_in || '—', '下班時間', rec.off_time || '—'], { bold: [0, 2, 4] });
         if (rec.members && rec.members.length) {
           const memText = rec.members.map(m => (m.emp_name && m.emp_number ? `${m.emp_name} (${m.emp_number})` : (m.emp_name || m.emp_number || ''))).join('、');
-          rows.push(['隊員', memText]);
+          push(['隊員', memText], { bold: [0], wrap: [1] });
         }
-        rows.push(['總當值(h)', round1(rec.total_duty_hours), '標準(h)', round1(rec.standard_hours), 'OT(h)', fmtQH(rec.ot_hours), '20:00前OT(h)', fmtQH(rec.ot_evening_hours), '20:00後OT(h)', fmtQH(rec.ot_night_hours)]);
-        if (rec.night_recovery) rows.push(['🌙 開夜番晏', '琴晚夜急單遲收，OT 由 18:00 起計（20:00 後照舊深夜價）']);
+        push(['總當值(h)', round1(rec.total_duty_hours), '標準(h)', round1(rec.standard_hours), 'OT(h)', fmtQH(rec.ot_hours), '20:00前OT(h)', fmtQH(rec.ot_evening_hours), '20:00後OT(h)', fmtQH(rec.ot_night_hours)], { bold: [0, 2, 4, 6, 8] });
+        if (rec.night_recovery) push(['🌙 開夜番晏', '琴晚夜急單遲收，OT 由 18:00 起計（20:00 後照舊深夜價）'], { bold: [0], italic: true, wrap: [1] });
         if (rec.jobs && rec.jobs.length) {
-          rows.push(['單號', '開始', '完結', '工作類型', '備註']);
-          for (const j of rec.jobs) rows.push([j.client_no || '—', j.start || '—', j.end || '—', ((j.types || []).join('/') || '—') + (j.night_allowance ? ' 🌙急單' : ''), j.remarks || '—']);
+          push(['單號', '開始', '完結', '工作類型', '備註'], { allBold: true, fill: 'D9E1F2' });
+          for (const j of rec.jobs) push([j.client_no || '—', j.start || '—', j.end || '—', ((j.types || []).join('/') || '—') + (j.night_allowance ? ' 🌙急單' : ''), j.remarks || '—'], {});
         }
-        if (rec.remark) rows.push(['備註', rec.remark]);
-        rows.push([]);
+        if (rec.remark) push(['備註', rec.remark], { bold: [0], wrap: [1] });
       }
-      rows.push(['本週合計', '總當值: ' + round1(weekDuty) + 'h', 'OT: ' + fmtQH(weekOt) + 'h', '20:00前OT: ' + fmtQH(weekEveningOt) + 'h', '20:00後OT: ' + fmtQH(weekNightOt) + 'h']);
+      push(['本週合計', '總當值: ' + round1(weekDuty) + 'h', 'OT: ' + fmtQH(weekOt) + 'h', '20:00前OT: ' + fmtQH(weekEveningOt) + 'h', '20:00後OT: ' + fmtQH(weekNightOt) + 'h'], { allBold: true, fill: 'FFF2CC' });
       const sheetName = (emp.name || emp.number || '員工').replace(/[\\\/\?\*\[\]:]/g, '-').substring(0, 28);
-      const ws = XLSX.utils.aoa_to_sheet(rows);
-      ws['!cols'] = [
-        { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
-        { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
-        { wch: 14 }, { wch: 32 }
-      ];
-      ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } }
-      ];
-      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      const ws = wb.addWorksheet(sheetName, { views: [{ state: 'frozen', ySplit: 2 }] });
+      ws.columns = Array.from({ length: 10 }, (_, i) => ({ width: i === 9 ? 30 : 14 }));
+      const thin = { style: 'thin', color: { argb: 'FF000000' } };
+      const boxBorder = { top: thin, left: thin, bottom: thin, right: thin };
+      for (let i = 0; i < rows.length; i++) {
+        const meta = metas[i], cells = rows[i];
+        if (!cells.length) continue;
+        const r = ws.addRow(cells);
+        if (meta.title) {
+          ws.mergeCells(r.number, 1, r.number, 10);
+          r.getCell(1).font = { bold: true, size: 14, color: { argb: 'FF1F4E79' } };
+          r.getCell(1).alignment = { vertical: 'middle' };
+          r.height = 24;
+          continue;
+        }
+        let base = {};
+        if (meta.muted) base = { italic: true, color: { argb: 'FF7F7F7F' } };
+        if (meta.allBold) base = Object.assign({}, base, { bold: true });
+        for (let c = 1; c <= cells.length; c++) {
+          const cell = r.getCell(c);
+          cell.font = Object.assign({}, base);
+          if (meta.wrap && meta.wrap.includes(c - 1)) cell.alignment = { wrapText: true, vertical: 'top' };
+        }
+        for (const bi of (meta.bold || [])) {
+          if (bi < cells.length) r.getCell(bi + 1).font = Object.assign({}, base, { bold: true });
+        }
+        if (meta.italic) r.getCell(2).font = Object.assign({}, base, { italic: true });
+        if (meta.fill) {
+          for (let c = 1; c <= cells.length; c++) r.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + meta.fill } };
+        }
+      }
+      // 框線：所有有內容嘅行 A:J 全部落 thin border
+      for (let i = 0; i < rows.length; i++) {
+        if (!rows[i].length) continue;
+        const r = ws.getRow(i + 1);
+        for (let c = 1; c <= 10; c++) r.getCell(c).border = boxBorder;
+      }
     }
     if (Object.keys(byEmp).length === 0) {
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['本週無工時記錄', weekStart + ' 至 ' + weekEnd]]), '無記錄');
+      const ws0 = wb.addWorksheet('無記錄');
+      ws0.columns = [{ width: 24 }, { width: 30 }];
+      const r0 = ws0.addRow(['本週無工時記錄', weekStart + ' 至 ' + weekEnd]);
+      r0.getCell(1).font = { bold: true, size: 12 };
+      for (let c = 1; c <= 2; c++) r0.getCell(c).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
     }
-    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const buf = Buffer.from(await wb.xlsx.writeBuffer());
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="worktime_${weekStart}_${weekEnd}.xlsx"`);
     res.send(buf);
