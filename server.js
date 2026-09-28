@@ -3305,8 +3305,8 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
       const boxBorder = { top: thin, left: thin, bottom: thin, right: thin };
       for (let i = 0; i < rows.length; i++) {
         const meta = metas[i], cells = rows[i];
+        const r = ws.addRow(cells); // 空行都要 addRow（分隔行），否則行號會錯位
         if (!cells.length) continue;
-        const r = ws.addRow(cells);
         if (meta.title) {
           ws.mergeCells(r.number, 1, r.number, 10);
           r.getCell(1).font = { bold: true, size: 14, color: { argb: 'FF1F4E79' } };

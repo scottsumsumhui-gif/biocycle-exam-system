@@ -116,6 +116,19 @@ function waitServer(tries) {
         check('日期行標籤粗體', dayRow.getCell(1).font && dayRow.getCell(1).font.bold === true, JSON.stringify(dayRow.getCell(1).font));
         check('日期行有框', dayRow.getCell(5).border && dayRow.getCell(5).border.bottom && dayRow.getCell(5).border.bottom.style === 'thin', JSON.stringify(dayRow.getCell(5).border));
       }
+
+      // 分隔空行：第 2 個「日期」行嘅上一行必須完全空（冇值、冇框）
+      const dayRows = [];
+      ws.eachRow((row, num) => { if (row.getCell(1).value === '日期') dayRows.push(num); });
+      check('有 ≥2 個日期行', dayRows.length >= 2, dayRows.length);
+      if (dayRows.length >= 2) {
+        const prevNum = dayRows[1] - 1;
+        const prev = ws.getRow(prevNum);
+        let prevEmpty = true;
+        for (let c = 1; c <= 10; c++) if (prev.getCell(c).value != null) prevEmpty = false;
+        check('日期行之間有分隔空行（row ' + prevNum + '）', prevEmpty);
+        check('空行冇框線', !(prev.getCell(5).border && prev.getCell(5).border.top && prev.getCell(5).border.top.style), JSON.stringify(prev.getCell(5).border));
+      }
     }
 
     // 舊 XLSX 匯出（月度 OT）確認無整爛 — 只檢查 endpoint 存在回應
