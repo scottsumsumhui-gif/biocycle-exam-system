@@ -2078,7 +2078,7 @@ function hkPublicHolidayName(dateStr) {
   if (!y) return null;
   return y[dateStr.slice(5)] || null;
 }
-const WORKTIME_EDIT_DAYS = 7; // technicians may edit/delete their own record within 7 days
+const WORKTIME_EDIT_DAYS = 30; // technicians may edit/delete own record within 30 days (past or future)
 const WORKTIME_NIGHT_CUT = 20 * 60; // 20:00 後嘅 OT 係另一價錢，OT 由此分界拆做日間 OT / 深夜 OT
 const WORKTIME_TECH_LEVELS = ['junior', 'senior', 'supervisor', 'OPM', 'D.supervisor']; // 隊員名單顯示技術員體系職級（初級/高級技術員、技術員主管/經理/副主管）；行政/高層(AAM/DGM/GM)唔顯示
 
@@ -2168,7 +2168,7 @@ function withinWorktimeWindow(dateStr) {
   const t = parseDateUTC(todayHK());
   if (!d || !t) return false;
   const diffDays = Math.floor((t - d) / 86400000);
-  return diffDays >= 0 && diffDays <= WORKTIME_EDIT_DAYS;
+  return Math.abs(diffDays) <= WORKTIME_EDIT_DAYS;
 }
 
 // 舊記錄（未有夜 OT 分界前）補算 ot_evening_hours / ot_night_hours，避免升級後顯示錯誤。
@@ -2957,7 +2957,7 @@ async function sanitizeWorktimePayload(body, emp) {
   if (worktimeStandardHours(date) === null)
     return { ok: false, error: '星期日為休息日，無需填寫' };
   if (!withinWorktimeWindow(date))
-    return { ok: false, error: '只可以填寫今日或過去 ' + WORKTIME_EDIT_DAYS + ' 日內嘅記錄' };
+    return { ok: false, error: '只可以填寫今日或前後 ' + WORKTIME_EDIT_DAYS + ' 日內嘅記錄' };
   let day_status = WORKTIME_STATUSES.includes(body.day_status) ? body.day_status : '正常上班';
   // 公眾假期自動判斷：當日係香港公眾假期 → 一律當「公眾假期」（唔使員工專登揀），
   // 除非員工自己揀咗大假/病假/生日假/其他（尊重明確請假）；開工就 tick「假期開工」
@@ -3151,7 +3151,7 @@ app.put('/api/worktime/records/:id', authRequired('employee'), async (req, res) 
     const idx = recs.findIndex(r => r.id === Number(req.params.id));
     if (idx < 0) return res.status(404).json({ success: false, error: '記錄不存在' });
     if (recs[idx].emp_id !== me.id) return res.status(403).json({ success: false, error: '只可以修改自己嘅記錄' });
-    if (!withinWorktimeWindow(recs[idx].date)) return res.status(403).json({ success: false, error: '超過 ' + WORKTIME_EDIT_DAYS + ' 日，唔可以修改' });
+    if (!withinWorktimeWindow(recs[idx].date)) return res.status(403).json({ success: false, error: '超過今日或前後 ' + WORKTIME_EDIT_DAYS + ' 日，唔可以修改' });
     const s = await sanitizeWorktimePayload(req.body || {}, me);
     if (!s.ok) return res.status(400).json({ success: false, error: s.error });
     const v = s.value;
@@ -3169,7 +3169,7 @@ app.delete('/api/worktime/records/:id', authRequired('employee'), async (req, re
     const idx = recs.findIndex(r => r.id === Number(req.params.id));
     if (idx < 0) return res.status(404).json({ success: false, error: '記錄不存在' });
     if (recs[idx].emp_id !== req.session.user_id) return res.status(403).json({ success: false, error: '只可以刪除自己嘅記錄' });
-    if (!withinWorktimeWindow(recs[idx].date)) return res.status(403).json({ success: false, error: '超過 ' + WORKTIME_EDIT_DAYS + ' 日，唔可以刪除' });
+    if (!withinWorktimeWindow(recs[idx].date)) return res.status(403).json({ success: false, error: '超過今日或前後 ' + WORKTIME_EDIT_DAYS + ' 日，唔可以刪除' });
     recs.splice(idx, 1);
     await saveJSON(WORKTIME_FILE, recs);
     res.json({ success: true });
