@@ -73,16 +73,18 @@ function waitServer(tries) {
     const ecB = elB.cookie;
     check('employee login ' + B.emp_number, elB.code === 200 && !!ecB, elB.body.slice(0, 100));
 
-    // 揀一個平日（今日或之前 6 日內，避開星期日）同上一個星期六
+    // 揀一個平日（今日或之前 6 日內，避開星期日）同上一個星期六（避開香港公眾假期，2026-09-28 起假期自動判斷）
     let weekday = null;
-    for (let i = 0; i <= 6; i++) {
+    for (let i = 0; i <= 13; i++) {
       const d = hkDate(-i);
       if (new Date(d + 'T00:00:00+08:00').getDay() !== 0) { weekday = d; break; }
     }
+    const metaH = j((await req('GET', '/api/worktime/meta', null, ec)).body).holidays || {};
+    const isPh = d => { const y = metaH[String(d).slice(0, 4)]; return !!(y && y[String(d).slice(5)]); };
     let saturday = null;
-    for (let i = 0; i <= 6; i++) {
+    for (let i = 0; i <= 6; i++) { // 只搵 7 日視窗內嘅星期六（超出視窗提交會被擋）
       const d = hkDate(-i);
-      if (new Date(d + 'T00:00:00+08:00').getDay() === 6) { saturday = d; break; }
+      if (new Date(d + 'T00:00:00+08:00').getDay() === 6 && !isPh(d)) { saturday = d; break; }
     }
     console.log('平日=' + weekday + ' 星期六=' + saturday);
 
@@ -143,14 +145,18 @@ function waitServer(tries) {
     rec = j(s2e.body).record;
     check('無剔 19:00 收工：OT=0（對照）', rec && rec.ot_hours === 0, rec && rec.ot_hours);
 
-    // ===== 3) 星期六：標準 5h，flag 唔會拉長標準窗口 =====
-    const s3 = await req('POST', '/api/worktime/records', {
-      date: saturday, day_status: '正常上班', night_recovery: true,
-      schedule_in: '10:00', actual_in: '10:00', off_time: '16:30',
-      remark: 'e2e recovery sat', ignore_conflict: true, jobs: [], members: [{ emp_id: A.id }]
-    }, ec);
-    rec = j(s3.body).record;
-    check('星期六剔咗：OT=1.5h（15:00-16:30，同無剔一樣）', rec && rec.ot_hours === 1.5, rec && rec.ot_hours);
+    // ===== 3) 星期六：標準 5h，flag 唔會拉長標準窗口（7 日內無非假期星期六就跳過）=====
+    if (saturday) {
+      const s3 = await req('POST', '/api/worktime/records', {
+        date: saturday, day_status: '正常上班', night_recovery: true,
+        schedule_in: '10:00', actual_in: '10:00', off_time: '16:30',
+        remark: 'e2e recovery sat', ignore_conflict: true, jobs: [], members: [{ emp_id: A.id }]
+      }, ec);
+      rec = j(s3.body).record;
+      check('星期六剔咗：OT=1.5h（15:00-16:30，同無剔一樣）', rec && rec.ot_hours === 1.5, s3.body.slice(0, 200));
+    } else {
+      console.log('  SKIP 星期六測試：7 日內無非假期星期六');
+    }
 
     // ===== 4) 每人獨立剔：B 有自己記錄（無剔），A 交全隊 + 剔咗 → B 唔受影響 =====
     // B 先自己交一份（10:00-21:00 無剔 → OT 1h）

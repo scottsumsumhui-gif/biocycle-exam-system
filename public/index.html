@@ -536,9 +536,12 @@
           <option value="公眾假期">公眾假期</option>
           <option value="大假">大假</option>
           <option value="病假">病假</option>
+          <option value="生日假">生日假</option>
+          <option value="其他">其他</option>
         </select>
       </div>
       <span id="wtSundayWarn" style="color:var(--accent); display:none">星期日為休息日，無需填寫</span>
+      <span id="wtHolidayWarn" style="color:var(--primary); display:none; font-size:13px"></span>
     </div>
 
     <div id="wtHolidayWorkBox" style="display:none; margin-top:10px">
@@ -3273,6 +3276,12 @@ async function deleteFleetRecord(type, id) {
 
 // ===== WORKTIME (技術員每日工時記錄) =====
 let wtTypes = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除', 'Cancel'];
+let wtHolidays = {}; // { '2026': {'01-01':'元旦', ...} } 由 /api/worktime/meta 攞
+function wtHolidayName(d) {
+  const s = String(d || '');
+  const y = wtHolidays[s.slice(0, 4)];
+  return y ? (y[s.slice(5)] || null) : null;
+}
 let wtEmployees = [];
 let wtLoadedHadJobs = false; // 載入記錄時原本有冇工作單（用嚟防止誤保存空單清走自己）
 
@@ -3326,6 +3335,7 @@ async function showWorktime() {
   try {
     const m = await fetch(API + '/api/worktime/meta', { credentials: 'include' }).then(r => r.json());
     if (m.success && m.types) wtTypes = m.types;
+    if (m.success && m.holidays) wtHolidays = m.holidays;
   } catch (e) {}
   try {
     const em = await fetch(API + '/api/worktime/employees', { credentials: 'include' }).then(r => r.json());
@@ -3408,8 +3418,23 @@ async function wtDateChange() {
       document.getElementById('wtResult').innerHTML = `<span style="color:var(--primary)">${loadNote}</span>`;
     } else {
       wtLoadedHadJobs = false;
+      document.getElementById('wtStatus').value = '正常上班';
       wtAddJob();
       wtStatusChange();
+    }
+    // 公眾假期自動判斷：當日係香港公眾假期 → 自動轉做「公眾假期」，唔使員工專登揀
+    const hName = wtHolidayName(date);
+    const hw = document.getElementById('wtHolidayWarn');
+    if (hName) {
+      const cur = document.getElementById('wtStatus').value;
+      if (!(cur === '大假' || cur === '病假' || cur === '生日假' || cur === '其他')) {
+        document.getElementById('wtStatus').value = '公眾假期';
+        wtStatusChange();
+      }
+      hw.textContent = '📅 今日係公眾假期（' + hName + '），系統自動計咗；開工就剔下面「今日假期開工」';
+      hw.style.display = '';
+    } else {
+      hw.style.display = 'none';
     }
   } catch (e) { wtMsg('載入記錄失敗，請重新整理頁面', false); }
 }

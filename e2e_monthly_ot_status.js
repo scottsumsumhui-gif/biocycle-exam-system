@@ -52,22 +52,33 @@ function waitServer(tries) {
   if (!cand.length) { console.log('搵唔到測試員工，終止'); process.exit(1); }
   const A = cand[0];
 
-  // 注入：本月一條病假 + 一條大假 + 一條正常上班
+  // 注入：本月一條病假 + 一條大假 + 一條正常上班（避開星期日同香港公眾假期；日期喺 server 起後先揀）
   const month = hkDate(0).slice(0, 7);
-  const d1 = hkDate(-1), d2 = hkDate(-2), d3 = hkDate(-3);
-  const inject = [
-    { id: 990001, emp_id: A.id, emp_number: A.emp_number, emp_name: A.name, date: d1, day_status: '病假', schedule_in: '', actual_in: '', off_time: '', remark: '', jobs: [], members: [], total_duty_hours: 0, standard_hours: 0, ot_hours: 0, ot_evening_hours: 0, ot_night_hours: 0 },
-    { id: 990002, emp_id: A.id, emp_number: A.emp_number, emp_name: A.name, date: d2, day_status: '大假', schedule_in: '', actual_in: '', off_time: '', remark: '', jobs: [], members: [], total_duty_hours: 0, standard_hours: 0, ot_hours: 0, ot_evening_hours: 0, ot_night_hours: 0 },
-    { id: 990003, emp_id: A.id, emp_number: A.emp_number, emp_name: A.name, date: d3, day_status: '正常上班', schedule_in: '08:00', actual_in: '08:00', off_time: '18:15', remark: '', jobs: [], members: [], total_duty_hours: 10.25, standard_hours: 10, ot_hours: 0.25, ot_evening_hours: 0.25, ot_night_hours: 0 }
-  ];
-  const cur = j(fs.readFileSync(wtPath, 'utf8')) || [];
-  fs.writeFileSync(wtPath, JSON.stringify(cur.concat(inject)));
+  const wtPathBak = () => j(fs.readFileSync(wtPath, 'utf8')) || [];
+  fs.writeFileSync(wtPath, JSON.stringify(wtPathBak()));
 
   const child = spawn(NODE, ['server.js'], { cwd: DIR, env: { ...process.env, PORT: String(PORT) }, stdio: ['ignore', 'pipe', 'pipe'] });
   child.stderr.on('data', d => process.stderr.write('[srv] ' + d));
   try {
     await waitServer(40);
     console.log('server up on ' + PORT + '，測試員工 ' + A.emp_number + '，月份 ' + month);
+
+    const metaH = j((await req('GET', '/api/worktime/meta')).body);
+    const hol = (metaH && metaH.holidays) || {};
+    const isPh = d => { const y = hol[String(d).slice(0, 4)]; return !!(y && y[String(d).slice(5)]); };
+    const valid = [];
+    for (let i = 1; i <= 14 && valid.length < 3; i++) {
+      const d = hkDate(-i);
+      if (new Date(d + 'T00:00:00+08:00').getDay() === 0 || isPh(d)) continue;
+      valid.push(d);
+    }
+    const d1 = valid[0], d2 = valid[1], d3 = valid[2];
+    const inject = [
+      { id: 990001, emp_id: A.id, emp_number: A.emp_number, emp_name: A.name, date: d1, day_status: '病假', schedule_in: '', actual_in: '', off_time: '', remark: '', jobs: [], members: [], total_duty_hours: 0, standard_hours: 0, ot_hours: 0, ot_evening_hours: 0, ot_night_hours: 0 },
+      { id: 990002, emp_id: A.id, emp_number: A.emp_number, emp_name: A.name, date: d2, day_status: '大假', schedule_in: '', actual_in: '', off_time: '', remark: '', jobs: [], members: [], total_duty_hours: 0, standard_hours: 0, ot_hours: 0, ot_evening_hours: 0, ot_night_hours: 0 },
+      { id: 990003, emp_id: A.id, emp_number: A.emp_number, emp_name: A.name, date: d3, day_status: '正常上班', schedule_in: '08:00', actual_in: '08:00', off_time: '18:15', remark: '', jobs: [], members: [], total_duty_hours: 10.25, standard_hours: 10, ot_hours: 0.25, ot_evening_hours: 0.25, ot_night_hours: 0 }
+    ];
+    fs.writeFileSync(wtPath, JSON.stringify(wtPathBak().concat(inject)));
 
     const al = await req('POST', '/api/auth/admin-login', { username: 'ST140', password: '61583398' });
     check('admin login', al.code === 200 && !!al.cookie, al.body.slice(0, 100));

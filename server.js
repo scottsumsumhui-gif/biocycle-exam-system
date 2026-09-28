@@ -2049,7 +2049,35 @@ const FLEET_FILES = { trip: FLEET_TRIPS_FILE, fuel: FLEET_FUELS_FILE, maintenanc
 const WORKTIME_FILE = 'worktime.json';
 const FEEDBACK_FILE = 'feedback.json';
 const WORKTIME_TYPES = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除', 'Cancel'];
-const WORKTIME_STATUSES = ['正常上班', '留守公司', '公眾假期', '大假', '病假'];
+const WORKTIME_STATUSES = ['正常上班', '留守公司', '公眾假期', '大假', '病假', '生日假', '其他'];
+// 公眾假期／大假／病假／生日假／其他 = 假日狀態（唔使填時間，OT 計 0）
+const WORKTIME_LEAVE_STATUSES = ['大假', '病假', '生日假', '其他'];
+
+// ===== 香港公眾假期（政府憲報刊憲日期）=====
+// 2026：https://www.info.gov.hk/gia/general/202505/16/P2025051300354.htm
+// 2027：https://www.info.gov.hk/gia/general/202605/15/P2026051400304.htm
+// ⚠️ 每年年中政府刊憲下一年假期後，要人手加返新一年入嚟
+const HK_PUBLIC_HOLIDAYS = {
+  '2026': {
+    '01-01': '元旦', '02-17': '農曆年初一', '02-18': '農曆年初二', '02-19': '農曆年初三',
+    '04-03': '耶穌受難節', '04-04': '耶穌受難節翌日', '04-06': '清明節翌日', '04-07': '復活節星期一翌日',
+    '05-01': '勞動節', '05-25': '佛誕翌日', '06-19': '端午節', '07-01': '香港特別行政區成立紀念日',
+    '09-26': '中秋節翌日', '10-01': '國慶日', '10-19': '重陽節翌日', '12-25': '聖誕節', '12-26': '聖誕節後第一個周日'
+  },
+  '2027': {
+    '01-01': '元旦', '02-06': '農曆年初一', '02-08': '農曆年初三', '02-09': '農曆年初四（補假）',
+    '03-26': '耶穌受難節', '03-27': '耶穌受難節翌日', '03-29': '復活節星期一',
+    '04-05': '清明節', '05-01': '勞動節', '05-13': '佛誕', '06-09': '端午節',
+    '07-01': '香港特別行政區成立紀念日', '09-16': '中秋節翌日', '10-01': '國慶日', '10-08': '重陽節',
+    '12-25': '聖誕節', '12-27': '聖誕節後第一個周日'
+  }
+};
+function hkPublicHolidayName(dateStr) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr || '')) return null;
+  const y = HK_PUBLIC_HOLIDAYS[dateStr.slice(0, 4)];
+  if (!y) return null;
+  return y[dateStr.slice(5)] || null;
+}
 const WORKTIME_EDIT_DAYS = 7; // technicians may edit/delete their own record within 7 days
 const WORKTIME_NIGHT_CUT = 20 * 60; // 20:00 後嘅 OT 係另一價錢，OT 由此分界拆做日間 OT / 深夜 OT
 const WORKTIME_TECH_LEVELS = ['junior', 'senior', 'supervisor', 'OPM', 'D.supervisor']; // 隊員名單顯示技術員體系職級（初級/高級技術員、技術員主管/經理/副主管）；行政/高層(AAM/DGM/GM)唔顯示
@@ -2090,7 +2118,9 @@ function worktimeStandardHours(dateStr) {
 // 深夜加成分界（WORKTIME_NIGHT_CUT 20:00）照舊不變。
 function computeWorktimeOt({ day_status, date, schedule_in, actual_in, off_time, night_recovery }) {
   const zero = { total_duty_hours: 0, standard_hours: 0, ot_hours: 0, ot_evening_hours: 0, ot_night_hours: 0 };
-  if (day_status === '大假' || day_status === '病假') return zero;
+  if (WORKTIME_LEAVE_STATUSES.includes(day_status)) return zero;
+  // 公眾假期自動判斷：當日係香港公眾假期，就算記錄仲係正常上班/留守公司（舊記錄），都照公眾假期邏輯計
+  if ((day_status === '正常上班' || day_status === '留守公司') && hkPublicHolidayName(date)) day_status = '公眾假期';
   const std = worktimeStandardHours(date);
   if (std === null) return zero; // Sunday
   // OT 以 15 分鐘為一單位（員工入時間必為 15 分鐘位：18:00/18:15/18:30/18:45）
@@ -2906,7 +2936,7 @@ app.post('/api/admin/fleet/sync', authRequired('admin'), async (req, res) => {
 // ===== WORKTIME employee routes =====
 // Returns the configurable lists (work types + day statuses) for the form.
 app.get('/api/worktime/meta', authRequired('employee'), async (req, res) => {
-  res.json({ success: true, types: WORKTIME_TYPES, statuses: WORKTIME_STATUSES });
+  res.json({ success: true, types: WORKTIME_TYPES, statuses: WORKTIME_STATUSES, holidays: HK_PUBLIC_HOLIDAYS });
 });
 
 // Employee picker for the worktime team-member selector.
@@ -2928,7 +2958,10 @@ async function sanitizeWorktimePayload(body, emp) {
     return { ok: false, error: '星期日為休息日，無需填寫' };
   if (!withinWorktimeWindow(date))
     return { ok: false, error: '只可以填寫今日或過去 ' + WORKTIME_EDIT_DAYS + ' 日內嘅記錄' };
-  const day_status = WORKTIME_STATUSES.includes(body.day_status) ? body.day_status : '正常上班';
+  let day_status = WORKTIME_STATUSES.includes(body.day_status) ? body.day_status : '正常上班';
+  // 公眾假期自動判斷：當日係香港公眾假期 → 一律當「公眾假期」（唔使員工專登揀），
+  // 除非員工自己揀咗大假/病假/生日假/其他（尊重明確請假）；開工就 tick「假期開工」
+  if (hkPublicHolidayName(date) && !WORKTIME_LEAVE_STATUSES.includes(day_status)) day_status = '公眾假期';
   // 公眾假期預設當大假/病假處理（唔使填時間），除非 user 明確 tick 咗「假期開工」
   const holiday_work = (day_status === '公眾假期' && body.holiday_work === true);
   const needsTimes = (day_status === '正常上班' || day_status === '留守公司' || holiday_work);
