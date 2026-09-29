@@ -51,6 +51,18 @@ async function req(method, p, body, cookie) {
     const a2 = await req('GET', '/api/announcement');
     check('清空後 GET text 空', a2.body.text === '' && a2.body.version === 0, JSON.stringify(a2.body));
 
+    // 前端頁面 script 語法檢查（防 syntax error 令登入按鈕成個冇反應）
+    const vm = require('vm');
+    for (const f of ['public/admin.html', 'public/index.html']) {
+      const html = fs.readFileSync(path.join(__dirname, f), 'utf8');
+      const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+      let allOk = true, firstErr = '';
+      for (const b of blocks) {
+        try { new vm.Script(b[1]); } catch (e) { allOk = false; firstErr = e.message; }
+      }
+      check(f + ' 所有 script 可解析', allOk, firstErr);
+    }
+
     console.log('\n===== announcement: ' + pass + ' PASS / ' + fail + ' FAIL =====');
     process.exitCode = fail ? 1 : 0;
   } catch (e) {
