@@ -630,6 +630,7 @@ async function login() {
       empData = data.employee;
       startHeartbeat();
       showHome();
+      checkAnnouncement();
     } else {
       stopBgMusic();
       errEl.textContent = data.error;
@@ -3688,9 +3689,43 @@ async function loadWtWeek() {
       empData = data.user;
       startHeartbeat();
       showHome();
+      checkAnnouncement();
     }
   } catch (e) {}
 })();
+</script>
+<!-- 登入公告：admin 設定的特別訊息，登入後彈出，睇過一次唔再彈 -->
+<div id="annOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:var(--surface); max-width:460px; width:90%; border-radius:14px; padding:26px 24px; box-shadow:0 10px 40px rgba(0,0,0,0.3); border-top:6px solid var(--primary);">
+    <h2 style="margin:0 0 6px; color:var(--primary);">📢 重要通知</h2>
+    <div id="annText" data-v="0" style="white-space:pre-wrap; line-height:1.7; font-size:15px; margin:14px 0 22px;"></div>
+    <div style="text-align:right;">
+      <button class="btn btn-primary" onclick="dismissAnnouncement()">我已知悉</button>
+    </div>
+  </div>
+</div>
+<script>
+async function checkAnnouncement() {
+  try {
+    const res = await fetch(API + '/api/announcement', { credentials: 'include' });
+    const data = await res.json();
+    if (!data.text) return;
+    let seen = 0;
+    try { seen = parseInt(localStorage.getItem('biocycle_ann_v') || '0', 10) || 0; } catch (e) {}
+    if (seen >= (data.version || 0)) return; // 睇過就唔彈
+    const el = document.getElementById('annText');
+    el.textContent = data.text;
+    el.setAttribute('data-v', String(data.version || 0));
+    document.getElementById('annOverlay').style.display = 'flex';
+  } catch (e) {}
+}
+function dismissAnnouncement() {
+  try {
+    const v = parseInt(document.getElementById('annText').getAttribute('data-v') || '0', 10);
+    localStorage.setItem('biocycle_ann_v', String(v));
+  } catch (e) {}
+  document.getElementById('annOverlay').style.display = 'none';
+}
 </script>
 </body>
 </html>

@@ -496,6 +496,29 @@ app.post('/api/auth/heartbeat', async (req, res) => {
   }
 });
 
+// ===== LOGIN ANNOUNCEMENT =====
+// 員工/管理員登入時彈出的特別訊息；admin 可隨時更新，version 用 timestamp 決定前端是否重彈
+const ANN_KEY = 'login_announcement';
+async function loadAnnouncement() {
+  const a = await loadJSON(ANN_KEY, null);
+  if (!a || !a.text) return { text: '', version: 0 };
+  return { text: String(a.text || ''), version: a.version || 0 };
+}
+app.get('/api/announcement', async (req, res) => {
+  try { res.json(await loadAnnouncement()); }
+  catch (e) { res.status(500).json({ error: 'load announcement failed' }); }
+});
+app.post('/api/admin/announcement', authRequired('admin'), async (req, res) => {
+  try {
+    const text = typeof req.body.text === 'string' ? req.body.text.trim() : '';
+    const data = { text, version: text ? Date.now() : 0 };
+    await saveJSON(ANN_KEY, data);
+    res.json({ success: true, announcement: data });
+  } catch (e) {
+    res.status(500).json({ success: false, error: 'save announcement failed' });
+  }
+});
+
 // ===== EMPLOYEE EXAM ROUTES =====
 
 // Deterministically select the MC and essay questions for an employee's exam.

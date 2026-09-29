@@ -119,6 +119,7 @@ async function adminLogin() {
       applyNavPermissions();
       showScreen('adminPanel');
       showTab('home');
+      checkAnnouncement();
     } else {
       err.textContent = data.error; err.style.display = 'block';
     }
@@ -1384,7 +1385,49 @@ function showHome() {
       <h1 style="margin:0 0 8px; font-size:34px; color:var(--primary,#2c6e49)">歡迎登入</h1>
       <h2 style="margin:0; font-size:26px; color:var(--text,#1f2d3d)">BIOCYCLE OPERATION SYSTEM</h2>
       <p style="margin-top:20px; color:var(--text-light,#6b7280)">請由上方選單揀選您有權限嘅功能</p>
+    </div>
+    <div class="section-card" style="margin-top:24px">
+      <h3 style="margin:0 0 6px">📢 員工登入公告</h3>
+      <p style="margin:0 0 12px; color:var(--text-light,#6b7280); font-size:13px">設定後，所有員工（及管理員）登入時會彈出此訊息。留空即關閉公告。員工睇過一次後唔會再彈，直到你再次修改內容。</p>
+      <textarea id="annInput" rows="4" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:14px; resize:vertical"></textarea>
+      <div style="margin-top:10px; display:flex; gap:10px; align-items:center">
+        <button class="btn btn-primary" onclick="saveAnnouncement()">儲存公告</button>
+        <span id="annSaveMsg" style="font-size:13px"></span>
+      </div>
     </div>`;
+  loadAnnouncementForEdit();
+}
+
+async function loadAnnouncementForEdit() {
+  try {
+    const res = await fetch(API + '/api/announcement', { credentials: 'include' });
+    const data = await res.json();
+    const ta = document.getElementById('annInput');
+    if (ta && data.text) ta.value = data.text;
+  } catch (e) {}
+}
+async function saveAnnouncement() {
+  const ta = document.getElementById('annInput');
+  const msg = document.getElementById('annSaveMsg');
+  if (!ta || !msg) return;
+  try {
+    const res = await fetch(API + '/api/admin/announcement', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+      body: JSON.stringify({ text: ta.value })
+    });
+    const data = await res.json();
+    if (data.success) {
+      msg.style.color = 'var(--success,#2c6e49)';
+      msg.textContent = '已儲存 ✓';
+    } else {
+      msg.style.color = 'var(--accent,#d97706)';
+      msg.textContent = data.error || '儲存失敗';
+    }
+  } catch (e) {
+    msg.style.color = 'var(--accent,#d97706)';
+    msg.textContent = '連接錯誤';
+  }
+  setTimeout(() => { if (msg) msg.textContent = ''; }, 2500);
 }
 
 function showChangeMyPw() {
@@ -3000,9 +3043,45 @@ function showScreen(id) {
       document.getElementById('adminNameDisplay').textContent = adminData.displayName;
       showScreen('adminPanel');
       showTab('home');
+      checkAnnouncement();
     }
   } catch(e) {}
 })();
+}
+</script>
+
+<!-- 登入公告 modal（管理員同員工都會彈） -->
+<div id="annOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:var(--surface,#fff); max-width:460px; width:90%; border-radius:14px; padding:26px 24px; box-shadow:0 10px 40px rgba(0,0,0,0.3); border-top:6px solid var(--primary,#2c6e49);">
+    <h2 style="margin:0 0 6px; color:var(--primary,#2c6e49)">📢 重要通知</h2>
+    <div id="annText" data-v="0" style="white-space:pre-wrap; line-height:1.7; font-size:15px; margin:14px 0 22px;"></div>
+    <div style="text-align:right;">
+      <button class="btn btn-primary" onclick="dismissAnnouncement()">我已知悉</button>
+    </div>
+  </div>
+</div>
+<script>
+async function checkAnnouncement() {
+  try {
+    const res = await fetch(API + '/api/announcement', { credentials: 'include' });
+    const data = await res.json();
+    if (!data.text) return;
+    let seen = 0;
+    try { seen = parseInt(localStorage.getItem('biocycle_ann_v') || '0', 10) || 0; } catch (e) {}
+    if (seen >= (data.version || 0)) return;
+    const el = document.getElementById('annText');
+    el.textContent = data.text;
+    el.setAttribute('data-v', String(data.version || 0));
+    document.getElementById('annOverlay').style.display = 'flex';
+  } catch (e) {}
+}
+function dismissAnnouncement() {
+  try {
+    const v = parseInt(document.getElementById('annText').getAttribute('data-v') || '0', 10);
+    localStorage.setItem('biocycle_ann_v', String(v));
+  } catch (e) {}
+  document.getElementById('annOverlay').style.display = 'none';
+}
 </script>
 </body>
 </html>
