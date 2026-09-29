@@ -2049,7 +2049,7 @@ const FLEET_FILES = { trip: FLEET_TRIPS_FILE, fuel: FLEET_FUELS_FILE, maintenanc
 // One record per employee per date, with nested job rows. OT is computed server-side.
 const WORKTIME_FILE = 'worktime.json';
 const FEEDBACK_FILE = 'feedback.json';
-const WORKTIME_TYPES = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除', 'Cancel'];
+const WORKTIME_TYPES = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除', 'Cancel', 'Hot Fog'];
 const WORKTIME_STATUSES = ['正常上班', '留守公司', '公眾假期', '大假', '病假', '生日假', '其他'];
 // 公眾假期／大假／病假／生日假／其他 = 假日狀態（唔使填時間，OT 計 0）
 const WORKTIME_LEAVE_STATUSES = ['大假', '病假', '生日假', '其他'];

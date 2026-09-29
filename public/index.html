@@ -3275,7 +3275,7 @@ async function deleteFleetRecord(type, id) {
 }
 
 // ===== WORKTIME (技術員每日工時記錄) =====
-let wtTypes = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除', 'Cancel'];
+let wtTypes = ['PC', 'TC', 'RC', 'BKS', 'BKOD', 'ZOONO', 'GK', 'Bedbug', 'Snake', '送貨', '其他', 'IN2CARE', 'TC INJECTION', '蜂巢移除', 'Cancel', 'Hot Fog'];
 let wtHolidays = {}; // { '2026': {'01-01':'元旦', ...} } 由 /api/worktime/meta 攞
 function wtHolidayName(d) {
   const s = String(d || '');
