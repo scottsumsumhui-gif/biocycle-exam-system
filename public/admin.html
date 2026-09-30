@@ -775,7 +775,8 @@ async function loadLeadAdminData() {
         <option value="已簽約" ${r.sales_status === '已簽約' ? 'selected' : ''}>已簽約</option>
         <option value="不簽約" ${r.sales_status === '不簽約' ? 'selected' : ''}>不簽約</option>
       </select>`;
-      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${custCode}</td><td>${mem}</td><td>${r.customer_name || '—'}</td><td>${r.customer_phone || '—'}</td><td>${r.customer_address || '—'}</td><td>${svcAll}</td><td title="${(r.notes || '').replace(/"/g,'&quot;')}">${notesShort}</td><td>${stSel}</td><td><button class="btn btn-xs btn-outline" onclick="deleteLeadRecord(${r.id})">刪除</button></td></tr>`;
+      const stBy = r.sales_status ? `<div style="font-size:11px;color:#888;margin-top:2px;white-space:nowrap">改：${r.sales_status_by || '—'}<br>${(r.sales_status_at || '').slice(0, 16)}</div>` : '';
+      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${custCode}</td><td>${mem}</td><td>${r.customer_name || '—'}</td><td>${r.customer_phone || '—'}</td><td>${r.customer_address || '—'}</td><td>${svcAll}</td><td title="${(r.notes || '').replace(/"/g,'&quot;')}">${notesShort}</td><td>${stSel}${stBy}</td><td><button class="btn btn-xs btn-outline" onclick="deleteLeadRecord(${r.id})">刪除</button></td></tr>`;
     }
     html += '</tbody></table>';
     box.innerHTML = html;
@@ -854,7 +855,7 @@ function renderCommissionAdmin() {
       const names = r.members.map(mm => mm.emp_name).join('、');
       const cust = r.customer_code ? ('#' + r.customer_code) : '—';
       const apprCell = r.approved
-        ? '<span style="color:var(--success);font-weight:bold">✅ 已批核</span><br><button class="btn btn-xs btn-outline" style="margin-top:2px" onclick="toggleCommissionApprove(' + r.id + ', false)">取消批核</button>'
+        ? '<span style="color:var(--success);font-weight:bold">✅ 已批核</span><div style="font-size:11px;color:#888;margin-top:1px;white-space:nowrap">批核：' + (r.approved_by || '—') + '<br>' + (r.approved_at || '').slice(0, 16) + '</div><button class="btn btn-xs btn-outline" style="margin-top:2px" onclick="toggleCommissionApprove(' + r.id + ', false)">取消批核</button>'
         : '<span class="text-muted">未批核</span><br><button class="btn btn-xs btn-primary" style="margin-top:2px" onclick="toggleCommissionApprove(' + r.id + ', true)">批核</button>';
       recHtml += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${cust}</td><td>${r.created_by_emp_name}</td><td>${names}</td><td>$${r.total_amount}</td><td>$${r.total_commission}</td><td>$${r.per_person_commission}</td><td>${apprCell}</td><td><button class="btn btn-xs btn-outline" onclick="deleteCommissionRecord(${r.id})">刪除</button></td></tr>`;
     }
