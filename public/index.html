@@ -779,18 +779,21 @@ function ensureFestivalCss() {
   .fest-banner .fest-title{font-size:20px;font-weight:700;color:#8a5a00}
   .fest-banner .fest-sub{font-size:13px;color:#a0781e;margin-top:4px}
 
-  /* ===== 萬聖節 Halloween ===== */
-  body.fest-halloween .brand-bar{background:linear-gradient(135deg,#2b0a3d 0%,#1a0033 50%,#3d1500 100%)}
+  /* ===== 萬聖節 Halloween（黑色版）===== */
+  body.fest-halloween .brand-bar{background:linear-gradient(135deg,#000 0%,#141414 60%,#1f0e00 100%)}
   body.fest-halloween .brand-bar .bb-logo{color:#ff9f1c}
   body.fest-halloween .brand-bar .bb-user{color:#ffd6a5}
-  body.fest-halloween .center-card{position:relative;background:linear-gradient(180deg,#fbf7ff 0%,#f1e6ff 100%);
-    border-top-color:#7b2d8e;box-shadow:0 6px 24px rgba(123,45,142,.22);padding-top:88px}
+  body.fest-halloween .center-card{position:relative;background:linear-gradient(180deg,#1a1a1a 0%,#0c0c0c 100%);
+    border-top-color:#ff7518;box-shadow:0 6px 24px rgba(0,0,0,.55);padding-top:88px}
+  body.fest-halloween .center-card h1,body.fest-halloween .center-card h2,body.fest-halloween .center-card h3,
+  body.fest-halloween .center-card p,body.fest-halloween .center-card span,body.fest-halloween .center-card div,
+  body.fest-halloween .center-card label,body.fest-halloween .center-card li{color:#e8e8e8 !important}
   body.fest-halloween .center-card > div[style*="border-left:4px solid var(--primary)"]{border-left-color:#ff7518 !important}
-  body.fest-halloween .fest-deco .lantern{filter:drop-shadow(0 4px 10px rgba(0,0,0,.4))}
+  body.fest-halloween .fest-deco .lantern{filter:drop-shadow(0 4px 10px rgba(255,117,24,.45))}
   body.fest-halloween .fest-banner{margin:18px 0 6px;padding:14px 20px;border-radius:12px;text-align:center;
-    background:linear-gradient(135deg,#3d1500 0%,#ff7518 100%);border:1px solid #ff7518;
+    background:linear-gradient(135deg,#000 0%,#1c1108 100%);border:1px solid #ff7518;
     box-shadow:0 2px 10px rgba(255,117,24,.35)}
-  body.fest-halloween .fest-banner .fest-title{font-size:20px;font-weight:700;color:#fff3e0}
+  body.fest-halloween .fest-banner .fest-title{font-size:20px;font-weight:700;color:#ff9f1c}
   body.fest-halloween .fest-banner .fest-sub{font-size:13px;color:#ffd6a5;margin-top:4px}
   `;
   document.head.appendChild(s);
@@ -807,9 +810,9 @@ function applyFestivalTheme() {
     // 掛喺 home 白色卡頂嘅裝飾（按主題換 emoji）
     const card = document.querySelector('#homeScreen .center-card');
     if (card) {
-      const emojis = f.theme === 'halloween' ? '🎃🦇👻🕸️🦇' : '🏮🏮🏮🏮🏮';
+      const emojis = f.theme === 'halloween' ? ['🎃','🦇','👻','🕸️','🦇'] : ['🏮','🏮','🏮','🏮','🏮'];
       deco = document.createElement('div'); deco.id = 'festDeco'; deco.className = 'fest-deco';
-      deco.innerHTML = emojis.split('').map(e => `<span class="lantern">${e}</span>`).join('');
+      deco.innerHTML = emojis.map(e => `<span class="lantern">${e}</span>`).join('');
       card.insertBefore(deco, card.firstChild);
     }
   }
