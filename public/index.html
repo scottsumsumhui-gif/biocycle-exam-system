@@ -801,6 +801,10 @@ function ensureFestivalCss() {
     box-shadow:0 2px 10px rgba(255,117,24,.35)}
   body.fest-halloween .fest-banner .fest-title{font-size:20px;font-weight:700;color:#ff9f1c}
   body.fest-halloween .fest-banner .fest-sub{font-size:13px;color:#ffd6a5;margin-top:4px}
+  body.fest-halloween{background:#ffffff !important}
+  body.fest-halloween .quote-bar{background:linear-gradient(135deg,#1c1c1c 0%,#101010 100%) !important;
+    border-left-color:#ff7518 !important;box-shadow:0 1px 6px rgba(0,0,0,.45) !important}
+  body.fest-halloween .quote-bar span{color:#ffd6a5 !important}
   `;
   document.head.appendChild(s);
 }
@@ -942,7 +946,7 @@ function showHome() {
     `<div style="margin:6px 0 0"><button class="btn btn-sm btn-outline" id="bgMusicBtn" onclick="toggleBgMusic()">🎵 播放音樂</button></div>` +
     `<p style="color:var(--text-light)">請選擇要進入的功能：</p>` +
     (fest ? `<div class="fest-banner"><div class="fest-title">${fest.title}</div><div class="fest-sub">${fest.sub}</div></div>` : '') +
-    `<div style="margin:20px 0; padding:20px 24px; border-radius:12px; background:linear-gradient(135deg,#f0f7f0 0%,#e8f5e8 100%); border-left:4px solid var(--primary); box-shadow:0 1px 3px rgba(0,0,0,0.06)">` +
+    `<div class="quote-bar" style="margin:20px 0; padding:20px 24px; border-radius:12px; background:linear-gradient(135deg,#f0f7f0 0%,#e8f5e8 100%); border-left:4px solid var(--primary); box-shadow:0 1px 3px rgba(0,0,0,0.06)">` +
     `<span style="color:var(--primary-dark);font-size:18px;line-height:1.8;font-weight:500">🪷 ${q.text}</span>` +
     `</div>`;
   updateBgMusicBtn();
