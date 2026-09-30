@@ -2401,9 +2401,9 @@ function startHeartbeat() {
 async function pingHeartbeat() {
   try {
     const res = await fetch(API + '/api/auth/heartbeat', { method: 'POST', credentials: 'include' });
-    const ok = res.ok;
-    if (!ok) console.warn('[heartbeat] session no longer valid');
-    return { ok, status: res.status };
+    // 只有真正過期（401）先當失效；儲存層暫時錯（503）或網絡錯當 ok，避免乱踢人
+    if (res.status === 401) return { ok: false, status: res.status };
+    return { ok: true, status: res.status };
   } catch (e) {
     // network error — will retry on next tick
     return { ok: true };

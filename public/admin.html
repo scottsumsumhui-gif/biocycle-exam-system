@@ -93,6 +93,11 @@ async function handleApiError(res, fallbackMsg = '操作失敗') {
     adminLogout();
     return null;
   }
+  if (res.status === 503) {
+    // 儲存層暫時讀取失敗，請重試，唔好當過期乱踢人
+    alert('伺服器暫時繁忙，請稍後重試');
+    return null;
+  }
   if (!res.ok) {
     const text = await res.text();
     console.error('API Error:', res.status, text);

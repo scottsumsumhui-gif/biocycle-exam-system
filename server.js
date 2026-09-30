@@ -288,6 +288,16 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// 所有 /api 響應禁止快取，否則前端（員工/管理員）會睇到舊資料，要 logout/login 先更新
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  }
+  next();
+});
+
 // Helper: get current LOCAL time string (GMT+8 Hong Kong)
 function nowStr() {
   const d = new Date(Date.now() + 8 * 3600000);
@@ -315,12 +325,20 @@ function toHKTStr(s) {
 }
 
 // Auth middleware
+// 注意：員工用 cookie `session_id`、管理員用 `admin_session_id`（分開，避免同一 browser 開兩個 app 互揜 session）
 function authRequired(userType) {
   return async (req, res, next) => {
-    const sessionId = req.cookies.session_id;
+    const cookieName = userType === 'admin' ? 'admin_session_id' : 'session_id';
+    const sessionId = req.cookies[cookieName];
     if (!sessionId) return res.status(401).json({ error: 'Not authenticated' });
 
-    const sessions = await loadJSON('sessions.json', []);
+    let sessions;
+    try {
+      sessions = await loadJSON('sessions.json', []);
+    } catch (e) {
+      // 會話儲存層（Upstash）暫時讀取失敗：返 503 請重試，唔好當過期亂踢人
+      return res.status(503).json({ error: '伺服器暫時無法讀取會話，請稍後重試' });
+    }
     const session = sessions.find(s => s.id === sessionId && s.user_type === userType && s.expires_at > nowStr());
     if (!session) return res.status(401).json({ error: 'Session expired or invalid' });
 
@@ -393,7 +411,7 @@ app.post('/api/auth/admin-login', async (req, res) => {
   });
   await saveJSON('sessions.json', sessions);
 
-  res.cookie('session_id', sessionId, { maxAge: ADMIN_SESSION_TTL_MS, httpOnly: true });
+  res.cookie('admin_session_id', sessionId, { maxAge: ADMIN_SESSION_TTL_MS, httpOnly: true });
   res.json({
     success: true,
     admin: {
@@ -435,23 +453,31 @@ app.post('/api/auth/admin-change-password', authRequired('admin'), async (req, r
 });
 
 app.post('/api/auth/logout', async (req, res) => {
-  const sessionId = req.cookies.session_id;
-  if (sessionId) {
-    let sessions = await loadJSON('sessions.json', []);
-    sessions = sessions.filter(s => s.id !== sessionId);
-    await saveJSON('sessions.json', sessions);
+  const sid = req.cookies.session_id || req.cookies.admin_session_id;
+  if (sid) {
+    try {
+      let sessions = await loadJSON('sessions.json', []);
+      sessions = sessions.filter(s => s.id !== sid);
+      await saveJSON('sessions.json', sessions);
+    } catch (e) {}
   }
   res.clearCookie('session_id');
+  res.clearCookie('admin_session_id');
   res.json({ success: true });
 });
 
 app.get('/api/auth/check', async (req, res) => {
-  const sessionId = req.cookies.session_id;
+  const sessionId = req.cookies.session_id || req.cookies.admin_session_id;
   if (!sessionId) return res.json({ authenticated: false });
 
-  const sessions = await loadJSON('sessions.json', []);
-  const session = sessions.find(s => s.id === sessionId && s.expires_at > nowStr());
-  if (!session) return res.json({ authenticated: false });
+  let session;
+  try {
+    const sessions = await loadJSON('sessions.json', []);
+    session = sessions.find(s => s.id === sessionId && s.expires_at > nowStr());
+    if (!session) return res.json({ authenticated: false });
+  } catch (e) {
+    return res.json({ authenticated: false });
+  }
 
   let userInfo = {};
   if (session.user_type === 'employee') {
@@ -479,7 +505,7 @@ app.get('/api/health', (req, res) => {
 // Heartbeat: keep the session alive while the exam/tab is open.
 // Works for both employee and admin sessions, extends expiry and cookie.
 app.post('/api/auth/heartbeat', async (req, res) => {
-  const sessionId = req.cookies.session_id;
+  const sessionId = req.cookies.session_id || req.cookies.admin_session_id;
   if (!sessionId) return res.status(401).json({ error: 'Not authenticated' });
   try {
     const sessions = await loadJSON('sessions.json', []);
@@ -489,10 +515,11 @@ app.post('/api/auth/heartbeat', async (req, res) => {
     const newExpiry = expiresAtStr(ttl);
     sessions[idx].expires_at = newExpiry;
     await saveJSON('sessions.json', sessions);
-    res.cookie('session_id', sessionId, { maxAge: ttl, httpOnly: true });
+    const cookieName = sessions[idx].user_type === 'admin' ? 'admin_session_id' : 'session_id';
+    res.cookie(cookieName, sessionId, { maxAge: ttl, httpOnly: true });
     res.json({ success: true, expiresAt: newExpiry });
   } catch (e) {
-    res.status(500).json({ success: false, error: 'Heartbeat failed' });
+    res.status(503).json({ success: false, error: '伺服器暫時無法讀取會話，請稍後重試' });
   }
 });
 
