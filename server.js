@@ -1974,7 +1974,7 @@ app.post('/api/tech-leads/records', authRequired('employee'), async (req, res) =
 app.get('/api/tech-leads/records', authRequired('employee'), async (req, res) => {
   const records = await loadJSON(LEAD_FILE, []);
   const myId = req.session.user_id;
-  const mine = records.filter(r => r.created_by_emp_id === myId).sort((a, b) => b.id - a.id);
+  const mine = records.filter(r => r.created_by_emp_id === myId || (r.members || []).some(m => m.emp_id === myId)).sort((a, b) => b.id - a.id);
   res.json(mine);
 });
 

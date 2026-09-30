@@ -294,10 +294,12 @@
       <button id="myTabAllow" class="btn btn-sm btn-primary" style="flex:1" onclick="switchMyTab('allow')">考試津貼</button>
       <button id="myTabOt" class="btn btn-sm btn-outline" style="flex:1" onclick="switchMyTab('ot')">當月 OT</button>
       <button id="myTabMeet" class="btn btn-sm btn-outline" style="flex:1" onclick="switchMyTab('meet')">會議記錄</button>
+      <button id="myTabComm" class="btn btn-sm btn-outline" style="flex:1" onclick="switchMyTab('comm')">佣金狀態</button>
     </div>
     <div id="myAllowPane"></div>
     <div id="myOtPane" style="display:none"></div>
     <div id="myMeetPane" style="display:none"></div>
+    <div id="myCommPane" style="display:none"></div>
     <button class="btn btn-outline btn-block mt-16" onclick="showHome()">返回主板面 Back</button>
   </div>
 </div>
@@ -2771,8 +2773,8 @@ async function showMyResults() {
 
 // ===== MY RECORDS (記錄：考試津貼 + 當月 OT + 會議記錄) =====
 function switchMyTab(tab) {
-  const panes = { allow: 'myAllowPane', ot: 'myOtPane', meet: 'myMeetPane' };
-  const btns = { allow: 'myTabAllow', ot: 'myTabOt', meet: 'myTabMeet' };
+  const panes = { allow: 'myAllowPane', ot: 'myOtPane', meet: 'myMeetPane', comm: 'myCommPane' };
+  const btns = { allow: 'myTabAllow', ot: 'myTabOt', meet: 'myTabMeet', comm: 'myTabComm' };
   const on = 'btn btn-sm btn-primary', off = 'btn btn-sm btn-outline';
   for (const k of Object.keys(panes)) {
     const p = document.getElementById(panes[k]);
@@ -2780,6 +2782,7 @@ function switchMyTab(tab) {
     if (p) p.style.display = (k === tab) ? '' : 'none';
     if (b) b.className = (k === tab) ? on : off;
   }
+  if (tab === 'comm') loadMyCommissionStatus();
 }
 
 function recentMonths(n) {
@@ -2810,6 +2813,56 @@ async function showMyRecords() {
   loadMyAllowance();
   loadMyOt();
   loadMyMeetings();
+  loadMyCommissionStatus();
+}
+
+// ===== 記錄：佣金狀態（服務銷售狀態 + 渠網佣金批核，只顯示自己有份嘅記錄）=====
+async function loadMyCommissionStatus() {
+  const el = document.getElementById('myCommPane');
+  if (!el) return;
+  el.innerHTML = '<p style="color:var(--text-light)">載入中…</p>';
+  try {
+    const [leadRes, commRes] = await Promise.all([
+      fetch(API + '/api/tech-leads/records', { credentials: 'include' }),
+      fetch(API + '/api/commission/records', { credentials: 'include' })
+    ]);
+    const leads = await leadRes.json();
+    const comms = await commRes.json();
+
+    let html = '<h3 class="mt-18">🛒 服務銷售佣金</h3>';
+    if (!Array.isArray(leads) || !leads.length) {
+      html += '<p style="color:var(--text-light)">你暫無服務銷售記錄</p>';
+    } else {
+      html += '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶</th><th>隊員</th><th>服務類型</th><th>狀態</th></tr></thead><tbody>';
+      for (const r of leads) {
+        const svc = (r.services || []).join('、');
+        const svcAll = r.custom_service ? (svc ? svc + '、' + r.custom_service : r.custom_service) : (svc || '—');
+        const custShort = (r.customer_code ? '#' + r.customer_code + ' · ' : '') + (r.customer_name || '') + ' / ' + (r.customer_phone || '—');
+        const mem = (r.members || []).map(m => m.emp_name).join('、') || '—';
+        const stColor = r.sales_status === '已簽約' ? 'var(--success)' : r.sales_status === '不簽約' ? '#e74c3c' : r.sales_status === '已查閱' ? '#2980b9' : 'inherit';
+        const stTxt = r.sales_status || '未處理';
+        html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${custShort}</td><td>${mem}</td><td>${svcAll}</td><td style="color:${stColor};font-weight:${r.sales_status ? 'bold' : 'normal'};white-space:nowrap">${stTxt}</td></tr>`;
+      }
+      html += '</tbody></table>';
+    }
+
+    html += '<h3 class="mt-18">💰 渠網佣金</h3>';
+    if (!Array.isArray(comms) || !comms.length) {
+      html += '<p style="color:var(--text-light)">你暫無渠網佣金記錄</p>';
+    } else {
+      html += '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶編號</th><th>隊員</th><th>全隊總額</th><th>每人應得</th><th>批核</th></tr></thead><tbody>';
+      for (const r of comms) {
+        const names = (r.members || []).map(m => m.emp_name).join('、');
+        const cust = r.customer_code ? ('#' + r.customer_code) : '—';
+        const apprCell = r.approved
+          ? '<span style="color:var(--success);font-weight:bold;white-space:nowrap">✅ 已批核</span>'
+          : '<span class="text-muted" style="white-space:nowrap">未批核</span>';
+        html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${cust}</td><td>${names}</td><td>$${r.total_amount}</td><td>$${r.per_person_commission}</td><td>${apprCell}</td></tr>`;
+      }
+      html += '</tbody></table>';
+    }
+    el.innerHTML = html;
+  } catch (e) { el.innerHTML = '<p style="color:var(--accent)">載入失敗，請重新整理</p>'; }
 }
 
 // ===== 會議記錄（員工前台睇，admin 後台上傳）=====
