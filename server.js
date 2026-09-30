@@ -2025,6 +2025,28 @@ app.delete('/api/admin/tech-leads/records/:id', authRequired('admin'), requirePe
   }
 });
 
+// Admin: set sales status on a lead record (服務銷售進度：已查閱/已簽約/不簽約)
+const LEAD_SALES_STATUSES = ['已查閱', '已簽約', '不簽約'];
+app.put('/api/admin/tech-leads/records/:id/status', authRequired('admin'), requirePermission('leads'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const status = req.body && req.body.status != null ? String(req.body.status).trim() : '';
+    if (status && !LEAD_SALES_STATUSES.includes(status)) return res.status(400).json({ success: false, error: '無效狀態' });
+    const records = await loadJSON(LEAD_FILE, []);
+    const r = records.find(x => x.id === id);
+    if (!r) return res.status(404).json({ success: false, error: '記錄不存在' });
+    const admins = await loadJSON('admins.json', []);
+    const admin = admins.find(a => a.id === req.session.user_id);
+    r.sales_status = status || null;
+    r.sales_status_at = status ? nowStr() : null;
+    r.sales_status_by = status ? ((admin && (admin.display_name || admin.username)) || 'admin') : null;
+    await saveJSON(LEAD_FILE, records);
+    res.json({ success: true, record: r });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '更新失敗' });
+  }
+});
+
 // Admin: export leads to Excel (single sheet)
 app.get('/api/admin/tech-leads/export', authRequired('admin'), requirePermission('leads'), async (req, res) => {
   try {
@@ -2036,13 +2058,13 @@ app.get('/api/admin/tech-leads/export', authRequired('admin'), requirePermission
     else records = records.filter(r => (r.record_date || '').startsWith(String(y)));
     records.sort((a, b) => b.id - a.id);
     const wb = XLSX.utils.book_new();
-    const header = ['記錄編號', '日期', '客戶編號', '隊員', '客戶姓名', '客戶電話', '客戶地址', '服務類型', '備註'];
+    const header = ['記錄編號', '日期', '客戶編號', '隊員', '客戶姓名', '客戶電話', '客戶地址', '服務類型', '備註', '狀態'];
     const rows = records.map(r => {
       const svc = (r.services || []).join('、');
       const svcAll = r.custom_service ? (svc ? svc + '、' + r.custom_service : r.custom_service) : (svc || '—');
       const mem = (r.members || []).map(m => m.emp_name).join('、') || '—';
       const custCode = r.customer_code ? '#' + r.customer_code : '';
-      return [r.id, r.record_date, custCode, mem, r.customer_name, r.customer_phone, r.customer_address, svcAll, r.notes];
+      return [r.id, r.record_date, custCode, mem, r.customer_name, r.customer_phone, r.customer_address, svcAll, r.notes, r.sales_status || '未處理'];
     });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...rows]), '服務銷售記錄');
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
@@ -4450,6 +4472,26 @@ app.get('/api/admin/commission/report', authRequired('admin'), requirePermission
   res.json({ rows, team: { sales: teamSales, installs: teamInstalls, subtotal: Math.round(teamSubtotal * 100) / 100, commission: Math.round(teamCommission * 100) / 100 } });
 });
 
+// Admin: toggle 已批核 on a commission record (渠網佣金批核狀態)
+app.put('/api/admin/commission/records/:id/approve', authRequired('admin'), requirePermission('commission'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const approved = !!(req.body && req.body.approved);
+    const records = await loadJSON(COMM_FILE, []);
+    const r = records.find(x => x.id === id);
+    if (!r) return res.status(404).json({ success: false, error: '記錄不存在' });
+    const admins = await loadJSON('admins.json', []);
+    const admin = admins.find(a => a.id === req.session.user_id);
+    r.approved = approved;
+    r.approved_at = approved ? nowStr() : null;
+    r.approved_by = approved ? ((admin && (admin.display_name || admin.username)) || 'admin') : null;
+    await saveJSON(COMM_FILE, records);
+    res.json({ success: true, record: r });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '更新失敗' });
+  }
+});
+
 // Export to Excel
 app.get('/api/admin/commission/export', authRequired('admin'), requirePermission('commission'), async (req, res) => {
   try {
@@ -4462,11 +4504,11 @@ app.get('/api/admin/commission/export', authRequired('admin'), requirePermission
     records.sort((a, b) => b.id - a.id);
 
     const wb = XLSX.utils.book_new();
-    const header = ['記錄編號', '日期', '客戶編號', '入數人', '隊員', '銷售件數', '安裝件數', '小計', '每人應得佣金', '全隊總額', '全隊總佣金'];
+    const header = ['記錄編號', '日期', '客戶編號', '入數人', '隊員', '銷售件數', '安裝件數', '小計', '每人應得佣金', '全隊總額', '全隊總佣金', '批核狀態'];
     const rows = [];
     for (const r of records) {
       for (const mem of r.members) {
-        rows.push([r.id, r.record_date, r.customer_code ? '#' + r.customer_code : '', r.created_by_emp_name, mem.emp_name, mem.sales, mem.installs, mem.subtotal, r.per_person_commission, r.total_amount, r.total_commission]);
+        rows.push([r.id, r.record_date, r.customer_code ? '#' + r.customer_code : '', r.created_by_emp_name, mem.emp_name, mem.sales, mem.installs, mem.subtotal, r.per_person_commission, r.total_amount, r.total_commission, r.approved ? '已批核' : '未批核']);
       }
     }
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...rows]), '所有記錄');

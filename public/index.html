@@ -2007,14 +2007,16 @@ async function loadLeadHistory() {
     const res = await fetch(API + '/api/tech-leads/records', { credentials: 'include' });
     const records = await res.json();
     if (!records.length) { tbl.innerHTML = '<p style="color:var(--text-light)">你暫無記錄</p>'; return; }
-    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶</th><th>隊員</th><th>服務類型</th><th>備註</th><th>操作</th></tr></thead><tbody>';
+    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶</th><th>隊員</th><th>服務類型</th><th>備註</th><th>狀態</th><th>操作</th></tr></thead><tbody>';
     for (const r of records) {
       const svc = (r.services || []).join('、');
       const svcAll = r.custom_service ? (svc ? svc + '、' + r.custom_service : r.custom_service) : (svc || '—');
       const custShort = (r.customer_code ? '#' + r.customer_code + ' · ' : '') + (r.customer_name || '') + ' / ' + (r.customer_phone || '—');
       const notesShort = (r.notes || '').length > 30 ? r.notes.substring(0, 30) + '…' : (r.notes || '—');
       const mem = (r.members || []).map(m => m.emp_name).join('、') || '—';
-      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${custShort}</td><td>${mem}</td><td>${svcAll}</td><td title="${(r.notes || '').replace(/"/g,'&quot;')}">${notesShort}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyLead(${r.id})">刪除</button></td></tr>`;
+      const stColor = r.sales_status === '已簽約' ? 'var(--success)' : r.sales_status === '不簽約' ? '#e74c3c' : r.sales_status === '已查閱' ? '#2980b9' : 'inherit';
+      const stTxt = r.sales_status || '未處理';
+      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${custShort}</td><td>${mem}</td><td>${svcAll}</td><td title="${(r.notes || '').replace(/"/g,'&quot;')}">${notesShort}</td><td style="color:${stColor};font-weight:${r.sales_status ? 'bold' : 'normal'};white-space:nowrap">${stTxt}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyLead(${r.id})">刪除</button></td></tr>`;
     }
     html += '</tbody></table>';
     tbl.innerHTML = html;
@@ -2072,11 +2074,14 @@ async function loadCommissionHistory() {
     const res = await fetch(API + '/api/commission/records', { credentials: 'include' });
     const records = await res.json();
     if (!records.length) { tbl.innerHTML = '<p style="color:var(--text-light)">你暫無記錄</p>'; return; }
-    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶編號</th><th>隊員</th><th>全隊總額</th><th>全隊總佣金</th><th>每人應得</th><th>操作</th></tr></thead><tbody>';
+    let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>客戶編號</th><th>隊員</th><th>全隊總額</th><th>全隊總佣金</th><th>每人應得</th><th>批核</th><th>操作</th></tr></thead><tbody>';
     for (const r of records) {
       const names = r.members.map(m => m.emp_name).join('、');
       const cust = r.customer_code ? ('#' + r.customer_code) : '—';
-      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${cust}</td><td>${names}</td><td>$${r.total_amount}</td><td>$${r.total_commission}</td><td>$${r.per_person_commission}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyCommission(${r.id})">刪除</button></td></tr>`;
+      const apprCell = r.approved
+        ? '<span style="color:var(--success);font-weight:bold;white-space:nowrap">✅ 已批核</span>'
+        : '<span class="text-muted" style="white-space:nowrap">未批核</span>';
+      html += `<tr><td>${r.id}</td><td>${r.record_date}</td><td>${cust}</td><td>${names}</td><td>$${r.total_amount}</td><td>$${r.total_commission}</td><td>$${r.per_person_commission}</td><td>${apprCell}</td><td><button class="btn btn-xs btn-outline" onclick="deleteMyCommission(${r.id})">刪除</button></td></tr>`;
     }
     html += '</tbody></table>';
     tbl.innerHTML = html;
