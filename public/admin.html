@@ -2345,6 +2345,16 @@ function renderWorktimeAdmin() {
   const monStr = monday.toISOString().substring(0, 10);
   const sunStr = new Date(monday.getTime() + 6 * 86400000).toISOString().substring(0, 10);
   let html = '<h2>&#9201; 工時記錄 Worktime Records</h2>';
+  if (hasPerm('worktime_compare')) {
+    html += '<div class="section-card" style="margin-bottom:18px">' +
+      '<h3 style="margin-top:0">📊 工時對比報告</h3>' +
+      '<p style="color:var(--text-light);font-size:13px;margin:4px 0 10px">上載 Appointment 排單 PDF（可多份，每日一份）。系統會讀取已儲存嘅工時記錄做對比，產生一份 Excel（封面 + 3 個 sheet：同隊下班／排單vs記錄／第一尾單）。</p>' +
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
+      '<input type="file" id="wtComparePdfs" accept=".pdf" multiple>' +
+      '<button class="btn btn-sm btn-primary" id="wtCompareBtn" onclick="generateWorktimeCompare()">🔄 產生對比報告</button>' +
+      '<span id="wtCompareStatus" style="font-size:13px"></span>' +
+      '</div></div>';
+  }
   html += `<div class="section-card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
     <label>員工：</label><select id="wtAdminEmp"><option value="">全部</option>${empOpts.join('')}</select>
     <label>月份：</label><input id="wtAdminMonth" type="month" style="width:150px">
@@ -2354,16 +2364,6 @@ function renderWorktimeAdmin() {
     <button class="btn btn-sm btn-outline" onclick="exportWorktimeExcel()">&#128229; 匯出 Excel</button>
   </div></div>`;
   html += '<div id="wtAdminBox"></div>';
-  if (hasPerm('worktime_compare')) {
-    html += '<div class="section-card" style="margin-top:18px">' +
-      '<h3 style="margin-top:0">📊 工時對比報告</h3>' +
-      '<p style="color:var(--text-light);font-size:13px;margin:4px 0 10px">上載 Appointment 排單 PDF（可多份，每日一份）。系統會讀取已儲存嘅工時記錄做對比，產生一份 Excel（封面 + 3 個 sheet：同隊下班／排單vs記錄／第一尾單）。</p>' +
-      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
-      '<input type="file" id="wtComparePdfs" accept=".pdf" multiple>' +
-      '<button class="btn btn-sm btn-primary" id="wtCompareBtn" onclick="generateWorktimeCompare()">🔄 產生對比報告</button>' +
-      '<span id="wtCompareStatus" style="font-size:13px"></span>' +
-      '</div></div>';
-  }
   document.getElementById('adminBody').innerHTML = html;
   renderWorktimeRecordsAdmin(recs);
 }
