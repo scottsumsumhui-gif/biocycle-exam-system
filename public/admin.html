@@ -2354,6 +2354,16 @@ function renderWorktimeAdmin() {
     <button class="btn btn-sm btn-outline" onclick="exportWorktimeExcel()">&#128229; 匯出 Excel</button>
   </div></div>`;
   html += '<div id="wtAdminBox"></div>';
+  if (hasPerm('worktime_compare')) {
+    html += '<div class="section-card" style="margin-top:18px">' +
+      '<h3 style="margin-top:0">📊 工時對比報告</h3>' +
+      '<p style="color:var(--text-light);font-size:13px;margin:4px 0 10px">上載 Appointment 排單 PDF（可多份，每日一份）。系統會讀取已儲存嘅工時記錄做對比，產生一份 Excel（封面 + 3 個 sheet：同隊下班／排單vs記錄／第一尾單）。</p>' +
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
+      '<input type="file" id="wtComparePdfs" accept=".pdf" multiple>' +
+      '<button class="btn btn-sm btn-primary" id="wtCompareBtn" onclick="generateWorktimeCompare()">🔄 產生對比報告</button>' +
+      '<span id="wtCompareStatus" style="font-size:13px"></span>' +
+      '</div></div>';
+  }
   document.getElementById('adminBody').innerHTML = html;
   renderWorktimeRecordsAdmin(recs);
 }
@@ -2403,6 +2413,39 @@ async function deleteWorktimeAdmin(id) {
     wtAdminCache.records = wtAdminCache.records.filter(r => r.id !== id);
     loadWorktimeRecordsAdmin();
   } catch (e) { alert('刪除失敗'); }
+}
+
+async function generateWorktimeCompare() {
+  const input = document.getElementById('wtComparePdfs');
+  const status = document.getElementById('wtCompareStatus');
+  const btn = document.getElementById('wtCompareBtn');
+  if (!input || !input.files || input.files.length === 0) { alert('請先揀至少一份 Appointment PDF'); return; }
+  btn.disabled = true; status.textContent = '處理中...'; status.style.color = '';
+  try {
+    const fd = new FormData();
+    for (const f of input.files) fd.append('pdfs', f, f.name);
+    const res = await fetch(API + '/api/admin/worktime/compare', { method: 'POST', credentials: 'include', body: fd });
+    if (!res.ok) {
+      let msg = '產生失敗 (' + res.status + ')';
+      try { const j = await res.json(); msg = j.error || msg; } catch (e) {}
+      status.textContent = msg; status.style.color = '#c0392b';
+      return;
+    }
+    const blob = await res.blob();
+    const cd = res.headers.get('Content-Disposition') || '';
+    const m = /filename="([^"]+)"/.exec(cd);
+    const fname = m ? m[1] : 'worktime_compare.xlsx';
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fname; document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    status.textContent = '✅ 已產生，下載開始'; status.style.color = '#1e8449';
+  } catch (e) {
+    status.textContent = '錯誤: ' + (e && e.message ? e.message : e); status.style.color = '#c0392b';
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // ===== MEETINGS ADMIN (會議記錄) =====

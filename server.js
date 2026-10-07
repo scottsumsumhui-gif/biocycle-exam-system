@@ -6,6 +6,10 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const XLSX = require('xlsx');
 const ExcelJS = require('exceljs'); // 有樣式支援（框線／粗體／填色），SheetJS 社區版冇
+const multer = require('multer');
+const worktimeCompare = require('./worktime_compare');
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } }); // 上載 Appointment PDF 用，暫存 memory 唔落地（20MB 上限）
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -38,6 +42,7 @@ const ADMIN_PERMISSIONS = {
   leads:             '服務銷售 Technician Leads',
   fleet:             '車隊記錄 Fleet Records',
   worktime:          '工時記錄 Worktime Records',
+  worktime_compare:   '工時對比報告 Worktime Compare',
   feedback:          '意見箱 Feedback Box',
   guaranteed_pay:    '保證薪酬 Guaranteed Pay',
   allowance:         '津貼 Allowance',
@@ -3428,6 +3433,49 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
     res.send(buf);
   } catch (e) {
     res.status(500).json({ success: false, error: '匯出失敗' });
+  }
+});
+
+// 工時對比報告：上載 Appointment PDF（可多份）→ 讀系統 worktime → 產生封面 + 3 sheet 的 xlsx
+// 數據來源：系統已儲存嘅 worktime.json（唔使再上載 worktime xlsx）；只比對同 PDF 日期重疊嗰幾日
+app.post('/api/admin/worktime/compare', authRequired('admin'), requirePermission('worktime_compare'), upload.array('pdfs', 30), async (req, res) => {
+  try {
+    const files = (req.files || []).filter(f => f && f.buffer && /\.pdf$/i.test(f.originalname || ''));
+    if (files.length === 0) return res.status(400).json({ success: false, error: '請上載至少一份 Appointment PDF' });
+
+    const apptDays = [];
+    for (const f of files) {
+      try {
+        const ap = await worktimeCompare.parseAppointmentPdfBuffer(f.buffer, f.originalname || '');
+        if (ap.datekey) apptDays.push(ap);
+      } catch (e) {
+        return res.status(400).json({ success: false, error: 'PDF 解析失敗: ' + (f.originalname || '') + ' — ' + (e && e.message ? e.message : e) });
+      }
+    }
+    if (apptDays.length === 0) return res.status(400).json({ success: false, error: '冇辦法從 PDF 抽取到日期，請檢查檔案' });
+
+    // 讀系統 worktime，只揀同 PDF 日期重疊嗰啲（datekey 匹配），避免撈晒成個歷史
+    const allRecs = await loadJSON(WORKTIME_FILE, []);
+    const apptDateKeys = new Set(apptDays.map(a => a.datekey));
+    const recs = allRecs.filter(r => apptDateKeys.has(worktimeCompare.worktimeDateToKey(r.date)));
+
+    const teamOff = worktimeCompare.analyzeTeamOff(recs);
+    const apptVsWt = worktimeCompare.analyzeApptVsWorktime(recs, apptDays);
+    const firstLast = worktimeCompare.analyzeFirstLast(recs, apptDays);
+
+    const meta = {
+      generatedAt: new Date().toLocaleString('zh-HK'),
+      dateRange: [...apptDateKeys].sort().join(', '),
+      pdfCount: apptDays.length,
+      recordCount: recs.length
+    };
+    const buf = Buffer.from(await worktimeCompare.buildCombinedWorkbook({ teamOff, apptVsWt, firstLast, meta }));
+    const safeDates = [...apptDateKeys].sort().join('_').replace(/\//g, '-');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="worktime_compare_${safeDates}.xlsx"`);
+    res.send(buf);
+  } catch (e) {
+    res.status(500).json({ success: false, error: '對比失敗: ' + (e && e.message ? e.message : e) });
   }
 });
 
