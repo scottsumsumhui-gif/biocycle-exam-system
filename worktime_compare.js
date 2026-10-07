@@ -120,7 +120,20 @@ function parseAppointmentText(text, filename) {
   let m;
   while ((m = cRe.exec(text || '')) !== null) contractSet.add(m[3]);
 
-  return { datekey, blocks, contracts: contractSet };
+  // 單號 → 排單隊伍（邊個 block／邊啲技術員），等「缺記錄」可以直接睇到搵邊隊跟
+  const contractTeams = new Map();
+  for (const b of blocks) {
+    const techStr = (b.techs || []).map(t => `${t.name}(${t.id})`).join('、');
+    for (const s of (b.slots || [])) {
+      if (!s.contract) continue;
+      const prev = contractTeams.get(s.contract);
+      const entry = { blockNo: b.no, techs: techStr, start: s.start, end: s.end };
+      if (!prev) contractTeams.set(s.contract, entry);
+      else if (prev.techs !== techStr) prev.techs += '／' + techStr; // 同一單號多隊（少見）
+    }
+  }
+
+  return { datekey, blocks, contracts: contractSet, contractTeams };
 }
 
 async function parseAppointmentPdfBuffer(buf, filename) {
@@ -224,7 +237,9 @@ function analyzeApptVsWorktime(records, apptDays) {
   const allDates = new Set([...wtByDate.keys(), ...apptDays.map(a => a.datekey)]);
   for (const dk of [...allDates].sort()) {
     const wd = wtByDate.get(dk) || new Map();
-    const ad = (apptDays.find(a => a.datekey === dk) || {}).contracts || new Set();
+    const apDay = apptDays.find(a => a.datekey === dk) || {};
+    const ad = apDay.contracts || new Set();
+    const cTeams = apDay.contractTeams || new Map();
 
     const deliveries = new Set([...wd.keys()].filter(n => wd.get(n).delivery));
     const service = new Set([...wd.keys()].filter(n => !deliveries.has(n)));
@@ -250,12 +265,18 @@ function analyzeApptVsWorktime(records, apptDays) {
     const realMissing = missing.filter(m => !typoAppt.has(m));
     const realExtra = extra.filter(e => !typoWt.has(e));
 
-    for (const mno of realMissing) missingRows.push({ date: dk, no: mno, note: '' });
+    for (const mno of realMissing) {
+      const ct = cTeams.get(mno);
+      missingRows.push({ date: dk, no: mno, team: ct ? ct.techs : '', block: ct ? ct.blockNo : '', note: '' });
+    }
     for (const eno of realExtra) {
       const v = wd.get(eno);
       extraRows.push({ date: dk, no: eno, type: v ? v.type : '', tech: v ? v.tech : '', note: '' });
     }
-    for (const [ap, wp] of typoList) typoRows.push({ date: dk, apptNo: ap, wtNo: wp });
+    for (const [ap, wp] of typoList) {
+      const ct = cTeams.get(ap);
+      typoRows.push({ date: dk, apptNo: ap, wtNo: wp, team: ct ? ct.techs : '' });
+    }
 
     summary.push({
       date: dk, apptN: ad.size, serviceN: service.size, deliveryN: deliveries.size,
@@ -430,10 +451,10 @@ async function buildCombinedWorkbook({ teamOff, apptVsWt, firstLast, meta }) {
     ws2.addRow(headers); styleHeader(ws2, ws2.lastRow.number, headers.length, color);
     for (const r of rows) ws2.addRow(r);
   };
-  addSection('疑似錯字（差一個位）', ['日期', '排單單號', '記錄單號'],
-    apptVsWt.typoRows.map(t => [t.date, t.apptNo, t.wtNo]), 'FFB45309');
-  addSection('缺記錄(排單無做)', ['日期', '單號', '備註'],
-    apptVsWt.missingRows.map(t => [t.date, t.no, t.note]), 'FFC00000');
+  addSection('疑似錯字（差一個位）', ['日期', '排單單號', '記錄單號', '排單技術員'],
+    apptVsWt.typoRows.map(t => [t.date, t.apptNo, t.wtNo, t.team || '']), 'FFB45309');
+  addSection('缺記錄(排單無做)', ['日期', '單號', '排單技術員', '備註'],
+    apptVsWt.missingRows.map(t => [t.date, t.no, t.team || '', t.note]), 'FFC00000');
   addSection('多記錄(無排)', ['日期', '單號', '工作類型', '技術員', '備註'],
     apptVsWt.extraRows.map(t => [t.date, t.no, t.type, t.tech, t.note]), 'FF7030A0');
 
