@@ -229,8 +229,9 @@ function analyzeApptVsWorktime(records, apptDays) {
     const deliveries = new Set([...wd.keys()].filter(n => wd.get(n).delivery));
     const service = new Set([...wd.keys()].filter(n => !deliveries.has(n)));
 
-    const missing = [...ad].filter(n => !service.has(n)); // 排咗單但無記錄
-    const extra = [...service].filter(n => !ad.has(n));    // 記錄咗但無排
+    // 缺記錄：排單有但任何記錄都無（送貨記錄都算做咗，2026-10-07 修：PC送貨喺排單有排、記錄咗之前被誤報缺記錄）
+    const missing = [...ad].filter(n => !wd.has(n));
+    const extra = [...service].filter(n => !ad.has(n));    // 記錄咗但無排（送貨除外，臨時送貨唔算）
 
     // 疑似錯字：missing 同 extra 之間 edit distance = 1
     const typoPairs = new Set();
