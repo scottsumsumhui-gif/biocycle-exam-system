@@ -58,9 +58,20 @@ async function sendMail(opts) {
     return { skipped: true, reason: 'smtp-not-configured' };
   }
 
+  // 寄件人防呆：SendGrid 嘅 SMTP user 係字面 'apikey'，唔係電郵，
+  // 所以 SMTP_FROM 一定要係一個已驗證嘅真實電郵，否則 SendGrid 會 550 拒收。
+  const rawFrom = String(process.env.SMTP_FROM || process.env.SMTP_USER || '').trim();
+  const angle = /<([^>]+)>/.exec(rawFrom); // 支援 "BIOCYCLE 系統 <noreply@biocycle.hk>" 格式
+  const fromAddr = angle ? angle[1].trim() : rawFrom;
+  if (!EMAIL_RE.test(fromAddr)) {
+    console.error('[mailer] SMTP_FROM 唔係有效電郵（現時係 "' + rawFrom + '"）—— SendGrid 用戶名係 "apikey"，'
+      + '必須另外設定 SMTP_FROM 為你喺 SendGrid 驗證過嘅寄件人電郵，否則會被拒收。已略過發送。');
+    return { skipped: true, reason: 'invalid-from' };
+  }
+
   try {
     const info = await getTransporter().sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      from: rawFrom,
       to: toList.join(', '),
       subject: o.subject || '(無主題)',
       html: o.html || undefined,
