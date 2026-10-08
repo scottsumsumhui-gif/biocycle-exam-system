@@ -1432,6 +1432,15 @@ async function checkMailStatus() {
     h += `<tr><td>渠網佣金收件人</td><td>${nm(d.commissionRecipients)}</td></tr>`;
     h += `<tr><td>服務銷售收件人</td><td>${nm(d.leadsRecipients)}</td></tr>`;
     h += '</tbody></table>';
+    if (d.lastAttempt) {
+      const la = d.lastAttempt, rr = la.result || {};
+      const good = rr.success ? 'var(--success)' : 'var(--danger)';
+      let txt;
+      if (rr.success) txt = '<span style="color:var(--success)">成功發出</span>';
+      else if (rr.skipped) txt = '<span style="color:var(--danger)">略過：' + (rr.reason || '') + '</span>';
+      else txt = '<span style="color:var(--danger)">失敗：' + (rr.error || '未知') + '</span>';
+      h += `<p style="font-size:13px;margin:10px 0 0"><b>最近一次寄信嘗試</b>（${la.at}｜${la.kind}${la.to && la.to.length ? '｜' + la.to.join(', ') : ''}）：${txt}</p>`;
+    }
     if (!d.configured) h += '<p style="color:var(--danger);font-size:13px;margin:8px 0 0">SMTP 未設定 → 全部通知會靜默略過。請喺 Railway Variables 填 SMTP_HOST/PORT/USER/PASS/FROM 並 Deploy。</p>';
     else if (!d.fromValid) h += '<p style="color:var(--danger);font-size:13px;margin:8px 0 0">SMTP_FROM 唔係有效電郵 → SendGrid 會拒收。請填已驗證嘅寄件人電郵。</p>';
     box.innerHTML = h;
@@ -1447,15 +1456,16 @@ async function sendTestMail() {
       method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include', body: JSON.stringify({})
     });
     const d = await res.json();
+    let msg, color = 'var(--danger)';
     if (d.skipped) {
-      alert('冇發出（略過）：' + (d.reason || '') + '\n\nsmtp-not-configured = Railway 未填 SMTP 變數\nno-recipient = 你未設定電郵\ninvalid-from = SMTP_FROM 唔係有效電郵');
+      msg = '冇發出（略過）：<b>' + (d.reason || '') + '</b><br><span style="font-size:12px">smtp-not-configured = Railway 未填寄信變數；no-recipient = 你未設定電郵；invalid-from = SMTP_FROM 唔係有效電郵</span>';
     } else if (d.success) {
-      alert('已發送到 ' + d.to + '\n請去收件箱睇下（睇埋垃圾箱）。');
+      msg = '已發送到 <b>' + d.to + '</b><br>請去收件箱睇下（睇埋垃圾箱）。'; color = 'var(--success)';
     } else {
-      alert('發送失敗：' + (d.error || '未知錯誤'));
+      msg = '發送失敗：<b>' + (d.error || '未知錯誤') + '</b>';
     }
-    if (box) checkMailStatus();
-  } catch (e) { alert('發送失敗'); }
+    if (box) box.innerHTML = `<p style="font-size:13px;color:${color};margin:0 0 8px">${msg}</p>` + box.innerHTML;
+  } catch (e) { if (box) box.innerHTML = '<span style="color:var(--danger);font-size:13px">發送失敗</span>'; }
 }
 
 function showChangeAdminPw(id, username) {

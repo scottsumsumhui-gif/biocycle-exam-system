@@ -8,7 +8,13 @@ const XLSX = require('xlsx');
 const ExcelJS = require('exceljs'); // 有樣式支援（框線／粗體／填色），SheetJS 社區版冇
 const multer = require('multer');
 const worktimeCompare = require('./worktime_compare');
-const mailer = require('./mailer'); // SMTP 通知（未設定 env 會靜默略過）
+const mailer = require('./mailer'); // SMTP / SendGrid API 通知（未設定 env 會靜默略過）
+
+// 最近一次寄信嘗試（診斷用，放 memory 唔落地；重部署會清空）
+let _lastMailAttempt = null;
+function recordMailAttempt(kind, to, result) {
+  _lastMailAttempt = { kind, to, at: nowStr(), result: result || null };
+}
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } }); // 上載 Appointment PDF 用，暫存 memory 唔落地（20MB 上限）
 
@@ -1177,7 +1183,8 @@ app.get('/api/admin/mail/status', authRequired('admin'), requirePermission('admi
       fromValid: /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(fromAddr),
       configured: mailer.isConfigured(),
       commissionRecipients: pick('commission'),
-      leadsRecipients: pick('leads')
+      leadsRecipients: pick('leads'),
+      lastAttempt: _lastMailAttempt
     });
   } catch (e) {
     res.status(500).json({ success: false, error: '讀取失敗' });
@@ -1199,9 +1206,10 @@ app.post('/api/admin/mail/test', authRequired('admin'), async (req, res) => {
       subject: '【BIOCYCLE 系統】測試電郵',
       html: '<div style="font-family:Arial,sans-serif;font-size:14px">' +
         '<h2 style="color:#1a5490;margin:0 0 10px">BIOCYCLE 系統測試電郵</h2>' +
-        '<p>呢封係測試電郵。收到即代表 SMTP 設定正確，佣金提交通知會正常運作。</p>' +
+        '<p>呢封係測試電郵。收到即代表寄信設定正確，佣金提交通知會正常運作。</p>' +
         '<p style="color:#999;font-size:12px">此電郵由 BIOCYCLE 系統自動發出，請勿直接回覆。</p></div>'
     });
+    recordMailAttempt('測試電郵', target, result);
     res.json(Object.assign({ success: true, to: target }, result));
   } catch (e) {
     res.status(500).json({ success: false, error: '發送失敗' });
@@ -2044,7 +2052,10 @@ async function notifyLeadSubmitted(record) {
       .filter(a => effectivePermissions(a).includes('leads'))
       .map(a => String(a.email || '').trim())
       .filter(e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e));
-    if (recipients.length === 0) return { skipped: true, reason: 'no-recipient' };
+    if (recipients.length === 0) {
+      recordMailAttempt('服務銷售提交通知', [], { skipped: true, reason: 'no-recipient' });
+      return { skipped: true, reason: 'no-recipient' };
+    }
 
     const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const memberRows = (record.members || []).map(m =>
@@ -2085,11 +2096,13 @@ async function notifyLeadSubmitted(record) {
         <p style="margin:18px 0 0;font-size:12px;color:#999">此電郵由 BIOCYCLE 系統自動發出，請勿直接回覆。</p>
       </div>`;
 
-    return await mailer.sendMail({
+    const r = await mailer.sendMail({
       to: recipients,
       subject: `【服務銷售佣金】${record.created_by_emp_name || '技術員'} 提交 #${record.id}（${record.record_date}）`,
       html
     });
+    recordMailAttempt('服務銷售提交通知', recipients, r);
+    return r;
   } catch (e) {
     console.error('[tech-leads] 通知準備失敗：' + (e && e.message ? e.message : e));
     return { success: false, error: e && e.message ? e.message : String(e) };
@@ -4575,7 +4588,10 @@ async function notifyCommissionSubmitted(record) {
       .filter(a => effectivePermissions(a).includes('commission'))
       .map(a => String(a.email || '').trim())
       .filter(e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e));
-    if (recipients.length === 0) return { skipped: true, reason: 'no-recipient' };
+    if (recipients.length === 0) {
+      recordMailAttempt('佣金提交通知', [], { skipped: true, reason: 'no-recipient' });
+      return { skipped: true, reason: 'no-recipient' };
+    }
 
     const memberRows = (record.members || []).map(m =>
       `<tr><td style="padding:4px 10px">${m.emp_name || ''}</td>` +
@@ -4613,11 +4629,13 @@ async function notifyCommissionSubmitted(record) {
         <p style="margin:18px 0 0;font-size:12px;color:#999">此電郵由 BIOCYCLE 系統自動發出，請勿直接回覆。</p>
       </div>`;
 
-    return await mailer.sendMail({
+    const r = await mailer.sendMail({
       to: recipients,
       subject: `【佣金申請】${record.created_by_emp_name || '技術員'} 提交 #${record.id}（${record.record_date}）`,
       html
     });
+    recordMailAttempt('佣金提交通知', recipients, r);
+    return r;
   } catch (e) {
     console.error('[commission] 通知準備失敗：' + (e && e.message ? e.message : e));
     return { success: false, error: e && e.message ? e.message : String(e) };
