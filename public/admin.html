@@ -1257,7 +1257,7 @@ async function loadAdmins() {
   html += `<button class="btn btn-sm btn-primary" onclick="showAddAdmin()">+ 新增管理員</button>`;
   html += `</div>`;
   html += `<p style="color:var(--text-light); font-size:13px; margin-bottom:12px">超級管理員自動有全部權限；其他管理員可由超級管理員逐個啟用/關閉下方權限。</p>`;
-  html += `<p style="color:var(--text-light); font-size:13px; margin-bottom:12px">💡 設定電郵後，技術員提交佣金申請時會自動發通知畀有「渠網銷售佣金」權限嘅管理員。</p>`;
+  html += `<p style="color:var(--text-light); font-size:13px; margin-bottom:12px">💡 設定電郵後，技術員提交佣金申請時會自動發通知畀有「渠網銷售佣金」權限嘅管理員；提交服務銷售記錄時會發通知畀有「服務銷售」權限嘅管理員。</p>`;
   html += `<table class="data-table"><thead><tr><th>用戶名</th><th>顯示名</th><th>類型</th><th>電郵（通知用）</th><th>權限</th><th>創建時間</th><th>操作</th></tr></thead><tbody>`;
   for (const a of data.admins) {
     const canManage = adminData && adminData.isSuper;

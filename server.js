@@ -1981,6 +1981,66 @@ function isValidLeadService(s) {
 }
 
 // Employee: create a tech-lead record (sales referral by technician)
+// 服務銷售佣金提交後通知有「服務銷售」權限嘅管理員（非同步；SMTP 未設定或失敗都唔影響提交）
+async function notifyLeadSubmitted(record) {
+  try {
+    const admins = await loadJSON('admins.json', []);
+    const recipients = admins
+      .filter(a => effectivePermissions(a).includes('leads'))
+      .map(a => String(a.email || '').trim())
+      .filter(e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e));
+    if (recipients.length === 0) return { skipped: true, reason: 'no-recipient' };
+
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const memberRows = (record.members || []).map(m =>
+      `<tr><td style="padding:4px 10px">${esc(m.emp_name || '')}</td></tr>`
+    ).join('');
+    const svcRows = (record.services || []).map(s =>
+      `<tr><td style="padding:4px 10px">${esc(s)}</td></tr>`
+    ).join('');
+
+    const html = `
+      <div style="font-family:-apple-system,'Segoe UI',Arial,sans-serif;max-width:560px">
+        <h2 style="margin:0 0 12px;color:#1a5490">BIOCYCLE 服務銷售佣金申請通知</h2>
+        <p style="margin:0 0 14px;color:#333">
+          <b>${esc(record.created_by_emp_name || '(未知)')}</b> 提交咗一筆服務銷售佣金申請，請到後台跟進。
+        </p>
+        <table style="border-collapse:collapse;margin-bottom:14px;font-size:14px">
+          <tr><td style="padding:4px 10px;color:#666">單號</td><td style="padding:4px 10px"><b>#${record.id}</b></td></tr>
+          <tr><td style="padding:4px 10px;color:#666">日期</td><td style="padding:4px 10px">${esc(record.record_date)}</td></tr>
+          <tr><td style="padding:4px 10px;color:#666">客戶編號</td><td style="padding:4px 10px">${record.customer_code ? '#' + esc(record.customer_code) : '—'}</td></tr>
+          <tr><td style="padding:4px 10px;color:#666">客戶姓名</td><td style="padding:4px 10px">${esc(record.customer_name)}</td></tr>
+          <tr><td style="padding:4px 10px;color:#666">客戶電話</td><td style="padding:4px 10px">${esc(record.customer_phone)}</td></tr>
+          <tr><td style="padding:4px 10px;color:#666">地址</td><td style="padding:4px 10px">${esc(record.customer_address)}</td></tr>
+          <tr><td style="padding:4px 10px;color:#666">提交時間</td><td style="padding:4px 10px">${esc(record.created_at || '')}</td></tr>
+        </table>
+        <table style="border-collapse:collapse;font-size:14px;border:1px solid #e0e0e0;margin-bottom:14px">
+          <thead><tr style="background:#f5f7fa">
+            <th style="padding:6px 10px;text-align:left">服務項目</th>
+          </tr></thead>
+          <tbody>${svcRows}</tbody>
+        </table>
+        <table style="border-collapse:collapse;font-size:14px;border:1px solid #e0e0e0">
+          <thead><tr style="background:#f5f7fa">
+            <th style="padding:6px 10px;text-align:left">隊員</th>
+          </tr></thead>
+          <tbody>${memberRows}</tbody>
+        </table>
+        ${record.notes ? `<p style="margin:14px 0 0;font-size:14px;color:#333"><b>備註：</b>${esc(record.notes)}</p>` : ''}
+        <p style="margin:18px 0 0;font-size:12px;color:#999">此電郵由 BIOCYCLE 系統自動發出，請勿直接回覆。</p>
+      </div>`;
+
+    return await mailer.sendMail({
+      to: recipients,
+      subject: `【服務銷售佣金】${record.created_by_emp_name || '技術員'} 提交 #${record.id}（${record.record_date}）`,
+      html
+    });
+  } catch (e) {
+    console.error('[tech-leads] 通知準備失敗：' + (e && e.message ? e.message : e));
+    return { success: false, error: e && e.message ? e.message : String(e) };
+  }
+}
+
 app.post('/api/tech-leads/records', authRequired('employee'), async (req, res) => {
   try {
     const { record_date, customer_name, customer_phone, customer_address, services, notes, members, customer_code } = req.body || {};
@@ -2026,6 +2086,8 @@ app.post('/api/tech-leads/records', authRequired('employee'), async (req, res) =
     };
     records.push(record);
     await saveJSON(LEAD_FILE, records);
+    // 通知有「服務銷售」權限嘅管理員（非同步，失敗只 log，唔會影響提交結果）
+    notifyLeadSubmitted(record).catch(e => console.error('[tech-leads] 通知失敗：', e && e.message ? e.message : e));
     res.json({ success: true, record });
   } catch (e) {
     res.status(500).json({ success: false, error: '記錄失敗' });
