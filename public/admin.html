@@ -1424,7 +1424,9 @@ async function checkMailStatus() {
     const ok = v => v ? '<span style="color:var(--success);font-weight:600">✔</span>' : '<span style="color:var(--danger);font-weight:600">✘</span>';
     const nm = r => r.length ? r.map(x => `${x.username}${x.email ? ' (' + x.email + ')' : ' <span style="color:var(--danger)">未填電郵</span>'}`).join('、') : '<span style="color:var(--danger)">冇人</span>';
     let h = '<table class="data-table" style="font-size:13px"><tbody>';
+    h += `<tr><td>寄信方式</td><td>${d.sendgridApi ? '<span style="color:var(--success);font-weight:600">SendGrid Web API (HTTPS)</span>' : 'SMTP'}</td></tr>`;
     h += `<tr><td>nodemailer 已安裝</td><td>${ok(d.nodemailer)}</td></tr>`;
+    h += `<tr><td>SENDGRID_API_KEY</td><td>${d.sendgridApi ? ok(true) : '<span style="color:var(--text-tertiary)">未設（用緊 SMTP）</span>'}</td></tr>`;
     h += `<tr><td>SMTP 已設定</td><td>${ok(d.configured)} ${d.host ? '(' + d.host + ':' + d.port + ', user=' + d.user + ', pass=' + (d.passSet ? '已設' : '未設') + ')' : ''}</td></tr>`;
     h += `<tr><td>寄件人 SMTP_FROM</td><td>${ok(d.fromValid)} ${d.from || '<span style="color:var(--danger)">未設定</span>'}</td></tr>`;
     h += `<tr><td>渠網佣金收件人</td><td>${nm(d.commissionRecipients)}</td></tr>`;

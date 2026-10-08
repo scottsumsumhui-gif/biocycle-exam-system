@@ -1168,6 +1168,7 @@ app.get('/api/admin/mail/status', authRequired('admin'), requirePermission('admi
     res.json({
       success: true,
       nodemailer: hasNodemailer,
+      sendgridApi: !!process.env.SENDGRID_API_KEY,
       host: process.env.SMTP_HOST || '',
       port: process.env.SMTP_PORT || '',
       user: process.env.SMTP_USER || '',
