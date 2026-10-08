@@ -1153,6 +1153,60 @@ app.put('/api/admin/admins/:id/email', authRequired('admin'), async (req, res) =
   }
 });
 
+// Admin: 電郵通知診斷（查 SMTP 設定、寄件人、收件人名單）— 超管或 admin_mgmt
+app.get('/api/admin/mail/status', authRequired('admin'), requirePermission('admin_mgmt'), async (req, res) => {
+  try {
+    let hasNodemailer = false;
+    try { require('nodemailer'); hasNodemailer = true; } catch (e) { hasNodemailer = false; }
+    const rawFrom = String(process.env.SMTP_FROM || process.env.SMTP_USER || '').trim();
+    const angle = /<([^>]+)>/.exec(rawFrom);
+    const fromAddr = angle ? angle[1].trim() : rawFrom;
+    const admins = await loadJSON('admins.json', []);
+    const pick = key => admins
+      .filter(a => effectivePermissions(a).includes(key))
+      .map(a => ({ username: a.username, name: a.display_name || '', email: String(a.email || '').trim() }));
+    res.json({
+      success: true,
+      nodemailer: hasNodemailer,
+      host: process.env.SMTP_HOST || '',
+      port: process.env.SMTP_PORT || '',
+      user: process.env.SMTP_USER || '',
+      passSet: !!process.env.SMTP_PASS,
+      from: rawFrom,
+      fromValid: /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(fromAddr),
+      configured: mailer.isConfigured(),
+      commissionRecipients: pick('commission'),
+      leadsRecipients: pick('leads')
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '讀取失敗' });
+  }
+});
+
+// Admin: 發送測試電郵（寄去自己嘅電郵，用嚟確認 SMTP 設定啱唔啱）
+app.post('/api/admin/mail/test', authRequired('admin'), async (req, res) => {
+  try {
+    const admins = await loadJSON('admins.json', []);
+    const me = admins.find(a => a.id === req.session.user_id);
+    if (!me) return res.status(401).json({ success: false, error: 'Session invalid' });
+    const target = String((req.body && req.body.to) || '').trim() || String(me.email || '').trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(target)) {
+      return res.json({ success: false, error: '你未設定電郵，請先喺管理員頁填電郵' });
+    }
+    const result = await mailer.sendMail({
+      to: [target],
+      subject: '【BIOCYCLE 系統】測試電郵',
+      html: '<div style="font-family:Arial,sans-serif;font-size:14px">' +
+        '<h2 style="color:#1a5490;margin:0 0 10px">BIOCYCLE 系統測試電郵</h2>' +
+        '<p>呢封係測試電郵。收到即代表 SMTP 設定正確，佣金提交通知會正常運作。</p>' +
+        '<p style="color:#999;font-size:12px">此電郵由 BIOCYCLE 系統自動發出，請勿直接回覆。</p></div>'
+    });
+    res.json(Object.assign({ success: true, to: target }, result));
+  } catch (e) {
+    res.status(500).json({ success: false, error: '發送失敗' });
+  }
+});
+
 app.get('/api/admin/exam-config', authRequired('admin'), requirePermission('exam_config'), async (req, res) => {
   const configs = await loadJSON('exam_config.json', []);
   const topics = await loadJSON('topics.json', []);
