@@ -8,6 +8,7 @@ const XLSX = require('xlsx');
 const ExcelJS = require('exceljs'); // 有樣式支援（框線／粗體／填色），SheetJS 社區版冇
 const multer = require('multer');
 const worktimeCompare = require('./worktime_compare');
+const mailer = require('./mailer'); // SMTP 通知（未設定 env 會靜默略過）
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } }); // 上載 Appointment PDF 用，暫存 memory 唔落地（20MB 上限）
 
@@ -424,6 +425,7 @@ app.post('/api/auth/admin-login', async (req, res) => {
       username: admin.username,
       displayName: admin.display_name,
       isSuper: admin.is_super,
+      email: admin.email || '',
       permissions: effectivePermissions(admin)
     }
   });
@@ -1043,6 +1045,7 @@ app.get('/api/admin/admins', authRequired('admin'), requirePermission('admin_mgm
   const list = admins.map(a => ({
     id: a.id, username: a.username, display_name: a.display_name,
     is_super: a.is_super, created_at: a.created_at,
+    email: a.email || '',
     permissions: effectivePermissions(a)
   }));
   res.json({ success: true, admins: list, allPermissions: ADMIN_PERMISSIONS });
@@ -1118,6 +1121,33 @@ app.put('/api/admin/admins/:id/password', authRequired('admin'), async (req, res
     admins[idx].password_hash = bcrypt.hashSync(newPassword, 10);
     await saveJSON('admins.json', admins);
     res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '修改失敗' });
+  }
+});
+
+// Admin: 設定管理員電郵（佣金提交等通知用）。自己可以改自己；改其他人要有 admin_mgmt 或係超管。
+app.put('/api/admin/admins/:id/email', authRequired('admin'), async (req, res) => {
+  try {
+    const aid = parseInt(req.params.id);
+    const email = String((req.body && req.body.email) || '').trim();
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.json({ success: false, error: '電郵格式唔正確' });
+    }
+    const admins = await loadJSON('admins.json', []);
+    const me = admins.find(a => a.id === req.session.user_id);
+    if (!me) return res.status(401).json({ success: false, error: 'Session invalid' });
+    if (aid !== req.session.user_id) {
+      if (!me.is_super) {
+        const perms = Array.isArray(me.permissions) ? me.permissions : [];
+        if (!perms.includes('admin_mgmt')) return res.json({ success: false, error: '權限不足: 管理員權限' });
+      }
+    }
+    const idx = admins.findIndex(a => a.id === aid);
+    if (idx < 0) return res.json({ success: false, error: '管理員不存在' });
+    admins[idx].email = email;
+    await saveJSON('admins.json', admins);
+    res.json({ success: true, email });
   } catch (e) {
     res.status(500).json({ success: false, error: '修改失敗' });
   }
@@ -4420,6 +4450,63 @@ function computeCommission(members) {
 }
 
 // Employee: create a team sales record
+// 佣金提交後通知有「佣金」權限嘅管理員（非同步；SMTP 未設定或失敗都唔影響提交）
+async function notifyCommissionSubmitted(record) {
+  try {
+    const admins = await loadJSON('admins.json', []);
+    const recipients = admins
+      .filter(a => effectivePermissions(a).includes('commission'))
+      .map(a => String(a.email || '').trim())
+      .filter(e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e));
+    if (recipients.length === 0) return { skipped: true, reason: 'no-recipient' };
+
+    const memberRows = (record.members || []).map(m =>
+      `<tr><td style="padding:4px 10px">${m.emp_name || ''}</td>` +
+      `<td style="padding:4px 10px;text-align:right">${m.sales}</td>` +
+      `<td style="padding:4px 10px;text-align:right">${m.installs}</td>` +
+      `<td style="padding:4px 10px;text-align:right">$${m.subtotal}</td></tr>`
+    ).join('');
+
+    const html = `
+      <div style="font-family:-apple-system,'Segoe UI',Arial,sans-serif;max-width:560px">
+        <h2 style="margin:0 0 12px;color:#1a5490">BIOCYCLE 佣金申請通知</h2>
+        <p style="margin:0 0 14px;color:#333">
+          <b>${record.created_by_emp_name || '(未知)'}</b> 提交咗一筆佣金申請，請到後台批核。
+        </p>
+        <table style="border-collapse:collapse;margin-bottom:14px;font-size:14px">
+          <tr><td style="padding:4px 10px;color:#666">單號</td><td style="padding:4px 10px"><b>#${record.id}</b></td></tr>
+          <tr><td style="padding:4px 10px;color:#666">日期</td><td style="padding:4px 10px">${record.record_date}</td></tr>
+          <tr><td style="padding:4px 10px;color:#666">客戶編號</td><td style="padding:4px 10px">${record.customer_code ? '#' + record.customer_code : '—'}</td></tr>
+          <tr><td style="padding:4px 10px;color:#666">提交時間</td><td style="padding:4px 10px">${record.created_at || ''}</td></tr>
+        </table>
+        <table style="border-collapse:collapse;font-size:14px;border:1px solid #e0e0e0">
+          <thead><tr style="background:#f5f7fa">
+            <th style="padding:6px 10px;text-align:left">隊員</th>
+            <th style="padding:6px 10px;text-align:right">銷售</th>
+            <th style="padding:6px 10px;text-align:right">安裝</th>
+            <th style="padding:6px 10px;text-align:right">小計</th>
+          </tr></thead>
+          <tbody>${memberRows}</tbody>
+        </table>
+        <table style="border-collapse:collapse;margin-top:14px;font-size:14px">
+          <tr><td style="padding:4px 10px;color:#666">總金額</td><td style="padding:4px 10px">$${record.total_amount}</td></tr>
+          <tr><td style="padding:4px 10px;color:#666">佣金 (${Math.round((record.commission_pct || 0) * 100)}%)</td><td style="padding:4px 10px"><b>$${record.total_commission}</b></td></tr>
+          <tr><td style="padding:4px 10px;color:#666">每人</td><td style="padding:4px 10px"><b style="color:#c0392b">$${record.per_person_commission}</b></td></tr>
+        </table>
+        <p style="margin:18px 0 0;font-size:12px;color:#999">此電郵由 BIOCYCLE 系統自動發出，請勿直接回覆。</p>
+      </div>`;
+
+    return await mailer.sendMail({
+      to: recipients,
+      subject: `【佣金申請】${record.created_by_emp_name || '技術員'} 提交 #${record.id}（${record.record_date}）`,
+      html
+    });
+  } catch (e) {
+    console.error('[commission] 通知準備失敗：' + (e && e.message ? e.message : e));
+    return { success: false, error: e && e.message ? e.message : String(e) };
+  }
+}
+
 app.post('/api/commission/records', authRequired('employee'), async (req, res) => {
   try {
     const { record_date, customer_code, members } = req.body || {};
@@ -4458,6 +4545,8 @@ app.post('/api/commission/records', authRequired('employee'), async (req, res) =
     };
     records.push(record);
     await saveJSON(COMM_FILE, records);
+    // 通知有佣金權限嘅管理員（非同步，失敗只 log，唔會影響提交結果）
+    notifyCommissionSubmitted(record).catch(e => console.error('[commission] 通知失敗：', e && e.message ? e.message : e));
     res.json({ success: true, record });
   } catch (e) {
     res.status(500).json({ success: false, error: '記錄失敗' });

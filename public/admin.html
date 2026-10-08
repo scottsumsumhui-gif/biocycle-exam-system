@@ -1257,7 +1257,8 @@ async function loadAdmins() {
   html += `<button class="btn btn-sm btn-primary" onclick="showAddAdmin()">+ 新增管理員</button>`;
   html += `</div>`;
   html += `<p style="color:var(--text-light); font-size:13px; margin-bottom:12px">超級管理員自動有全部權限；其他管理員可由超級管理員逐個啟用/關閉下方權限。</p>`;
-  html += `<table class="data-table"><thead><tr><th>用戶名</th><th>顯示名</th><th>類型</th><th>權限</th><th>創建時間</th><th>操作</th></tr></thead><tbody>`;
+  html += `<p style="color:var(--text-light); font-size:13px; margin-bottom:12px">💡 設定電郵後，技術員提交佣金申請時會自動發通知畀有「渠網銷售佣金」權限嘅管理員。</p>`;
+  html += `<table class="data-table"><thead><tr><th>用戶名</th><th>顯示名</th><th>類型</th><th>電郵（通知用）</th><th>權限</th><th>創建時間</th><th>操作</th></tr></thead><tbody>`;
   for (const a of data.admins) {
     const canManage = adminData && adminData.isSuper;
     let permChips = '';
@@ -1275,9 +1276,18 @@ async function loadAdmins() {
       ops += `<button class="btn btn-xs btn-outline" onclick="showChangeAdminPw(${a.id},'${a.username.replace(/'/g, "\\'")}')">修改密碼</button>`;
       if (!a.is_super) ops += ` <button class="btn btn-xs btn-danger" onclick="deleteAdmin(${a.id},'${a.username.replace(/'/g, "\\'")}')">刪除</button>`;
     } else {
-      ops = '-';
+      ops = '';
     }
-    html += `<tr><td>${a.username}</td><td>${a.display_name}</td><td>${a.is_super?'超級管理員':'管理員'}</td><td>${permChips}</td><td>${a.created_at}</td>`;
+    // 電郵：超管可以改任何人；每位管理員都可以改自己嗰個
+    const isSelf = adminData && adminData.id === a.id;
+    if (canManage || isSelf) {
+      ops += (ops ? ' ' : '') + `<button class="btn btn-xs btn-outline" onclick="adminEditEmail(${a.id},'${a.username.replace(/'/g, "\\'")}','${String(a.email || '').replace(/'/g, "\\'")}')">✉ 電郵</button>`;
+    }
+    if (!ops) ops = '-';
+    const emailCell = a.email
+      ? `<span style="font-size:13px">${a.email}</span>`
+      : '<span style="color:var(--text-light);font-size:12px">未設定</span>';
+    html += `<tr><td>${a.username}</td><td>${a.display_name}</td><td>${a.is_super?'超級管理員':'管理員'}</td><td>${emailCell}</td><td>${permChips}</td><td>${a.created_at}</td>`;
     html += `<td>${ops}</td></tr>`;
   }
   html += `</tbody></table></div>`;
@@ -1370,6 +1380,29 @@ async function deleteAdmin(id, username) {
   if (!confirm(`確定刪除管理員 ${username}?`)) return;
   await fetch(API + `/api/admin/admins/${id}`, {method:'DELETE', credentials:'include'});
   loadAdmins();
+}
+
+// 設定管理員電郵（佣金提交通知用）。超管可改任何人；每位管理員可改自己。
+async function adminEditEmail(id, username, current) {
+  const isSelf = adminData && adminData.id === id;
+  if (!isSelf && !(adminData && (adminData.isSuper || (adminData.permissions || []).includes('admin_mgmt')))) {
+    alert('權限不足'); return;
+  }
+  const val = prompt(`設定 ${username} 嘅通知電郵（留空即取消通知）`, current || '');
+  if (val === null) return; // 取消
+  const email = String(val).trim();
+  if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert('電郵格式唔正確'); return; }
+  try {
+    const res = await fetch(API + `/api/admin/admins/${id}/email`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'}, credentials: 'include',
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (!data.success) { alert(data.error || '設定失敗'); return; }
+    if (isSelf && adminData) adminData.email = email;
+    alert(email ? '已設定：' + email : '已清除電郵（唔會再收到通知）');
+    loadAdmins();
+  } catch (e) { alert('設定失敗'); }
 }
 
 function showChangeAdminPw(id, username) {
