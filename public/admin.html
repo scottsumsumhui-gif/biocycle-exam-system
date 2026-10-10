@@ -69,6 +69,8 @@
 
 <script>
 const API = '';
+// 所有可用嘅員工/考試組別（A–K）。新增組別喺呢度加就得，UI 會自動同步。
+const ALL_GROUPS = ['A','B','C','D','E','F','G','H','I','J','K'];
 let adminData = null;
 const levelNames = {
   e: '見習技術員',
@@ -1081,7 +1083,7 @@ async function showAddEmployee() {
         <div class="form-group"><label>員工編號</label><input id="newEmpNum" placeholder="EMP001"></div>
         <div class="form-group"><label>姓名</label><input id="newEmpName" placeholder="陳大明"></div>
         <div class="form-group"><label>職級</label><select id="newEmpLevel">${levelOptionsHtml('junior')}</select></div>
-        <div class="form-group"><label>組別</label><select id="newEmpGroup"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option></select></div>
+        <div class="form-group"><label>組別</label><select id="newEmpGroup">${ALL_GROUPS.map(g=>`<option value="${g}">${g}</option>`).join('')}</select></div>
         <div class="form-group"><label>初始密碼</label><input id="newEmpPw" value="0000"></div>
       </div>
       <button class="btn btn-primary" onclick="addEmployee()">確認新增</button>
@@ -1123,7 +1125,7 @@ async function editEmployee(id) {
         <div class="form-group"><label>員工編號</label><input id="editEmpNum" value="${emp.emp_number}"></div>
         <div class="form-group"><label>姓名</label><input id="editEmpName" value="${emp.name}"></div>
         <div class="form-group"><label>職級</label><select id="editEmpLevel">${levelOptionsHtml(emp.level)}</select></div>
-        <div class="form-group"><label>組別</label><select id="editEmpGroup"><option value="A" ${emp.group_name==='A'?'selected':''}>A</option><option value="B" ${emp.group_name==='B'?'selected':''}>B</option><option value="C" ${emp.group_name==='C'?'selected':''}>C</option><option value="D" ${emp.group_name==='D'?'selected':''}>D</option><option value="E" ${emp.group_name==='E'?'selected':''}>E</option><option value="F" ${emp.group_name==='F'?'selected':''}>F</option><option value="" ${!emp.group_name?'selected':''}>未分配</option></select></div>
+        <div class="form-group"><label>組別</label><select id="editEmpGroup">${ALL_GROUPS.map(g=>`<option value="${g}" ${emp.group_name===g?'selected':''}>${g}</option>`).join('')}<option value="" ${!emp.group_name?'selected':''}>未分配</option></select></div>
         <div class="form-group"><label>新密碼(留空不改)</label><input id="editEmpPw" placeholder="留空不改密碼"></div>
       </div>
       <button class="btn btn-primary" onclick="saveEmployee(${id})">保存</button>
@@ -1650,7 +1652,7 @@ function showAddConfig() {
       <div class="form-group"><label>結束日期(YYYY-MM-DD HH:MM)</label><input id="cfgEnd" value="${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-28 18:00"></div>
       <div class="form-group" style="grid-column:1/-1"><label>考試組別 (不勾選=所有組別)</label>
         <div style="display:flex; gap:12px; flex-wrap:wrap; padding:4px 0">
-          ${['A','B','C','D','E','F'].map(g=>`<label style="display:flex; align-items:center; gap:4px; cursor:pointer"><input type="checkbox" class="cfgGroup" value="${g}"> <span>${g}</span></label>`).join('')}
+          ${ALL_GROUPS.map(g=>`<label style="display:flex; align-items:center; gap:4px; cursor:pointer"><input type="checkbox" class="cfgGroup" value="${g}"> <span>${g}</span></label>`).join('')}
         </div>
       </div>
     </div>
@@ -1700,7 +1702,7 @@ async function editConfig(id) {
       <div class="form-group"><label>結束日期</label><input id="editCfgEnd" value="${config.end_date}"></div>
       <div class="form-group" style="grid-column:1/-1"><label>考試組別 (不勾選=所有組別)</label>
         <div style="display:flex; gap:12px; flex-wrap:wrap; padding:4px 0">
-          ${['A','B','C','D','E','F'].map(g=>`<label style="display:flex; align-items:center; gap:4px; cursor:pointer"><input type="checkbox" class="editCfgGroup" value="${g}" ${currentGroups.includes(g)?'checked':''}> <span>${g}</span></label>`).join('')}
+          ${ALL_GROUPS.map(g=>`<label style="display:flex; align-items:center; gap:4px; cursor:pointer"><input type="checkbox" class="editCfgGroup" value="${g}" ${currentGroups.includes(g)?'checked':''}> <span>${g}</span></label>`).join('')}
         </div>
       </div>
     </div>
