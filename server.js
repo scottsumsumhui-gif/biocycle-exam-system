@@ -385,6 +385,7 @@ app.post('/api/auth/employee-login', async (req, res) => {
   const employees = await loadJSON('employees.json', []);
   const emp = employees.find(e => e.emp_number === empNumber);
   if (!emp) return res.json({ success: false, error: '員工編號不存在' });
+  if (emp.active === 0) return res.json({ success: false, error: '帳號已停用，請聯絡管理員' });
   if (!bcrypt.compareSync(password, emp.password_hash))
     return res.json({ success: false, error: '密碼不正確' });
 
@@ -998,6 +999,7 @@ app.post('/api/admin/employees', authRequired('admin'), requirePermission('emplo
     password_hash: bcrypt.hashSync(password || '0000', 10),
     level: finalLevel,
     group_name: group || null,
+    active: 1, // 1=啟用(預設) / 0=停用(soft delete，保留記錄)
     created_at: nowStr()
   });
   await saveJSON('employees.json', employees);
@@ -1024,6 +1026,22 @@ app.put('/api/admin/employees/:id', authRequired('admin'), requirePermission('em
 
   await saveJSON('employees.json', employees);
   res.json({ success: true });
+});
+
+// Soft delete / re-activate an employee. Keeps the record (so worktime & other
+// history that reference employee_id stay resolvable) but flips `active`:
+//   0 = 停用（封鎖登入 + 喺員工開單/工時下拉隱藏）
+//   1 = 啟用
+// 呢個係解僱/離職嘅正確做法 —— 千祈唔好用 DELETE（會拎走記錄，令工時變無名）。
+app.post('/api/admin/employees/:id/terminate', authRequired('admin'), requirePermission('employees'), async (req, res) => {
+  const eid = parseInt(req.params.id);
+  const employees = await loadJSON('employees.json', []);
+  const idx = employees.findIndex(e => e.id === eid);
+  if (idx < 0) return res.json({ success: false, error: '員工不存在' });
+  const active = req.body && req.body.active === 1 ? 1 : 0;
+  employees[idx].active = active;
+  await saveJSON('employees.json', employees);
+  res.json({ success: true, active, employee: { id: employees[idx].id, emp_number: employees[idx].emp_number, name: employees[idx].name } });
 });
 
 app.delete('/api/admin/employees/:id', authRequired('admin'), requirePermission('employees'), async (req, res) => {
@@ -3181,7 +3199,7 @@ app.get('/api/worktime/meta', authRequired('employee'), async (req, res) => {
 app.get('/api/worktime/employees', authRequired('employee'), async (req, res) => {
   const employees = await loadJSON('employees.json', []);
   const list = employees
-    .filter(e => WORKTIME_TECH_LEVELS.includes(e.level))
+    .filter(e => WORKTIME_TECH_LEVELS.includes(e.level) && (e.active === undefined || e.active === 1))
     .map(e => ({ id: e.id, name: e.name, emp_number: e.emp_number || '' }))
     .sort((a, b) => String(a.emp_number).localeCompare(String(b.emp_number)));
   res.json({ success: true, employees: list });
@@ -4554,7 +4572,7 @@ app.get('/api/admin/backup/export', authRequired('admin'), async (req, res) => {
 app.get('/api/commission/employees', authRequired('employee'), async (req, res) => {
   const employees = await loadJSON('employees.json', []);
   const list = employees
-    .filter(e => WORKTIME_TECH_LEVELS.includes(e.level)) // 只顯示技術員體系職級（同 OT 記錄隊員名單一致），排除行政/高層(a/c/g)
+    .filter(e => WORKTIME_TECH_LEVELS.includes(e.level) && (e.active === undefined || e.active === 1)) // 只顯示技術員體系職級（同 OT 記錄隊員名單一致），排除行政/高層(a/c/g) 及已停用帳號
     .map(e => ({ id: e.id, name: e.name, emp_number: e.emp_number, group_name: e.group_name || '' }))
     .sort((a, b) => String(a.emp_number).localeCompare(String(b.emp_number)));
   res.json(list);

@@ -1024,11 +1024,19 @@ async function loadEmployees() {
     html += `<button class="btn btn-sm btn-primary" onclick="showAddEmployee()">+ 新增員工</button>`;
     html += `</div>`;
     
-    html += `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>職級</th><th>組別</th><th>操作</th></tr></thead><tbody>`;
+    html += `<table class="data-table"><thead><tr><th>編號</th><th>姓名</th><th>職級</th><th>組別</th><th>狀態</th><th>操作</th></tr></thead><tbody>`;
     for (const e of data.employees) {
-      html += `<tr><td>${e.emp_number}</td><td>${e.name}</td><td>${e.level_label || e.level || '-'}</td><td>${e.group_name || '-'}</td>`;
+      const isActive = e.active === undefined || e.active === 1;
+      const rowCls = isActive ? '' : ' style="opacity:.55"';
+      html += `<tr${rowCls}><td>${e.emp_number}</td><td>${e.name}</td><td>${e.level_label || e.level || '-'}</td><td>${e.group_name || '-'}</td>`;
+      html += `<td>${isActive ? '<span class="badge badge-green">啟用</span>' : '<span class="badge badge-gray">停用</span>'}</td>`;
       html += `<td><button class="btn btn-xs btn-outline" onclick="editEmployee(${e.id})">編輯</button>`;
       html += `<button class="btn btn-xs btn-outline" onclick="resetPassword(${e.id},'${e.emp_number}')">重置密碼</button>`;
+      if (isActive) {
+        html += `<button class="btn btn-xs btn-warning" onclick="terminateEmployee(${e.id},'${e.emp_number}',false)">停用</button>`;
+      } else {
+        html += `<button class="btn btn-xs btn-outline" onclick="terminateEmployee(${e.id},'${e.emp_number}',true)">啟用</button>`;
+      }
       html += `<button class="btn btn-xs btn-danger" onclick="deleteEmployee(${e.id},'${e.name}')">刪除</button></td></tr>`;
     }
     html += `</tbody></table></div>`;
@@ -1235,9 +1243,24 @@ async function resetPassword(id, empNum) {
 }
 
 async function deleteEmployee(id, name) {
-  if (!confirm(`確定刪除員工 ${name}?`)) return;
+  if (!confirm(`確定刪除員工 ${name}? (注意：刪除會令佢嘅工時記錄變無名，解僱建議用「停用」)`)) return;
   const res = await fetch(API + `/api/admin/employees/${id}`, {method:'DELETE', credentials:'include'});
   loadEmployees();
+}
+
+// 停用 / 啟用員工（soft delete，保留記錄）。解僱用呢個，唔好用刪除。
+async function terminateEmployee(id, empNumber, makeActive) {
+  const action = makeActive ? '啟用' : '停用';
+  if (!confirm(`確定${action}員工 ${empNumber}?`)) return;
+  try {
+    const res = await fetch(API + `/api/admin/employees/${id}/terminate`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+      body: JSON.stringify({ active: makeActive ? 1 : 0 })
+    });
+    const data = await res.json();
+    if (data.success) { alert(`員工 ${empNumber} 已${action}`); loadEmployees(); }
+    else { alert(data.error || '操作失敗'); }
+  } catch(e) { alert('操作失敗: ' + e.message); }
 }
 
 // ===== ADMINS =====
