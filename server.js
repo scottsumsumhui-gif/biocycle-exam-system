@@ -212,6 +212,14 @@ async function loadJSON(file, defaultVal) {
       return typeof data === 'string' ? JSON.parse(data) : data;
     }
     // Seed from bundled data file
+    // ⚠️ admins.json 特別處理：絕對唔好用 bundled 舊檔成個 array 覆寫 Redis，
+    // 否則一旦 Redis key 消失（eviction / DB reset / 新容器首次讀取），就會用舊嘅 5 個 admin
+    // 連權限一齊拎走 user 嘅 custom 設定。key 唔喺先 seed 一個超管，其餘靠 Redis 累積。
+    if (file === 'admins.json') {
+      const seed = [{ id: 1, username: 'ST140', password_hash: bcrypt.hashSync('61583398', 10), display_name: 'Super Admin', is_super: 1, created_at: new Date().toISOString(), permissions: [] }];
+      await redis.set(file, JSON.stringify(seed));
+      return seed;
+    }
     const seedFile = path.join(__dirname, 'data', file);
     if (fs.existsSync(seedFile)) {
       const seedData = JSON.parse(fs.readFileSync(seedFile, 'utf-8'));
