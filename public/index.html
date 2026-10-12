@@ -3693,6 +3693,25 @@ async function submitWorktime() {
         night_allowance: !!(div.querySelector('.wt-night-in') && div.querySelector('.wt-night-in').checked)
       });
     });
+    // 時間提示：完結早過開始 → 多半入錯（例 開始 11:30 完結 11:20）。
+    // 只有跨午夜單（例 23:50 → 00:20）完結先會細過開始，且差距要 ≥12 小時先合理；否則彈提示唔畀存。
+    const jobDivs = document.querySelectorAll('#wtJobs .wt-job');
+    for (let ji = 0; ji < payload.jobs.length; ji++) {
+      const j = payload.jobs[ji];
+      const sM = wtParseHM(j.start), eM = wtParseHM(j.end);
+      if (sM == null || eM == null || eM >= sM) continue;
+      if (sM - eM < 720) {
+        const label = '第 ' + (ji + 1) + ' 張單' + (j.client_no ? '（單號 ' + j.client_no + '）' : '');
+        alert('⚠️ ' + label + '時間有問題：開始 ' + j.start + '、完結 ' + j.end + '，完結早過開始。\n除咗跨午夜嘅夜單，完結時間唔會早過開始，請檢查係咪入錯。');
+        const inp = jobDivs[ji] && jobDivs[ji].querySelector('.wt-end');
+        if (inp) {
+          inp.focus();
+          inp.style.borderColor = 'var(--danger)';
+          setTimeout(() => { inp.style.borderColor = ''; }, 4000);
+        }
+        return;
+      }
+    }
     payload.members = [];
     document.querySelectorAll('#wtMembers .wt-member').forEach(sel => {
       if (sel.value) payload.members.push({ emp_id: Number(sel.value) });
