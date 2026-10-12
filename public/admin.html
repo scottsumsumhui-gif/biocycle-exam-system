@@ -1314,7 +1314,8 @@ async function loadAdmins() {
     // 電郵：超管可以改任何人；每位管理員都可以改自己嗰個
     const isSelf = adminData && adminData.id === a.id;
     if (canManage || isSelf) {
-      ops += (ops ? ' ' : '') + `<button class="btn btn-xs btn-outline" onclick="adminEditEmail(${a.id},'${a.username.replace(/'/g, "\\'")}','${String(a.email || '').replace(/'/g, "\\'")}')">✉ 電郵</button>`;
+      ops += (ops ? ' ' : '') + `<button class="btn btn-xs btn-outline" onclick="adminEditName(${a.id},'${a.username.replace(/'/g, "\\'")}','${String(a.display_name || '').replace(/'/g, "\\'")}')">✏ 改名</button>`;
+      ops += ` <button class="btn btn-xs btn-outline" onclick="adminEditEmail(${a.id},'${a.username.replace(/'/g, "\\'")}','${String(a.email || '').replace(/'/g, "\\'")}')">✉ 電郵</button>`;
     }
     if (!ops) ops = '-';
     const emailCell = a.email
@@ -1436,6 +1437,28 @@ async function adminEditEmail(id, username, current) {
     alert(email ? '已設定：' + email : '已清除電郵（唔會再收到通知）');
     loadAdmins();
   } catch (e) { alert('設定失敗'); }
+}
+
+async function adminEditName(id, username, current) {
+  const isSelf = adminData && adminData.id === id;
+  if (!isSelf && !(adminData && (adminData.isSuper || (adminData.permissions || []).includes('admin_mgmt')))) {
+    alert('權限不足'); return;
+  }
+  const val = prompt(`改 ${username} 嘅顯示名（用戶名 ST 編號唔會改）`, current || '');
+  if (val === null) return; // 取消
+  const name = String(val).trim();
+  if (!name) { alert('顯示名不可空白'); return; }
+  try {
+    const res = await fetch(API + `/api/admin/admins/${id}/name`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'}, credentials: 'include',
+      body: JSON.stringify({ displayName: name })
+    });
+    const data = await res.json();
+    if (!data.success) { alert(data.error || '修改失敗'); return; }
+    if (isSelf && adminData) adminData.displayName = name;
+    alert('已改顯示名：' + name);
+    loadAdmins();
+  } catch (e) { alert('修改失敗'); }
 }
 
 async function checkMailStatus() {

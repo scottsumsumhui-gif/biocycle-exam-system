@@ -1185,6 +1185,34 @@ app.put('/api/admin/admins/:id/email', authRequired('admin'), async (req, res) =
   }
 });
 
+// Admin: 改顯示名。自己可以改自己；改其他人要有 admin_mgmt 或係超管。
+// ⚠️ 只改 display_name（純顯示，零影響）；username 唔准改（登入名 + 批示/違規記錄 attribution 用）。
+app.put('/api/admin/admins/:id/name', authRequired('admin'), async (req, res) => {
+  try {
+    const aid = parseInt(req.params.id);
+    const name = String((req.body && req.body.displayName) || '').trim().slice(0, 50);
+    if (!name) return res.json({ success: false, error: '顯示名不可空白' });
+    const admins = await loadJSON('admins.json', []);
+    const me = admins.find(a => a.id === req.session.user_id);
+    if (!me) return res.status(401).json({ success: false, error: 'Session invalid' });
+    if (aid !== req.session.user_id) {
+      if (!me.is_super) {
+        const perms = Array.isArray(me.permissions) ? me.permissions : [];
+        if (!perms.includes('admin_mgmt')) return res.json({ success: false, error: '權限不足: 管理員權限' });
+      }
+    }
+    const idx = admins.findIndex(a => a.id === aid);
+    if (idx < 0) return res.json({ success: false, error: '管理員不存在' });
+    const old = admins[idx].display_name;
+    admins[idx].display_name = name;
+    await saveJSON('admins.json', admins);
+    console.log('[Admin] display_name changed: id=' + aid + ' username=' + admins[idx].username + ' "' + old + '" -> "' + name + '" by ' + (me.username || '?'));
+    res.json({ success: true, display_name: name });
+  } catch (e) {
+    res.status(500).json({ success: false, error: '修改失敗' });
+  }
+});
+
 // Admin: 電郵通知診斷（查 SMTP 設定、寄件人、收件人名單）— 超管或 admin_mgmt
 app.get('/api/admin/mail/status', authRequired('admin'), requirePermission('admin_mgmt'), async (req, res) => {
   try {
