@@ -4372,6 +4372,8 @@ app.get('/api/admin/guaranteed-pay/export', authRequired('admin'), requirePermis
     const prevMonth = shiftYM(month, -1);
     const gp = await loadGp();
     const employees = await loadJSON('employees.json', []);
+    const admins = await loadJSON('admins.json', []);
+    const adminName = (u) => { const a = (admins || []).find(x => x.username === u); return a && a.display_name ? a.display_name : ''; };
     const examBlocks = await computeGpExamBlocks();
     const aoa = [['保證薪酬（包薪）批示表 — ' + month], [], ['員工編號', '姓名', '職級', '駕駛資格', '包薪線(HKD)', month + ' 包薪狀態', '狀態來源', '參考：' + prevMonth + ' 違規', '考試唔合格停發區間', '備註']];
     for (const emp of employees) {
@@ -4385,14 +4387,20 @@ app.get('/api/admin/guaranteed-pay/export', authRequired('admin'), requirePermis
       const status = dec ? dec.status : (examHit ? 'suspended' : 'granted');
       const inc = gp.incidents.filter(i => String(i.emp_number) === empNo && i.month === prevMonth);
       const examTxt = (examBlocks[empNo] || []).map(b => b.topic_name + ' ' + b.exam_month + ' 不合格 → 停 ' + b.start_pay + '~' + b.end_pay + (b.makeup_done_month ? ('（' + b.makeup_done_month + ' 補考合格）') : ('（補考 ' + (b.makeup_month || '') + '）'))).join('；');
+      let sourceTxt = '預設';
+      if (dec) {
+        const nm = adminName(dec.by);
+        const dt = dec.at ? new Date(dec.at).toLocaleDateString('zh-HK', { timeZone: 'Asia/Hong_Kong' }) : '';
+        sourceTxt = '人手批示（' + (dec.by || '?') + (nm ? ' ' + nm : '') + (dt ? ' · ' + dt : '') + '）';
+      } else if (examHit) sourceTxt = '考試規則自動';
       aoa.push([empNo, emp.name, GP_LEVEL_LABELS[emp.level] || emp.level, hasDriving ? '有' : '無', amount,
         status === 'suspended' ? '停發' : '有包薪',
-        dec ? '人手批示' : (examHit ? '考試規則自動' : '預設'),
+        sourceTxt,
         inc.map(i => i.category + (i.note ? '(' + i.note + ')' : '')).join('、') || '', examTxt,
         dec ? (dec.note || '') : (examHit ? (examHit.topic_name + ' ' + examHit.exam_month + ' 不合格，補考 ' + (examHit.makeup_month || '') + '，恢復 ' + shiftYM(examHit.end_pay, 1)) : '')]);
     }
     const ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws['!cols'] = [{ wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 12 }, { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 34 }, { wch: 46 }, { wch: 34 }];
+    ws['!cols'] = [{ wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 12 }, { wch: 14 }, { wch: 16 }, { wch: 34 }, { wch: 34 }, { wch: 46 }, { wch: 34 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'GuaranteedPay ' + month);
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
