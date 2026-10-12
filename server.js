@@ -3391,6 +3391,58 @@ app.post('/api/worktime/records', authRequired('employee'), async (req, res) => 
   } catch (e) { res.status(500).json({ success: false, error: '儲存失敗' }); }
 });
 
+// ===== WORKTIME SCHEDULE IMPORT (PDF, 重用 worktime_compare parser) =====
+// 技術員上傳排單 PDF → 抽所屬隊伍嘅 Client 號碼 → 返前端 prefill 工作單（只填單號），其餘欄技術員自己填
+// 唔使 AI / 唔使 key / 圖唔落地（multer memoryStorage）
+async function extractClientNosFromPdf(buf, empNumber) {
+  let parsed;
+  try {
+    parsed = await worktimeCompare.parseAppointmentPdfBuffer(buf, 'schedule.pdf');
+  } catch (e) {
+    return { ok: false, error: 'PDF 解析失敗: ' + e.message };
+  }
+  const blocks = parsed.blocks || [];
+  const techNorm = worktimeCompare.normId(empNumber);
+  let targetSlots = null;
+  if (techNorm) {
+    for (const b of blocks) {
+      const matched = (b.techs || []).some(t => t.normId === techNorm);
+      if (matched) { targetSlots = b.slots || []; break; }
+    }
+  }
+  let contracts;
+  const matchedTeam = !!targetSlots;
+  if (targetSlots) {
+    // 只取所屬隊伍嘅排單號碼（每個有 client 號嘅 slot 一張單）
+    contracts = targetSlots.map(s => s.contract).filter(Boolean);
+  } else {
+    // 配對唔到所屬隊伍（如上傳者唔喺排單 tech 名單）: 抽取全份所有排單號碼（去重）
+    const set = new Set();
+    for (const b of blocks) for (const s of (b.slots || [])) if (s.contract) set.add(s.contract);
+    for (const c of (parsed.contracts || [])) set.add(c);
+    contracts = [...set];
+  }
+  const nos = [...new Set(contracts)].filter(Boolean);
+  return { ok: true, clientNos: nos, matchedTeam };
+}
+
+app.post('/api/worktime/import-schedule', authRequired('employee'), upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, error: '無收到檔案' });
+    const mime = req.file.mimetype || '';
+    const isPdf = mime === 'application/pdf' || /\.pdf$/i.test(req.file.originalname || '');
+    if (!isPdf) return res.status(400).json({ success: false, error: '只接受 PDF 檔案（排單）' });
+    const employees = await loadJSON('employees.json', []);
+    const me = employees.find(e => e.id === req.session.user_id);
+    const empNumber = me ? (me.emp_number || '') : '';
+    const result = await extractClientNosFromPdf(req.file.buffer, empNumber);
+    if (!result.ok) return res.json({ success: false, error: result.error });
+    res.json({ success: true, clientNos: result.clientNos, matchedTeam: result.matchedTeam });
+  } catch (e) {
+    res.json({ success: false, error: '解析失敗: ' + e.message });
+  }
+});
+
 // Employee: own records (optionally filtered by month / from / to).
 app.get('/api/worktime/records', authRequired('employee'), async (req, res) => {
   try {

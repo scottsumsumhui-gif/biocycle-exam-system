@@ -578,8 +578,13 @@
     <div class="mt-16" id="wtJobsBox" >
       <div class="h-between" >
         <h3 class="mb-0" >工作單</h3>
-        <button class="btn btn-outline btn-sm" onclick="wtAddJob()">新增下一單</button>
+        <div style="display:flex; gap:8px; align-items:center">
+          <button class="btn btn-outline btn-sm" id="wtImportBtn" onclick="document.getElementById('wtImportFile').click()">📥 導入排單</button>
+          <button class="btn btn-outline btn-sm" onclick="wtAddJob()">新增下一單</button>
+        </div>
       </div>
+      <input type="file" id="wtImportFile" accept="application/pdf,.pdf" style="display:none" onchange="wtImportSchedule(this)">
+      <div id="wtImportMsg" style="font-size:13px; margin:6px 0 0"></div>
       <div id="wtJobs"></div>
     </div>
 
@@ -3580,6 +3585,36 @@ function wtAddJobAndScroll(btn) {
   const jobs = document.querySelectorAll('#wtJobs .wt-job');
   const last = jobs[jobs.length - 1];
   if (last) last.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// 導入排單：上傳排單 PDF → server 抽所屬隊伍 Client 號碼 → prefill 工作單（只填單號）
+async function wtImportSchedule(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const msg = document.getElementById('wtImportMsg');
+  if (msg) { msg.style.color = '#2980b9'; msg.textContent = '📡 解析排單中…'; }
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch(API + '/api/worktime/import-schedule', { method: 'POST', credentials: 'include', body: fd });
+    const d = await r.json().catch(() => ({}));
+    if (!d.success) {
+      if (msg) { msg.style.color = '#c0392b'; msg.textContent = '失敗：' + (d.error || '未知錯誤'); }
+      return;
+    }
+    const nos = d.clientNos || [];
+    if (!nos.length) {
+      if (msg) { msg.style.color = '#c0392b'; msg.textContent = '未抽到任何單號，請確認 PDF 係排單格式或手動輸入'; }
+      return;
+    }
+    nos.forEach(no => wtAddJob({ client_no: no }));
+    let extra = d.matchedTeam ? '' : '（未能配對所屬隊伍，已抽取全份號碼，請刪除唔屬你嘅單）';
+    if (msg) { msg.style.color = '#27ae60'; msg.textContent = `✅ 已自動開 ${nos.length} 張工作單（單號已填，請補時間／工作類型）${extra}`; }
+  } catch (e) {
+    if (msg) { msg.style.color = '#c0392b'; msg.textContent = '錯誤：' + e.message; }
+  } finally {
+    input.value = '';
+  }
 }
 
 function wtRemoveJob(btn) {
