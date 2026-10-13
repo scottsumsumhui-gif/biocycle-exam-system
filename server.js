@@ -3499,6 +3499,15 @@ app.put('/api/worktime/records/:id', authRequired('employee'), async (req, res) 
     const s = await sanitizeWorktimePayload(req.body || {}, me);
     if (!s.ok) return res.status(400).json({ success: false, error: s.error });
     const v = s.value;
+    // 防重複：過濾完全相同嘅工作單（同一單號 + 相同時間/類型/備註 + 同步標記），避免導入多次疊單
+    if (v.jobs && v.jobs.length) {
+      const seen = new Set();
+      v.jobs = v.jobs.filter(j => {
+        const key = [j.client_no || '', j.start || '', j.end || '', (j.types || []).join(','), j.remarks || '', j.no_sync ? 1 : 0].join('|');
+        if (seen.has(key)) return false;
+        seen.add(key); return true;
+      });
+    }
     recs[idx] = { ...recs[idx], ...v, jobs_synced_from: null, updated_at: nowStr() };
     syncTeamJobs(recs, recs[idx], employees);
     await saveJSON(WORKTIME_FILE, recs);

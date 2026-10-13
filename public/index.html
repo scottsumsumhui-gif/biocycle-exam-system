@@ -3503,6 +3503,7 @@ async function wtDateChange() {
     const data = await res.json();
     if (data.success && data.records.length) {
       const rec = data.records[0];
+      window.__wtCurrentRec = rec;
       wtLoadedHadJobs = !!(rec.jobs && rec.jobs.length);
       document.getElementById('wtStatus').value = rec.day_status || '正常上班';
       document.getElementById('wtHolidayWork').checked =
@@ -3524,6 +3525,7 @@ async function wtDateChange() {
       document.getElementById('wtResult').innerHTML = `<span style="color:var(--primary)">${loadNote}</span>`;
     } else {
       wtLoadedHadJobs = false;
+      window.__wtCurrentRec = null;
       document.getElementById('wtStatus').value = '正常上班';
       wtAddJob();
       wtStatusChange();
@@ -3607,9 +3609,22 @@ async function wtImportSchedule(input) {
       if (msg) { msg.style.color = '#c0392b'; msg.textContent = '未抽到任何單號，請確認 PDF 係排單格式或手動輸入'; }
       return;
     }
-    nos.forEach(no => wtAddJob({ client_no: no }));
+    // 防重複：跳過 form 入面 + 今日已載入記錄入面已經有嘅單號（撳多次導入 / 重刷再導入都唔會疊）
+    const exist = new Set();
+    document.querySelectorAll('#wtJobs .wt-client').forEach(i => { const v = (i.value || '').trim(); if (v) exist.add(v); });
+    if (window.__wtCurrentRec && window.__wtCurrentRec.jobs) {
+      window.__wtCurrentRec.jobs.forEach(j => { const v = (j.client_no || '').trim(); if (v) exist.add(v); });
+    }
+    let added = 0, skipped = 0;
+    const dup = new Set();
+    nos.forEach(no => {
+      if (exist.has(no) || dup.has(no)) { skipped++; return; }
+      wtAddJob({ client_no: no });
+      exist.add(no); dup.add(no); added++;
+    });
     let extra = d.matchedTeam ? '' : '（未能配對所屬隊伍，已抽取全份號碼，請刪除唔屬你嘅單）';
-    if (msg) { msg.style.color = '#27ae60'; msg.textContent = `✅ 已自動開 ${nos.length} 張工作單（單號已填，請補時間／工作類型）${extra}`; }
+    const skipTxt = skipped ? `；跳過 ${skipped} 張已存在嘅單號` : '';
+    if (msg) { msg.style.color = '#27ae60'; msg.textContent = `✅ 已自動開 ${added} 張工作單（單號已填，請補時間／工作類型）${skipTxt}${extra}`; }
   } catch (e) {
     if (msg) { msg.style.color = '#c0392b'; msg.textContent = '錯誤：' + e.message; }
   } finally {
