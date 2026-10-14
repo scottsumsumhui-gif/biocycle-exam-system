@@ -1,5 +1,0 @@
-[REDIS] No UPSTASH_REDIS_REST_URL set - using local file mode
-JSON database initialized in: C:\Users\Sum\WorkBuddy\2026-06-28-22-52-03\exam-system\data
-BIOCYCLE Exam System running on http://localhost:3000
-Admin panel: http://localhost:3000/admin
-Employee exam: http://localhost:3000
