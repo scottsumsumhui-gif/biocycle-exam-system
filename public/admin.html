@@ -2348,6 +2348,17 @@ function renderFleetAdmin() {
   const plateOpts = vehicles.map(v => `<option value="${v.plate}">${v.alias ? v.alias + ' (' + v.plate + ')' : v.plate}</option>`).join('');
   let html = '<h2>&#128663; 車輛管理 Fleet Management</h2>';
 
+  // --- 車輛月報（放最頂）---
+  const nowM = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 7);
+  html += `<div class="section-card"><h3>車輛月報</h3>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <label>月份：</label><input id="fleetRptMonth" type="month" value="${nowM}" style="width:150px">
+      <button class="btn btn-sm btn-primary" onclick="loadFleetMonthlyReport()">產生月報</button>
+      <button class="btn btn-sm btn-outline" onclick="exportFleetMonthlyReport()">&#128229; 匯出 Excel</button>
+      <span id="fleetRptMsg" style="font-size:13px"></span>
+    </div>
+    <div id="fleetRptBox"></div></div>`;
+
   // --- Vehicle management ---
   html += '<div class="section-card"><h3>車輛列表（' + vehicles.length + ' 架）</h3>';
   html += `<div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; margin-bottom:10px">
@@ -2385,17 +2396,6 @@ function renderFleetAdmin() {
     <button class="btn btn-sm btn-primary" onclick="exportFleetExcel()">&#128229; 匯出 Excel</button>
   </div>`;
   html += '<div id="fleetRecBox"></div></div>';
-
-  // --- 車輛月報 ---
-  const nowM = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 7);
-  html += `<div class="section-card"><h3>車輛月報</h3>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-      <label>月份：</label><input id="fleetRptMonth" type="month" value="${nowM}" style="width:150px">
-      <button class="btn btn-sm btn-primary" onclick="loadFleetMonthlyReport()">產生月報</button>
-      <button class="btn btn-sm btn-outline" onclick="exportFleetMonthlyReport()">&#128229; 匯出 Excel</button>
-      <span id="fleetRptMsg" style="font-size:13px"></span>
-    </div>
-    <div id="fleetRptBox"></div></div>`;
 
   document.getElementById('adminBody').innerHTML = html;
   renderFleetRecordsAdmin(fleetAdminCache.records);
