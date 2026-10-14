@@ -13,6 +13,7 @@ data/allowance.json
 
 # Debug / scratch / test artifacts（唔好 commit）
 *.log
+push_log.txt
 _int_*.js
 _int_*.xlsx
 _test_*.js
@@ -39,8 +40,10 @@ preview-*.html
 *_scan_snapshot_*.json
 *_backup_*.json
 allowance_*.json
+allowance_logic.js
 joblevel_*.json
 joblevels_*.json
+exec_joblevel_migration.js
 employees_levels_*.json
 employees_levels_*.csv
 employees_levels_*.md
@@ -51,6 +54,8 @@ apply_*.js
 fix_*.js
 backup_*.js
 git_push_*.js
+patch_*.js
+scan_*.js
 questions/_deleted/
 questions/backup_ai_generated/
 questions/extracted_*.json
