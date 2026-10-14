@@ -2369,10 +2369,27 @@ async function loadFleetRecordsAdmin() {
   } catch (e) { if (box) box.innerHTML = '<p>載入失敗</p>'; }
 }
 
+// 車隊記錄每月統一序號（顯示用；內部 id 唔郁，刪除/API 照用內部 id）
+// 四類記錄（出車/入油/保養/維修）各有獨立 id，撈埋一齊會亂 → 每月按時間先後統一由 01 計起
+function fleetMonthlySerialMap(rows) {
+  const map = {};
+  const chron = [...rows].sort((a, b) => (a.date || '').localeCompare(b.date || '')
+    || String(a.created_at || '').localeCompare(String(b.created_at || ''))
+    || (a.id - b.id));
+  const counters = {};
+  for (const r of chron) {
+    const ym = (r.date || '').slice(0, 7);
+    counters[ym] = (counters[ym] || 0) + 1;
+    map[r.rec_type + ':' + r.id] = { ym, serial: counters[ym] };
+  }
+  return map;
+}
+
 function renderFleetRecordsAdmin(rows) {
   const box = document.getElementById('fleetRecBox');
   if (!box) return;
   if (!rows.length) { box.innerHTML = '<p style="color:var(--text-light)">暫無記錄</p>'; return; }
+  const serialMap = fleetMonthlySerialMap(rows);
   let html = '<table class="data-table"><thead><tr><th>編號</th><th>類型</th><th>日期</th><th>車牌</th><th>員工</th><th>詳情</th><th>操作</th></tr></thead><tbody>';
   for (const r of rows) {
     let detail = '';
@@ -2388,7 +2405,9 @@ function renderFleetRecordsAdmin(rows) {
       detail = r.type + (r.mileage != null ? ` @ ${r.mileage} km` : '') + (r.location ? ` · ${r.location}` : '') + (r.note ? ` · ${r.note}` : '');
     }
     const typeLabel = { trip: '出車', fuel: '入油', maintenance: '保養', repair: '維修' }[r.rec_type] || r.rec_type;
-    html += `<tr><td>${r.id}</td><td>${typeLabel}</td><td>${r.date}</td><td>${r.plate}</td><td>${r.emp_name || '—'}</td><td>${detail}</td><td><button class="btn btn-xs btn-outline" onclick="deleteFleetRecordAdmin('${r.rec_type}', ${r.id})">刪除</button></td></tr>`;
+    const ser = serialMap[r.rec_type + ':' + r.id];
+    const serialTxt = ser ? (ser.ym.slice(5) + '-' + String(ser.serial).padStart(2, '0')) : r.id;
+    html += `<tr><td title="${r.rec_type} 內部編號 ${r.id}">${serialTxt}</td><td>${typeLabel}</td><td>${r.date}</td><td>${r.plate}</td><td>${r.emp_name || '—'}</td><td>${detail}</td><td><button class="btn btn-xs btn-outline" onclick="deleteFleetRecordAdmin('${r.rec_type}', ${r.id})">刪除</button></td></tr>`;
   }
   html += '</tbody></table>';
   box.innerHTML = html;
