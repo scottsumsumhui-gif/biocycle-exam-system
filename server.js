@@ -196,6 +196,11 @@ if (process.env.UPSTASH_REDIS_REST_URL) {
     redisPing = 'failed';
     console.error('[REDIS] init failed:', e.message);
   }
+  // 背景 re-ping 保持 redisPing 準確（每 60s），避免起動時個值永久過時（曾令 /api/health 報假 failed）
+  setInterval(() => {
+    redis.ping().then(() => { redisPing = 'ok'; })
+      .catch(() => { redisPing = 'failed'; });
+  }, 60 * 1000).unref?.();
 } else {
   console.log('[REDIS] No UPSTASH_REDIS_REST_URL set - using local file mode');
 }
