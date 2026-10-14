@@ -2447,20 +2447,8 @@ async function loadFleetMonthlyReport() {
 async function exportFleetMonthlyReport() {
   const month = document.getElementById('fleetRptMonth').value;
   if (!month) { alert('請選月份'); return; }
-  try {
-    const res = await fetch(API + '/api/admin/fleet/monthly-report?month=' + encodeURIComponent(month), { credentials: 'include' });
-    const data = await res.json();
-    if (!data.success) { alert(data.error || '失敗'); return; }
-    const rows = data.rows || [];
-    const aoa = [['車輛月報 — ' + month], [], ['車牌', '別名', '總里數', '出車次', '入油次', '升數', '油費', '保養次', '維修次', '每km油費']];
-    for (const r of rows) aoa.push([r.plate, r.alias || '', r.km, r.trips, r.fuels, r.liters, r.fuelCost, r.maint, r.repairs, r.costPerKm]);
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, '車輛月報');
-    const url = URL.createObjectURL(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/octet-stream' }));
-    const a = document.createElement('a'); a.href = url; a.download = 'fleet_monthly_' + month + '.xlsx'; a.click();
-    URL.revokeObjectURL(url);
-  } catch (e) { alert('匯出失敗'); }
+  // admin.html 無 load XLSX lib → 改開 server endpoint 出 xlsx（同 exportFleetExcel 一致）
+  window.open(API + '/api/admin/fleet/monthly-report/export?month=' + encodeURIComponent(month), '_blank');
 }
 
 // 車隊記錄每月統一序號（顯示用；內部 id 唔郁，刪除/API 照用內部 id）

@@ -3058,6 +3058,36 @@ app.get('/api/admin/fleet/monthly-report', authRequired('admin'), requirePermiss
   } catch (e) { res.status(500).json({ success: false, error: '月報失敗' }); }
 });
 
+// Admin: 車輛月報匯出 Excel（同一計法，出 xlsx 檔）
+app.get('/api/admin/fleet/monthly-report/export', authRequired('admin'), requirePermission('fleet'), async (req, res) => {
+  try {
+    const month = (req.query.month || '').toString().trim();
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ success: false, error: '請提供月份 (YYYY-MM)' });
+    const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+    const trips = (await loadJSON(FLEET_TRIPS_FILE, [])).filter(r => (r.date || '').startsWith(month) && r.end_mileage != null);
+    const fuels = (await loadJSON(FLEET_FUELS_FILE, [])).filter(r => (r.date || '').startsWith(month));
+    const maint = (await loadJSON(FLEET_MAINT_FILE, [])).filter(r => (r.date || '').startsWith(month));
+    const repairs = (await loadJSON(FLEET_REPAIRS_FILE, [])).filter(r => (r.date || '').startsWith(month));
+    const map = {};
+    for (const v of vehicles) map[v.plate] = { plate: v.plate, alias: v.alias || '', km: 0, trips: 0, fuels: 0, liters: 0, fuelCost: 0, maint: 0, repairs: 0 };
+    for (const t of trips) { const m = map[t.plate]; if (m) { m.km += (t.daily_mileage || 0); m.trips++; } }
+    for (const f of fuels) { const m = map[f.plate]; if (m) { m.fuels++; m.liters += (f.liters || 0); m.fuelCost += (f.total_cost || 0); } }
+    for (const x of maint) { const m = map[x.plate]; if (m) m.maint++; }
+    for (const x of repairs) { const m = map[x.plate]; if (m) m.repairs++; }
+    const aoa = [['車輛月報 — ' + month], [], ['車牌', '別名', '總里數 (km)', '出車次', '入油次', '入油量 (L)', '油費 ($)', '保養次', '維修次', '每 km 油費 ($)']];
+    for (const v of vehicles) {
+      const m = map[v.plate];
+      aoa.push([m.plate, m.alias, Math.round(m.km * 10) / 10, m.trips, m.fuels, Math.round(m.liters * 10) / 10, Math.round(m.fuelCost * 100) / 100, m.maint, m.repairs, m.km > 0 ? Math.round((m.fuelCost / m.km) * 100) / 100 : '']);
+    }
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), '車輛月報');
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="fleet_monthly_' + month.replace('-', '') + '.xlsx"');
+    res.send(buf);
+  } catch (e) { res.status(500).json({ success: false, error: '匯出失敗' }); }
+});
+
 // Admin: delete any record
 app.delete('/api/admin/fleet/records/:type/:id', authRequired('admin'), requirePermission('fleet'), async (req, res) => {
   try {
