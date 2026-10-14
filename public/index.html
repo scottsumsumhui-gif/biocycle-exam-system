@@ -3244,9 +3244,13 @@ async function submitFleetReturn() {
     const res = await fetch(API + '/api/fleet/vehicles/' + encodeURIComponent(fleetCurrentPlate), { credentials: 'include' });
     const d = await res.json();
     if (!d.success || !d.vehicle.active_trip) { alert('搵唔到進行中嘅出車記錄'); return; }
+    const startM = Number(d.vehicle.active_trip.start_mileage);
+    const endM = Number(mileage);
+    if (endM < startM) { alert('返回里數（' + endM + '）細過出車里數（' + startM + '），請檢查係咪入錯。'); return; }
+    if (endM - startM > 1500 && !confirm('今次行車 ' + (endM - startM) + ' km，超過 1500km，確定無入錯？')) return;
     const r2 = await fetch(API + '/api/fleet/trips/' + d.vehicle.active_trip.id + '/return', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-      body: JSON.stringify({ end_mileage: Number(mileage) })
+      body: JSON.stringify({ end_mileage: endM })
     });
     const data = await r2.json();
     if (!data.success) { alert(data.error || '記錄失敗'); return; }
@@ -3258,22 +3262,26 @@ async function submitFleetReturn() {
 }
 
 async function submitFleetFuel() {
-  const mileage = document.getElementById('fleetFuelMileage').value;
+  const mileageRaw = document.getElementById('fleetFuelMileage').value;
   const liters = document.getElementById('fleetFuelLiters').value;
   const price = document.getElementById('fleetFuelPrice').value;
   const cost = document.getElementById('fleetFuelCost').value;
-  if (mileage === '' || isNaN(Number(mileage))) { alert('請輸入有效里數'); return; }
+  let mileage = mileageRaw;
+  if (mileage === '' || isNaN(Number(mileage))) {
+    if (!confirm('你無填里數，入油記錄無里數會影響車輛月報。確定唔填？')) return;
+    mileage = '';
+  }
   if (cost === '' || isNaN(Number(cost)) || Number(cost) <= 0) { alert('請輸入有效油費'); return; }
   const hb = await pingHeartbeat();
   if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
   try {
     const res = await fetch(API + '/api/fleet/fuels', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-      body: JSON.stringify({ plate: fleetCurrentPlate, mileage: Number(mileage), liters, price_per_liter: price, total_cost: Number(cost) })
+      body: JSON.stringify({ plate: fleetCurrentPlate, mileage: mileage === '' ? null : Number(mileage), liters, price_per_liter: price, total_cost: Number(cost) })
     });
     const data = await res.json();
     if (!data.success) { alert(data.error || '記錄失敗'); return; }
-    ['fleetFuelLiters', 'fleetFuelPrice', 'fleetFuelCost'].forEach(id => document.getElementById(id).value = '');
+    ['fleetFuelMileage', 'fleetFuelLiters', 'fleetFuelPrice', 'fleetFuelCost'].forEach(id => document.getElementById(id).value = '');
     fleetMsg('✅ 入油記錄已儲存', true);
     await loadFleetVehicles();
     await openFleetVehicle(fleetCurrentPlate);

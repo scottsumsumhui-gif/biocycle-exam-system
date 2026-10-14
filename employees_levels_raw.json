@@ -1,0 +1,390 @@
+{
+  "jobLevels": [
+    {
+      "key": "junior",
+      "label": "初級技術員",
+      "description": "考試：20題選擇題，最多錯4題（80%合格）",
+      "is_builtin": true,
+      "order": 1
+    },
+    {
+      "key": "senior",
+      "label": "高級技術員",
+      "description": "考試：20題選擇題，最多錯2題（90%合格）",
+      "is_builtin": true,
+      "order": 2
+    },
+    {
+      "key": "supervisor",
+      "label": "技術員主管",
+      "description": "考試：20題選擇題+3題問答，最多錯2題（90%合格）",
+      "is_builtin": true,
+      "order": 3
+    },
+    {
+      "key": "a",
+      "label": "Assistant Accounting Manager",
+      "description": "",
+      "is_builtin": false,
+      "order": 5
+    },
+    {
+      "key": "b",
+      "label": "技術員經理",
+      "description": "",
+      "is_builtin": false,
+      "order": 6
+    },
+    {
+      "key": "c",
+      "label": "DGM",
+      "description": "",
+      "is_builtin": false,
+      "order": 7
+    },
+    {
+      "key": "d",
+      "label": "技術員副主管",
+      "description": "",
+      "is_builtin": false,
+      "order": 8
+    },
+    {
+      "key": "g",
+      "label": "GM",
+      "description": "",
+      "is_builtin": false,
+      "order": 9
+    },
+    {
+      "key": "e",
+      "label": "見習技術員",
+      "description": "",
+      "is_builtin": false,
+      "order": 10
+    },
+    {
+      "key": "f",
+      "label": "見習高級技術員",
+      "description": "",
+      "is_builtin": false,
+      "order": 11
+    },
+    {
+      "key": "h",
+      "label": "見習技術員副主管",
+      "description": "",
+      "is_builtin": false,
+      "order": 12
+    },
+    {
+      "key": "i",
+      "label": "見習技術員主管",
+      "description": "",
+      "is_builtin": false,
+      "order": 13
+    }
+  ],
+  "employees": [
+    {
+      "id": 34,
+      "emp_number": "GH",
+      "name": "GH",
+      "password_hash": "$2a$10$XmsP3hoiAbNgAiMCvEWS/efQLcpR9OQx77wT71nCGvlvwazPmmGoC",
+      "level": "a",
+      "group_name": "",
+      "created_at": "2026-09-02 09:16:33",
+      "level_label": "Assistant Accounting Manager"
+    },
+    {
+      "id": 35,
+      "emp_number": "Helen",
+      "name": "Helen Lai",
+      "password_hash": "$2a$10$tNG7IHaR8WqMyXO3aZ0U7u7kuhSiAbRijI3Jw8rHpQ7RtK6b.dEKi",
+      "level": "c",
+      "group_name": "",
+      "created_at": "2026-09-02 17:59:04",
+      "level_label": "DGM"
+    },
+    {
+      "id": 36,
+      "emp_number": "Jackson",
+      "name": "Jackson",
+      "password_hash": "$2a$10$WWmNpjpzbCP/EnmixUIxGOWMars5vag4HH4T9.C3EyJGgX8mivi1W",
+      "level": "g",
+      "group_name": "A",
+      "created_at": "2026-09-03 11:44:16",
+      "level_label": "GM"
+    },
+    {
+      "id": 31,
+      "emp_number": "ST021",
+      "name": "Wong Tak Wai",
+      "password_hash": "$2a$10$1Fi6gZs8qJ17WPwoaZshb.2XCy5lfooNllVEBiQFeVhPTfPihDpry",
+      "level": "supervisor",
+      "group_name": "A",
+      "created_at": "2026-08-11 13:06:21",
+      "level_label": "技術員主管"
+    },
+    {
+      "id": 32,
+      "emp_number": "ST065",
+      "name": "Lee Kwok Keung",
+      "password_hash": "$2a$10$wCXODTU0BJbFhXEBQADteO.c9XswfPO1jByDASpAolrbLdOCriYLa",
+      "level": "b",
+      "group_name": "",
+      "created_at": "2026-08-11 15:31:27",
+      "level_label": "技術員經理"
+    },
+    {
+      "id": 4,
+      "emp_number": "ST082",
+      "name": "Lee Kin Fai",
+      "password_hash": "$2a$10$D5yOPfiN.bGmJ2Yh3YCZGeJ5TNJgNbI5jGxEbKhluAfDJmjDDvAxu",
+      "level": "d",
+      "group_name": "E",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "技術員副主管"
+    },
+    {
+      "id": 5,
+      "emp_number": "ST105",
+      "name": "Mok Chung Ming",
+      "password_hash": "$2a$10$IHtoWRXSDPd9Pz6tkrgtguEJH/Mfv.WQJ/wbcfb58gFM.vMb/YFya",
+      "level": "d",
+      "group_name": "E",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "技術員副主管"
+    },
+    {
+      "id": 6,
+      "emp_number": "ST130",
+      "name": "Pang Kwok Ho",
+      "password_hash": "$2a$10$Mz4HYRcFUyIKzMTWiv7vPOoCTr7xfAwf1t7p5xBW23mK8uuI/SVvK",
+      "level": "d",
+      "group_name": "E",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "技術員副主管"
+    },
+    {
+      "id": 30,
+      "emp_number": "ST140",
+      "name": "Hui Sum Sum",
+      "password_hash": "$2a$10$1ssU0mDd4v.WAQqnNrgHvurpLpXn6Ya6AhwORLyegq4b74pXD4XfO",
+      "level": "b",
+      "group_name": "",
+      "created_at": "2026-06-27 22:45:00",
+      "level_label": "技術員經理"
+    },
+    {
+      "id": 7,
+      "emp_number": "ST188",
+      "name": "Ho Chun Hin",
+      "password_hash": "$2a$10$6OEe1XxWM4.9htNQVLcZJ.8lVQZwulh8emqa3nA56nArzCCpYnvta",
+      "level": "senior",
+      "group_name": "D",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "高級技術員"
+    },
+    {
+      "id": 8,
+      "emp_number": "ST199",
+      "name": "Chan Chu Ming",
+      "password_hash": "$2a$10$R/4mVCjnT6NDxP7ZEUx.5.RJR7Kd.jCE32yxe9i4ziwHxVZEqvgKu",
+      "level": "senior",
+      "group_name": "C",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "高級技術員"
+    },
+    {
+      "id": 9,
+      "emp_number": "ST273",
+      "name": "Chan Wing Hong",
+      "password_hash": "$2a$10$sHPTUDxzmOV5zf.Qqfm.Be67mZ6U4KF.KK.Jkvlar/eUoaP2KfCyy",
+      "level": "junior",
+      "group_name": "C",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    },
+    {
+      "id": 10,
+      "emp_number": "ST320",
+      "name": "Leung Chin Nam",
+      "password_hash": "$2a$10$2S9NBON.EpHX72vVwCOEKuAAgmF3sn3kvC.nsSmfAmnITc/JInry2",
+      "level": "senior",
+      "group_name": "B",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "高級技術員"
+    },
+    {
+      "id": 11,
+      "emp_number": "ST334",
+      "name": "Lau Chun Wai Oscar",
+      "password_hash": "$2a$10$WwC7WAvqUNMQCjrbikxJF.4JzPKj1AJ7fa432LAFgX3Coi91C6adO",
+      "level": "senior",
+      "group_name": "E",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "高級技術員"
+    },
+    {
+      "id": 33,
+      "emp_number": "ST340",
+      "name": "Eddie Mo",
+      "password_hash": "$2a$10$HYURMilwW8D6xUCyfnTAY.ZjNtSZ/Jdw/2cPmuAkdpeguUQUHnmnS",
+      "level": "b",
+      "group_name": "",
+      "created_at": "2026-08-11 15:31:52",
+      "level_label": "技術員經理"
+    },
+    {
+      "id": 12,
+      "emp_number": "ST348",
+      "name": "Cheng Man Chun",
+      "password_hash": "$2a$10$X2pzLIxHI4gciVxWjHgelO9ekeGhdkAR.e7Eoz9jv24a1MJ0/94hm",
+      "level": "senior",
+      "group_name": "B",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "高級技術員"
+    },
+    {
+      "id": 13,
+      "emp_number": "ST360",
+      "name": "Ma Chun Man",
+      "password_hash": "$2a$10$S/A/75DgqDcj5uMiDXW10uOxHFnfxlqFfptXE0PNyrQ.FhnZlrqzW",
+      "level": "junior",
+      "group_name": "A",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    },
+    {
+      "id": 14,
+      "emp_number": "ST388",
+      "name": "Kwok Chun Hong",
+      "password_hash": "$2a$10$b/rEPnqVL2.kvQczwc9ByOF9TaEoiNVvB7dZcO7snxG3IzFSj0ncW",
+      "level": "senior",
+      "group_name": "D",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "高級技術員"
+    },
+    {
+      "id": 15,
+      "emp_number": "ST396",
+      "name": "Ling Wai Tak",
+      "password_hash": "$2a$10$JScAoTBx9kgAvrycuWNA7uaSq0pe61BvaHBxIU1NPl3vSq6Estf7e",
+      "level": "junior",
+      "group_name": "C",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    },
+    {
+      "id": 16,
+      "emp_number": "ST403",
+      "name": "Wong Ho Yin",
+      "password_hash": "$2a$10$YUxk8Z3BdJ1DdPTqdcf3I.cM2uu8zmqvBCcxuBebcBwJpiwhs3y1.",
+      "level": "junior",
+      "group_name": "D",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    },
+    {
+      "id": 17,
+      "emp_number": "ST405",
+      "name": "Wong Ping Fuk",
+      "password_hash": "$2a$10$QQdnwDewSa5bzy9syDvGnO4WWOwi7BRN.TJW6yqXybanWXG3z.hVe",
+      "level": "junior",
+      "group_name": "B",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    },
+    {
+      "id": 18,
+      "emp_number": "ST410",
+      "name": "Yu Hon Leung",
+      "password_hash": "$2a$10$ACYgH1oHXVhziILP1bEGw.9EzR2cL0lF9JXBh4mATyEq3X/NTbLru",
+      "level": "junior",
+      "group_name": "D",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    },
+    {
+      "id": 19,
+      "emp_number": "ST411",
+      "name": "Alvin Baluyut",
+      "password_hash": "$2b$10$PyHxn3xmWbRguw80wK1WheSwx6F44agsj/Pe1.b//MsrtzV8Zi7q2",
+      "level": "senior",
+      "group_name": "A",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "高級技術員"
+    },
+    {
+      "id": 20,
+      "emp_number": "ST418",
+      "name": "Lo Chun Wai",
+      "password_hash": "$2a$10$0ipl8Rqa4Y.NRFeAvZGrMOpyOkUktRkP2BRPXp7HmwnzNDFEf53ra",
+      "level": "junior",
+      "group_name": "C",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    },
+    {
+      "id": 21,
+      "emp_number": "ST419",
+      "name": "Wong King Pang",
+      "password_hash": "$2a$10$QtU.ISIO12a0rdB74d4BVOsu.TM1OsMAZGgZJcM8ZKmBY936Kj/ZS",
+      "level": "junior",
+      "group_name": "A",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    },
+    {
+      "id": 22,
+      "emp_number": "ST433",
+      "name": "WONG CHEUK YIN",
+      "password_hash": "$2a$10$JW28p3/0I.ehl2v2ECYZr.RyHSRa8hFAPTRJB68jPHi6zyAsnUqga",
+      "level": "junior",
+      "group_name": "B",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    },
+    {
+      "id": 23,
+      "emp_number": "ST435",
+      "name": "Cheuk Chun Cheung",
+      "password_hash": "$2a$10$5v3iH8S6SgoJ..pYMnovqedsnf01z56RI/iPlUE4xlMMfqKj1HPlq",
+      "level": "junior",
+      "group_name": "C",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    },
+    {
+      "id": 24,
+      "emp_number": "ST439",
+      "name": "Li CHI HUNG",
+      "password_hash": "$2a$10$lA5icXpYvK5gec0evXbt.OB0F0XyhP4dar5zueUj9oLCDc29NI1DC",
+      "level": "junior",
+      "group_name": "A",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    },
+    {
+      "id": 25,
+      "emp_number": "ST443",
+      "name": "CHEN SIQI",
+      "password_hash": "$2a$10$l7i4GaYFKA6MzMaAiKxWKuVBDn7cJsteUDV31chS1Lt1rzS0YKxdS",
+      "level": "junior",
+      "group_name": "A",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    },
+    {
+      "id": 26,
+      "emp_number": "ST444",
+      "name": "NG KIT YING",
+      "password_hash": "$2a$10$UFDLH2S6Vrbnssv4845mrObMW4zupzoxFyNWedcBvLOysfNleaTP.",
+      "level": "junior",
+      "group_name": "A",
+      "created_at": "2026-06-27 20:00:00",
+      "level_label": "初級技術員"
+    }
+  ]
+}

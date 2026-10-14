@@ -1054,9 +1054,24 @@ app.post('/api/admin/employees/:id/terminate', authRequired('admin'), requirePer
 
 app.delete('/api/admin/employees/:id', authRequired('admin'), requirePermission('employees'), async (req, res) => {
   const eid = parseInt(req.params.id);
-  let employees = await loadJSON('employees.json', []);
-  employees = employees.filter(e => e.id !== eid);
-  await saveJSON('employees.json', employees);
+  const employees = await loadJSON('employees.json', []);
+  const emp = employees.find(e => e.id === eid);
+  if (!emp) return res.status(404).json({ success: false, error: '員工不存在' });
+  const empNo = emp.emp_number;
+  // 有相關記錄就唔俾硬刪（會令工時/佣金記錄斷 link），強制用「停用」
+  const wt = await loadJSON(WORKTIME_FILE, []);
+  const hasWt = wt.some(r => r.emp_id === eid || r.emp_number === empNo);
+  const comm = await loadJSON(COMM_FILE, []);
+  const hasComm = comm.some(r => r.emp_id === eid || r.emp_number === empNo);
+  const leads = await loadJSON(LEAD_FILE, []);
+  const hasLead = leads.some(r => String(r.emp_number) === String(empNo)
+    || (r.members || []).some(m => m.emp_id === eid)
+    || (r.created_by_emp_id != null && r.created_by_emp_id === eid));
+  if (hasWt || hasComm || hasLead) {
+    return res.status(400).json({ success: false, error: '呢位員工有工時／佣金／tech-leads 記錄，唔可以刪除，請用「停用」。' });
+  }
+  const remaining = employees.filter(e => e.id !== eid);
+  await saveJSON('employees.json', remaining);
   res.json({ success: true });
 });
 
@@ -2804,7 +2819,7 @@ app.post('/api/fleet/fuels', authRequired('employee'), async (req, res) => {
     if (!me) return res.status(401).json({ success: false, error: '員工資料不存在' });
     const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
     if (!vehicles.find(v => v.plate === plate)) return res.status(400).json({ success: false, error: '車輛不存在' });
-    if (!validMileage(mileage)) return res.status(400).json({ success: false, error: '請輸入有效里數' });
+    if (mileage != null && mileage !== '' && !validMileage(mileage)) return res.status(400).json({ success: false, error: '里數格式唔正確' });
     if (!validMoney(total_cost) || Number(total_cost) <= 0) return res.status(400).json({ success: false, error: '請輸入有效油費' });
     if (liters != null && liters !== '' && !validMoney(liters)) return res.status(400).json({ success: false, error: '入油量格式唔正確' });
     if (price_per_liter != null && price_per_liter !== '' && !validMoney(price_per_liter)) return res.status(400).json({ success: false, error: '單價格式唔正確' });
@@ -2816,7 +2831,7 @@ app.post('/api/fleet/fuels', authRequired('employee'), async (req, res) => {
       emp_number: me.emp_number || '',
       emp_name: me.name || '',
       date: todayHK(),
-      mileage: Number(mileage),
+      mileage: (mileage == null || mileage === '') ? null : Number(mileage),
       liters: (liters == null || liters === '') ? null : Number(liters),
       price_per_liter: (price_per_liter == null || price_per_liter === '') ? null : Number(price_per_liter),
       total_cost: Number(total_cost),
@@ -2997,7 +3012,7 @@ app.delete('/api/admin/fleet/vehicles/:id', authRequired('admin'), requirePermis
 
 // Admin: all records with filters
 app.get('/api/admin/fleet/records', authRequired('admin'), requirePermission('fleet'), async (req, res) => {
-  const { plate, month, type } = req.query;
+  const { plate, month, type, emp } = req.query;
   const trips = await loadJSON(FLEET_TRIPS_FILE, []);
   const fuels = await loadJSON(FLEET_FUELS_FILE, []);
   const maint = await loadJSON(FLEET_MAINT_FILE, []);
@@ -3011,8 +3026,36 @@ app.get('/api/admin/fleet/records', authRequired('admin'), requirePermission('fl
   if (plate) rows = rows.filter(r => r.plate === plate);
   if (month) rows = rows.filter(r => (r.date || '').startsWith(String(month)));
   if (type && FLEET_FILES[type]) rows = rows.filter(r => r.rec_type === type);
+  if (emp) {
+    const q = String(emp).trim().toLowerCase();
+    rows = rows.filter(r => (r.emp_name || '').toLowerCase().includes(q) || (r.emp_number || '').toLowerCase().includes(q));
+  }
   rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id));
   res.json({ success: true, records: rows, total: rows.length });
+});
+
+// Admin: 車輛月報（每架車每月 總里數/出車次/入油次/油費/升數/每km油費/保養維修次）
+app.get('/api/admin/fleet/monthly-report', authRequired('admin'), requirePermission('fleet'), async (req, res) => {
+  try {
+    const month = (req.query.month || '').toString().trim();
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ success: false, error: '請提供月份 (YYYY-MM)' });
+    const vehicles = await loadJSON(FLEET_VEHICLES_FILE, []);
+    const trips = (await loadJSON(FLEET_TRIPS_FILE, [])).filter(r => (r.date || '').startsWith(month) && r.end_mileage != null);
+    const fuels = (await loadJSON(FLEET_FUELS_FILE, [])).filter(r => (r.date || '').startsWith(month));
+    const maint = (await loadJSON(FLEET_MAINT_FILE, [])).filter(r => (r.date || '').startsWith(month));
+    const repairs = (await loadJSON(FLEET_REPAIRS_FILE, [])).filter(r => (r.date || '').startsWith(month));
+    const map = {};
+    for (const v of vehicles) map[v.plate] = { plate: v.plate, alias: v.alias || '', km: 0, trips: 0, fuels: 0, liters: 0, fuelCost: 0, maint: 0, repairs: 0 };
+    for (const t of trips) { const m = map[t.plate]; if (m) { m.km += (t.daily_mileage || 0); m.trips++; } }
+    for (const f of fuels) { const m = map[f.plate]; if (m) { m.fuels++; m.liters += (f.liters || 0); m.fuelCost += (f.total_cost || 0); } }
+    for (const x of maint) { const m = map[x.plate]; if (m) m.maint++; }
+    for (const x of repairs) { const m = map[x.plate]; if (m) m.repairs++; }
+    const rows = vehicles.map(v => {
+      const m = map[v.plate];
+      return { plate: v.plate, alias: v.alias || '', km: Math.round(m.km * 10) / 10, trips: m.trips, fuels: m.fuels, liters: Math.round(m.liters * 10) / 10, fuelCost: Math.round(m.fuelCost * 100) / 100, maint: m.maint, repairs: m.repairs, costPerKm: m.km > 0 ? Math.round((m.fuelCost / m.km) * 100) / 100 : 0 };
+    });
+    res.json({ success: true, month, rows });
+  } catch (e) { res.status(500).json({ success: false, error: '月報失敗' }); }
 });
 
 // Admin: delete any record
@@ -4673,6 +4716,85 @@ app.get('/api/admin/backup/export', authRequired('admin'), async (req, res) => {
   }
 });
 
+// 共用：建立完整備份 snapshot（data map），唔做權限檢查（由呼叫方保證）
+async function buildFullBackupSnapshot() {
+  const TOPIC_IDS = [1, 2, 3, 4, 7, 8];
+  const KNOWN = [
+    'admins.json', 'employees.json', 'sessions.json',
+    'exam_results.json', 'essay_answers.json', 'exam_config.json',
+    'topics.json', 'job_levels.json',
+    'warehouse_items.json', 'warehouse_transactions.json', 'warehouse_vehicles.json',
+    'commission_records.json', 'tech_leads.json',
+    'fleet_vehicles.json', 'fleet_trips.json', 'fleet_fuels.json', 'fleet_maintenance.json', 'fleet_repairs.json',
+    'worktime.json', 'feedback.json', 'allowance.json', 'guaranteed_pay.json', 'night_job_approvals.json', 'meeting_records.json'
+  ];
+  for (const id of TOPIC_IDS) { KNOWN.push(`questions_topic_${id}_mc`, `questions_topic_${id}_essay`); }
+  const keys = new Set(KNOWN);
+  if (redis) {
+    try {
+      const all = await redis.keys('*');
+      if (Array.isArray(all)) all.forEach(k => keys.add(k));
+    } catch (e) {
+      console.warn('[BACKUP] redis.keys failed, using known key list:', e.message);
+    }
+  }
+  const snapshot = {};
+  for (const k of keys) {
+    if (typeof k === 'string' && k.startsWith('backup:')) continue; // 唔好將舊快照嵌埋入去
+    let v;
+    try { v = await loadJSON(k, null); } catch (e) { v = null; }
+    if (v === null || v === undefined) continue;
+    snapshot[k] = v;
+  }
+  return snapshot;
+}
+
+// 每日快照：寫入 backup:YYYY-MM-DD（落 Upstash，救 free tier 驅逐／部分 overwrite）
+async function takeDailyBackupSnapshot() {
+  try {
+    const admins = await loadJSON('admins.json', []);
+    const me = admins.find(a => a.is_super) || admins[0];
+    const snapshot = await buildFullBackupSnapshot();
+    const day = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+    const payload = {
+      meta: { system: 'BIOCYCLE exam-system', snapshot_at: new Date().toISOString(), by: me ? me.username : 'system', key_count: Object.keys(snapshot).length, source: redis ? 'upstash-redis' : 'local-file' },
+      data: snapshot
+    };
+    await saveJSON('backup:' + day, payload);
+    console.log('[BACKUP] daily snapshot saved backup:' + day + ' (' + Object.keys(snapshot).length + ' keys)');
+  } catch (e) {
+    console.warn('[BACKUP] daily snapshot failed:', e.message);
+  }
+}
+
+app.post('/api/admin/backup/snapshot', authRequired('admin'), async (req, res) => {
+  try {
+    const admins = await loadJSON('admins.json', []);
+    const me = admins.find(a => a.id === req.session.user_id);
+    if (!me || !me.is_super) return res.status(403).json({ success: false, error: '需要超級管理員權限' });
+    const snapshot = await buildFullBackupSnapshot();
+    const day = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+    const payload = {
+      meta: { system: 'BIOCYCLE exam-system', snapshot_at: new Date().toISOString(), by: me.username, key_count: Object.keys(snapshot).length, source: redis ? 'upstash-redis' : 'local-file' },
+      data: snapshot
+    };
+    await saveJSON('backup:' + day, payload);
+    res.json({ success: true, day, key_count: Object.keys(snapshot).length });
+  } catch (e) { res.status(500).json({ success: false, error: '快照失敗: ' + e.message }); }
+});
+
+app.get('/api/admin/backup/last', authRequired('admin'), async (req, res) => {
+  try {
+    let found = null;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(Date.now() + 8 * 3600000 - i * 86400000).toISOString().slice(0, 10);
+      const v = await loadJSON('backup:' + d, null);
+      if (v && v.meta) { found = { day: d, by: v.meta.by, at: v.meta.snapshot_at, key_count: v.meta.key_count }; break; }
+    }
+    res.json({ success: true, last: found });
+  } catch (e) { res.json({ success: true, last: null }); }
+});
+
 // Employee: list all employees (for team-member picker)
 app.get('/api/commission/employees', authRequired('employee'), async (req, res) => {
   const employees = await loadJSON('employees.json', []);
@@ -5354,6 +5476,22 @@ app.get('/api/games/leaderboard', authRequired('employee'), async (req, res) => 
     res.json({ game: g, leaderboard, myRank, myBest: me ? me.best : null, total: all.length });
   } catch (e) { res.status(500).json({ error: '讀取排行榜失敗' }); }
 });
+
+// 每日自動備份快照（香港時間約 03:00 執行一次；Railway 唔保證精準時間，但每日至少一次）
+if (!isVercel) {
+  const scheduleDailyBackup = () => {
+    const now = new Date(Date.now() + 8 * 3600000);
+    const ms = ((27 - now.getHours()) * 60 - now.getMinutes()) * 60000; // 距下個 03:00 HKT
+    const delay = ms <= 0 ? ms + 24 * 3600000 : ms;
+    setTimeout(async () => {
+      await takeDailyBackupSnapshot();
+      scheduleDailyBackup();
+    }, delay);
+  };
+  scheduleDailyBackup();
+  // 啟動時都做一次（確保部署後即刻有當日快照）
+  takeDailyBackupSnapshot();
+}
 
 // Start server locally only (not on Vercel)
 if (!isVercel) {

@@ -1,0 +1,17 @@
+=== VERIFICATION ===
+Total MC: 163
+Per topic: {'1': 28, '2': 24, '3': 31, '4': 27, '7': 33, '8': 20}
+Kept(preserved): 5 Combo(converted): 30 Plain(converted): 128
+Options count consistent: True
+Correct unchanged: True
+Topic2 idx0-4 byte-identical(content): True
+Warnings (⚠️): 7
+    4-13 ［⚠️ 原題目文本不完整·請用戶自行修正］ (題幹僅一句，無 statement)
+    4-20 ［⚠️ 修復·請確認］ (statement 由 4-14 補入)
+    4-23 ［⚠️ statement 數量不匹配 (options 用至 IV, 題目只有 0 個 statement)·請確認］
+    7-0 ［⚠️ statement 數量不匹配 (options 用至 V, 題目只有 4 個 statement)·請確認］
+    8-3 ［⚠️ statement 數量不匹配 (options 用至 IV, 題目只有 0 個 statement)·請確認］
+    8-6 ［⚠️ statement 數量不匹配 (options 用至 IV, 題目只有 0 個 statement)·請確認］
+    8-13 ［⚠️ statement 數量不匹配 (options 用至 IV, 題目只有 0 個 statement)·請確認］
+DOCX written: C:\Users\Sum\WorkBuddy\2026-06-28-22-52-03\exam-system\..\outputs\question_bank_final_preview.docx
+DONE

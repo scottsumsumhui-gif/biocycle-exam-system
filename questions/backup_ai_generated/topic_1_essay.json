@@ -1,0 +1,14 @@
+[
+  {"question":"請詳細說明IPM（綜合害蟲管理）的定義及其6個步驟，並解釋每個步驟的重要性。\nPlease explain the definition of IPM and its 6 steps, and the importance of each step.","maxScore":5},
+  {"question":"過量使用殺蟲劑會帶來什麼后果？請從抗藥性、對益蟲的影響、健康影響及殘留物影響四個方面詳細分析。\nWhat are the consequences of overuse of pesticides? Analyze in detail from resistance, effects on beneficial insects, health effects, and residual effects.","maxScore":5},
+  {"question":"在IPM施行步驟中，物理方法、化學方法和生物方法各有哪些具體措施？請舉例說明。\nWhat specific measures are included in Physical, Chemical and Biological methods in the IPM Implementation step? Give examples.","maxScore":5},
+  {"question":"在滅蟲工作中，如何確保安全使用殺蟲劑？請從法例要求、標籤指示、MSDS及正確使用方法等方面說明。\nHow to ensure safe use of pesticides in pest control work? Explain from legal requirements, label instructions, MSDS and correct usage.","maxScore":5},
+  {"question":"請解釋在IPM的「教育」步驟中，有哪些預防害蟲的建議措施？為什麼預防比治理更重要？\nExplain the preventive measures recommended in the IPM \"Education\" step. Why is prevention more important than treatment?","maxScore":5},
+  {"question":"比較物理方法和化學方法在滅蟲工作中的優缺點，並說明在什麼情況下應優先選用物理方法。\nCompare the advantages and disadvantages of Physical and Chemical methods in pest control, and explain when Physical methods should be prioritized.","maxScore":5},
+  {"question":"演藝學院二嗪磷事件給滅蟲行業帶來了什麼教訓？如何避免類似事故再次發生？\nWhat lessons did the Diazinon incident at HK Academy for Performing Arts bring to the pest control industry? How to prevent similar accidents?","maxScore":5},
+  {"question":"解釋生物方法中的天敵和昆蟲生態調節劑如何工作，並說明各自的優缺點。\nExplain how natural enemies and Insect Growth Regulators work in the Biological method, and their respective advantages and disadvantages.","maxScore":5},
+  {"question":"在監測（Monitoring）步驟中，為什麼保存記錄很重要？良好的記錄可以幫助什麼？\nWhy is keeping records important in the Monitoring step? What can good records help with?","maxScore":5},
+  {"question":"請說明如何通過辨認（Identification）步驟確定正確的治理方案，包括需要了解害蟲的哪些資訊。\nExplain how the Identification step determines the correct treatment plan, including what pest information needs to be understood.","maxScore":5},
+  {"question":"IPM的益處有哪些？請從經濟、環境和合作伙伴三個角度分析。\nWhat are the benefits of IPM? Analyze from economic, environmental and partnership perspectives.","maxScore":5},
+  {"question":"在偵察（Inspection）步驟中，有哪些常見的害蟲跡象和害蟲喜歡的環境條件？請舉例說明。\nWhat are common signs of pests and favorable environmental conditions in the Inspection step? Give examples.","maxScore":5}
+]

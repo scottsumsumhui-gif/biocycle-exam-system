@@ -1,0 +1,802 @@
+[
+  {
+    "question": "BioKill Training 今天的題目包括以下哪些內容？",
+    "options": [
+      "滅蟲劑的介紹",
+      "BioKill 產品介紹",
+      "其他日常應用的滅蟲劑及老鼠藥",
+      "以上全部"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "以下哪項不是 BioKill Training 的教學內容？",
+    "options": [
+      "Introduction of insecticide",
+      "Introduction of BioKill Products",
+      "建築工程技術",
+      "Rodenticides"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "BioKill® 持久強效滅蟲劑的英文產品名稱是什麼？",
+    "options": [
+      "BioKill® Universal Insecticide",
+      "BioKill® Long Lasting Extra Insecticide",
+      "BioKill® Anti Mite Spray",
+      "BioKill® Safe Sanitizer"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 持久強效滅蟲劑能有效殺滅哪些害蟲？",
+    "options": [
+      "只限蟑螂",
+      "只限蚊和蒼蠅",
+      "所有已知冷血科害蟲",
+      "只限螞蟻"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "BioKill® 持久強效滅蟲劑的特有科技是什麼？",
+    "options": [
+      "奈米科技",
+      "微膠囊能定期釋放有效殺蟲成份",
+      "紫外線技術",
+      "生物科技"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 持久強效滅蟲劑的效力最長可達多久？",
+    "options": [
+      "1個月",
+      "3個月",
+      "6個月",
+      "12個月"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "BioKill® 持久強效滅蟲劑可用於以下哪些環境？",
+    "options": [
+      "只限辦公室",
+      "潮濕、害蟲滋擾及骯髒的地方及室外",
+      "只限醫院",
+      "只限住宅"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 持久強效滅蟲劑的成分包括什麼？",
+    "options": [
+      "Prallethrin 0.01% w/w, Lambda-cyhalothrin(CS) 0.07% w/w",
+      "Permethrin 0.25% w/w",
+      "Chlorfenapyr 24%",
+      "Deltamethrin 0.05%"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "BioKill® 持久強效滅蟲劑的香港漁護處註冊編號是多少？",
+    "options": [
+      "1P55 (AL)",
+      "1P196 (AL)",
+      "2P315 (SC)",
+      "2P244 (GE)"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 持久強效滅蟲劑的殺蟲方式是什麼？",
+    "options": [
+      "胃毒中毒",
+      "觸殺中毒 (Contact Poison)",
+      "燻蒸中毒",
+      "以上全部"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 產品使用的微膠囊科技有什麼好處？",
+    "options": [
+      "消除釋放時的時間間隙",
+      "改善毒理數據",
+      "更好的功效",
+      "以上全部"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "新一代 BioKill® 產品不再採用以下哪種成分？",
+    "options": [
+      "氯氰菊酯",
+      "毒死蜱",
+      "聯苯菊酯",
+      "溴氰菊酯"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 滅蟎噴劑針對性配方加有什麼成分？",
+    "options": [
+      "消毒成分",
+      "防腐劑",
+      "香精",
+      "色素"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "BioKill® 滅蟎噴劑專門殺滅哪些害蟲？",
+    "options": [
+      "蟎及其他依靠真菌或霉菌生存的昆蟲",
+      "只限蟑螂",
+      "只限蚊和蒼蠅",
+      "只限螞蟻"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "BioKill® 滅蟎噴劑適用於以下哪些表面？",
+    "options": [
+      "床褥、地氈和傢俬墊子",
+      "只限牆壁",
+      "只限天花板",
+      "只限地板"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "BioKill® 滅蟎噴劑的效力長達多久？",
+    "options": [
+      "1星期",
+      "2星期",
+      "4星期",
+      "8星期"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "BioKill® 滅蟎噴劑可用於哪些噴灑工具？",
+    "options": [
+      "只限 HANDPUMP",
+      "HANDPUMP、TURBO 及 BACKPACK",
+      "只限 BACKPACK",
+      "只限 TURBO"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 滅蟎噴劑的成分是什么？",
+    "options": [
+      "Permethrin 0.25% w/w",
+      "Prallethrin 0.01%",
+      "Chlorfenapyr 24%",
+      "Imidacloprid 20%"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "BioKill® 滅蟎噴劑的香港漁護處註冊編號是多少？",
+    "options": [
+      "1P196 (AL)",
+      "1P55 (AL)",
+      "2P315 (SC)",
+      "2P225 (BB)"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 安全消毒劑的成分是什麼？",
+    "options": [
+      "天然成分 Assan",
+      "化學成分",
+      "酒精",
+      "氯"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "BioKill® 安全消毒劑可以有效殺死什麼？",
+    "options": [
+      "只限細菌",
+      "細菌、病毒和霉菌",
+      "只限病毒",
+      "只限霉菌"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 安全消毒劑是否可以使用於水果、蔬菜或肉類？",
+    "options": [
+      "不可以",
+      "可以，能降低細菌污染及降低腐爛的可能性",
+      "只限水果",
+      "只限蔬菜"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 安全消毒劑的天然成份已獲哪些機構認可為安全產品？",
+    "options": [
+      "美國環境保護署及美國食物及藥物管理局",
+      "歐盟標準",
+      "中國衛生部",
+      "香港漁護處"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "BioKill® 安全消毒劑能有效殺菌達多少百分比？",
+    "options": [
+      "90%",
+      "95%",
+      "99.9%",
+      "100%"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "BioKill® 天然驅蚊膏不含以下哪種成分？",
+    "options": [
+      "避蚊胺 (DEET)",
+      "檸檬尤加利葉精華",
+      "天然成分",
+      "以上都不是"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "BioKill® 天然驅蚊膏能有效提供多長時間的保護？",
+    "options": [
+      "2小時",
+      "4小時",
+      "6小時",
+      "8小時"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "BioKill® 天然驅蚊膏適用於哪些人群？",
+    "options": [
+      "只限成人",
+      "只限小童",
+      "小童及成人均適用",
+      "只限長者"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "BioKill® 天然驅蚊膏除驅蚊外，還能有效驅趕什麼？",
+    "options": [
+      "只限蒼蠅",
+      "多種螫人昆蟲",
+      "只限螞蟻",
+      "只限蟑螂"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 環保老鼠膠的 3D 設計有什麼特點？",
+    "options": [
+      "不可折疊",
+      "可依照壓線摺成不同形狀，以配合不同環境的需要",
+      "只能用於平面",
+      "只有一種形狀"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 環保老鼠膠的黏貼力如何？",
+    "options": [
+      "普通",
+      "超強黏貼力，黐住老鼠無得走甩",
+      "弱",
+      "中等"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "使用 BioKill® 環保老鼠膠後，如何棄置？",
+    "options": [
+      "只能清洗後重複使用",
+      "老鼠膠連同老鼠一並棄掉，使用方便",
+      "不能棄置",
+      "需要特殊處理"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "為什麼不建議使用老鼠米？",
+    "options": [
+      "太貴",
+      "老鼠食了會在其它地方死亡，如果死在假天花會很麻煩",
+      "效果不好",
+      "以上都不是"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "常規殺蟲劑的作用方式共有幾種？",
+    "options": [
+      "1種",
+      "2種",
+      "3種",
+      "4種"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "胃毒又稱消化中毒 (Stomach Poison) 是指什麼？",
+    "options": [
+      "害蟲接觸藥劑後死亡",
+      "害蟲用口取食被藥劑撒佈過的食物後，由其消化器官吸收毒分而至死亡",
+      "藥劑氣體經害蟲的呼吸系統侵入蟲體內",
+      "以上都不是"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "觸殺中毒 (Contact Poison) 是指什麼？",
+    "options": [
+      "藥劑撒佈過，使與害蟲蟲體接觸，經由其皮膚或溶解其表皮腊質，渗透入體內",
+      "害蟲用口取食被藥劑撒佈過的食物",
+      "藥劑氣體經害蟲的呼吸系統侵入",
+      "以上都不是"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "殘效性觸殺 (Residual Contact Poison) 是指什麼？",
+    "options": [
+      "必須將藥劑直接撒佈於蟲體上方能有效",
+      "除藥劑直接接觸到蟲體可將其殺滅外，凡是接觸到撒佈過藥劑部位之蟲體，亦能使蟲體致死",
+      "藥劑氣體經害蟲的呼吸系統侵入",
+      "以上都不是"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "燻蒸中毒 (Fumigant Poison) 是利用什麼方式殺蟲？",
+    "options": [
+      "藥劑有效成分的氣體狀體，經害蟲的呼吸系統侵入蟲體內",
+      "害蟲用口取食被藥劑撒佈過的食物",
+      "藥劑直接接觸蟲體",
+      "以上都不是"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "以下哪項是選擇 BioKill® 產品的原因？",
+    "options": [
+      "人畜安全",
+      "無嗅",
+      "不沾污及非易燃液體",
+      "以上全部"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "BioKill® 產品是否具有預防作用？",
+    "options": [
+      "沒有",
+      "有",
+      "只限某些產品",
+      "以上都不是"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 產品是否天然降解及環保？",
+    "options": [
+      "不是",
+      "是",
+      "只限某些產品",
+      "以上都不是"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "使用 BioKill® 產品前應該先做什麼？",
+    "options": [
+      "直接噴灑",
+      "先搖動均勻",
+      "加水稀釋",
+      "加熱"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 產品噴灑時應距離目標表面多少厘米？",
+    "options": [
+      "10厘米",
+      "20厘米",
+      "30厘米",
+      "50厘米"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "BioKill® 產品噴灑後是否需要使用清潔劑進行清潔？",
+    "options": [
+      "需要",
+      "毋須",
+      "視情況而定",
+      "以上都不是"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 持久滅蟲劑首次噴灑後需多久再作噴灑？",
+    "options": [
+      "1星期",
+      "2-3星期",
+      "4星期",
+      "8星期"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "BioKill® 持久滅蟲劑其後每隔多久再作噴灑？",
+    "options": [
+      "1星期",
+      "2-3星期",
+      "3-4星期",
+      "8-12星期"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "最有效解決昆蟲及衛生問題的方法是什麼？",
+    "options": [
+      "只使用滅蟲產品",
+      "保持環境整潔並防止昆蟲從外進入",
+      "只使用老鼠膠",
+      "以上都不是"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Phantom® 伐蟻克能對付哪些害蟲？",
+    "options": [
+      "只限蟑螂",
+      "一般害蟲如蟑螂、蟻、衣魚、木蝨等",
+      "只限蚊和蒼蠅",
+      "只限老鼠"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Phantom® 伐蟻克的成分是什么？",
+    "options": [
+      "Prallethrin 0.01%",
+      "Chlorfenapyr 24% (w/v)",
+      "Permethrin 0.25%",
+      "Deltamethrin 0.05%"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Phantom® 伐蟻克的香港漁護處註冊編號是多少？",
+    "options": [
+      "1P55 (AL)",
+      "2P315 (SC)",
+      "2P244 (GE)",
+      "1P196 (AL)"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "根據標籤指示，Phantom® 用於木蝨時稀釋比例為多少？",
+    "options": [
+      "5ml/1000ml",
+      "10ml/1000ml",
+      "25ml/1000ml",
+      "50ml/1000ml"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "使用 Phantom® 治理木蝨時，主要噴灑在哪些位置？",
+    "options": [
+      "只噴天花",
+      "床褥邊位及床架位置及牆腳線、空隙裂縫等",
+      "只噴地板",
+      "只噴窗外"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Phantom® 伐蟻克是否可以直接噴灑在人可接觸位置？",
+    "options": [
+      "可以",
+      "不可以，不可直接噴灑在人可接觸位置",
+      "視情況而定",
+      "以上都不是"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "FNK® 驅殺能對付哪些害蟲？",
+    "options": [
+      "只限蟑螂",
+      "一般爬蟲及飛蟲類害蟲如蟑螂、虱、蟻、蚊、蠅、蛾等",
+      "只限老鼠",
+      "只限白蟻"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "FNK® 驅殺的成分包括什麼？",
+    "options": [
+      "Deltamethrin 0.05%, D-Allethrin 0.2%, Dichlorvos 0.7%",
+      "只含 Deltamethrin",
+      "只含 Permethrin",
+      "只含 Chlorfenapyr"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "FNK® 驅殺的香港漁護處註冊編號是多少？",
+    "options": [
+      "1P75 (AE)",
+      "2P315 (SC)",
+      "1P55 (AL)",
+      "2P225 (BB)"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "FNK® 驅殺主要針對哪些昆蟲？",
+    "options": [
+      "只限蟑螂",
+      "蜜蜂、黄蜂及其他攻擊 (刺人) 的昆蟲",
+      "只限螞蟻",
+      "只限蚊"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "FNK® 驅殺是壓縮氣體，存放時温度不能高於多少度？",
+    "options": [
+      "30°C",
+      "40°C",
+      "50°C",
+      "60°C"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "使用 FNK® 驅殺時必須戴上什麼防護裝備？",
+    "options": [
+      "只戴手套",
+      "口罩如 (N95) 及合適防護裝備",
+      "只戴護目鏡",
+      "不需防護"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Roach Bait Gel 的殺蟲方式是什麼？",
+    "options": [
+      "觸殺中毒",
+      "胃毒又稱消化中毒 (Stomach Poison)",
+      "燻蒸中毒",
+      "以上都不是"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "針對德國蟑螂治理，主要在哪里施放藥餌？",
+    "options": [
+      "只在地板上",
+      "一些電器的背部及底部均要施放藥餌",
+      "只在天花板上",
+      "只在窗外"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "TopBait Max 的有效成分是什么？",
+    "options": [
+      "Fipronil 0.05% w/w",
+      "Hydramethylon (氟蟻腙) 2% w/w",
+      "Imidacloprid 2.15% w/w",
+      "Bromadiolone 0.005%"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "TopBait Gold 的有效成分是什么？",
+    "options": [
+      "Hydramethylon 2% w/w",
+      "Fipronil (氟蟲氰) 0.05% w/w",
+      "Imidacloprid 2.15% w/w",
+      "Chlorfenapyr 24%"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "RoachGone 的香港註冊編號是多少？",
+    "options": [
+      "2P218 (GE)",
+      "2P244 (GE)",
+      "1P158 (GE)",
+      "2P225 (BB)"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "除害劑對哺乳類動物的的毒性分為幾類？",
+    "options": [
+      "1類",
+      "2類",
+      "3類",
+      "4類"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "急性毒性 (Acute toxicity) 是指什麼？",
+    "options": [
+      "除害劑長期低劑量作用後所產生的毒性",
+      "除害劑一次大劑量或24小時內多次對生物體作用後所產生的毒性",
+      "除害劑對環境的影響",
+      "以上都不是"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "LD50 是指什麼？",
+    "options": [
+      "能使某種動物 100% 致死之藥物量",
+      "能使某種動物 50% 致死之藥物量",
+      "藥物的濃度",
+      "以上都不是"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "慢性毒性 (Chronic toxicity) 會引起哪些疾病？",
+    "options": [
+      "只會引起皮膚敏感",
+      "癌病、胚胎畸型、基因變異及神經系統不正常等",
+      "只會引起頭痛",
+      "以上都不是"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Fendona® 奮鬥吶的成分是什么？",
+    "options": [
+      "Prallethrin 0.01%",
+      "alpha-cypermethrin 10% w/w",
+      "Permethrin 0.25%",
+      "Imidacloprid 20%"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Fendona® 奮鬥吶的香港漁護處註冊編號是多少？",
+    "options": [
+      "1P55 (AL)",
+      "2P195 (SC)",
+      "2P315 (SC)",
+      "1P196 (AL)"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "根據標籤指示，Fendona® 用於蟲害時稀釋比例為多少？",
+    "options": [
+      "1.25ml/1000ml",
+      "5ml/1000ml",
+      "10ml/1000ml",
+      "25ml/1000ml"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "每一公升 Fendona® 藥水可噴灑範圍約多少平方米？",
+    "options": [
+      "10平方米",
+      "15平方米",
+      "20平方米",
+      "30平方米"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "Fendona® 主要施藥位置在哪裡？",
+    "options": [
+      "只噴天花",
+      "渠位、裂縫、持續潮濕及發現 (起潺) 位置",
+      "只噴窗外",
+      "只噴地板"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Fendona® 主要針對哪些蟲害才使用？",
+    "options": [
+      "只限蟑螂",
+      "千足及百足蟲害的情况",
+      "只限蚊",
+      "只限老鼠"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Temephos 1% S.G 的主要作用是什么？",
+    "options": [
+      "殺死成蚊",
+      "有效地制止蚊幼蟲成長、阻斷成長週期",
+      "殺死蟑螂",
+      "殺死老鼠"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Temephos 1% S.G 的成分是什么？",
+    "options": [
+      "temephos 1% W/W",
+      "Chlorfenapyr 24%",
+      "Permethrin 0.25%",
+      "Bromadiolone 0.005%"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "Temephos 1% S.G 的香港漁護處註冊編號是多少？",
+    "options": [
+      "1P55 (AL)",
+      "2P179 (SG)",
+      "2P315 (SC)",
+      "2P225 (BB)"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Temephos 1% S.G 應用於什麼地方？",
+    "options": [
+      "只限乾燥地方",
+      "沒流動的水 (死水) 與溝渠、水箱、花盆或花瓶",
+      "只限辦公室",
+      "只限住宅"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Temephos 1% S.G 每 10g 可以用於多少升水？",
+    "options": [
+      "45公升",
+      "60公升",
+      "90公升",
+      "120公升"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "使用 Temephos 1% S.G 時需戴上什麼？",
+    "options": [
+      "不需防護",
+      "手套",
+      "面罩",
+      "護目鏡"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "Premise 200 SC 主要對付哪些害蟲？",
+    "options": [
+      "只限蟑螂",
+      "白蟻及蛀木蟲",
+      "只限蚊",
+      "只限老鼠"
+    ],
+    "correct": 1
+  }
+]

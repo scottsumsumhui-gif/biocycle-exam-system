@@ -6,6 +6,7 @@
 <title>BIOCYCLE 技術員平台 - 管理員頁面</title>
 <link rel="icon" href="img/favicon.ico">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -938,13 +939,18 @@ async function loadDashboard() {
     // System backup (super-admin only)
     if (adminData && adminData.isSuper) {
       html += `<div class="section-card" style="border-left:4px solid var(--primary)"><h3>&#128190; 系統備份</h3>`;
-      html += `<p style="color:var(--text-light); font-size:13px; margin-bottom:10px">將 Redis 內全部數據（員工、考試、工時、倉庫、車隊、津貼、包薪等）匯出成一個 JSON 落你電腦。建議定期備份，防止誤操作或數據出錯損毀。</p>`;
-      html += `<button class="btn btn-primary" onclick="downloadBackup()">&#11015; 一鍵匯出備份 (JSON)</button>`;
-      html += `<span id="backupMsg" style="margin-left:10px; font-size:13px; color:var(--text-light)"></span>`;
+      html += `<p style="color:var(--text-light); font-size:13px; margin-bottom:10px">將 Redis 內全部數據（員工、考試、工時、倉庫、車隊、津貼、包薪等）匯出成一個 JSON 落你電腦。系統每日會自動喺 Upstash 留一份快照（backup:日期），防範 free tier 驅逐／部分 overwrite。</p>`;
+      html += `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="downloadBackup()">&#11015; 一鍵匯出備份 (JSON)</button>
+        <button class="btn btn-outline" onclick="takeBackupSnapshot()">&#128248; 立即快照</button>
+        <span id="backupMsg" style="font-size:13px; color:var(--text-light)"></span>
+      </div>`;
+      html += `<p style="font-size:12px; color:var(--text-light); margin-top:8px">上次自動快照：<span id="backupLast">查緊…</span></p>`;
       html += `</div>`;
     }
 
     body.innerHTML = html;
+    if (adminData && adminData.isSuper) loadBackupLast();
   } catch(e) { 
     console.error(e); 
     body.innerHTML = '<div class="error-msg">載入失敗，請重試</div>';
@@ -982,6 +988,34 @@ async function downloadBackup() {
   } catch (e) {
     if (msg) msg.textContent = '連接錯誤';
   }
+}
+
+// 立即將當日快照寫入 Upstash（backup:日期）
+async function takeBackupSnapshot() {
+  const msg = document.getElementById('backupMsg');
+  if (msg) msg.textContent = '快照中...';
+  try {
+    const res = await fetch(API + '/api/admin/backup/snapshot', { method: 'POST', credentials: 'include' });
+    const d = await res.json().catch(() => ({}));
+    if (msg) msg.textContent = d.success ? ('✅ 已快照 ' + d.day + '（' + d.key_count + ' 個 key）') : ('❌ ' + (d.error || '失敗'));
+    loadBackupLast();
+  } catch (e) { if (msg) msg.textContent = '連接錯誤'; }
+}
+
+// 顯示上次自動快照時間
+async function loadBackupLast() {
+  const el = document.getElementById('backupLast');
+  if (!el) return;
+  try {
+    const res = await fetch(API + '/api/admin/backup/last', { credentials: 'include' });
+    const d = await res.json().catch(() => ({}));
+    if (d.success && d.last) {
+      const t = new Date(d.last.at);
+      el.textContent = d.last.day + ' （by ' + d.last.by + '，' + d.last.key_count + ' 個 key）';
+    } else {
+      el.textContent = '未搵到（今日未跑／已過 7 日）';
+    }
+  } catch (e) { el.textContent = '查唔到'; }
 }
 
 // ===== EMPLOYEES =====
@@ -1245,8 +1279,12 @@ async function resetPassword(id, empNum) {
 }
 
 async function deleteEmployee(id, name) {
-  if (!confirm(`確定刪除員工 ${name}? (注意：刪除會令佢嘅工時記錄變無名，解僱建議用「停用」)`)) return;
-  const res = await fetch(API + `/api/admin/employees/${id}`, {method:'DELETE', credentials:'include'});
+  if (!confirm(`確定刪除員工 ${name}? (有記錄嘅員工唔可以刪，解僱請用「停用」)`)) return;
+  try {
+    const res = await fetch(API + `/api/admin/employees/${id}`, {method:'DELETE', credentials:'include'});
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) { alert(data.error || '刪除失敗'); loadEmployees(); return; }
+  } catch (e) { alert('刪除失敗'); }
   loadEmployees();
 }
 
@@ -2343,22 +2381,37 @@ function renderFleetAdmin() {
       <option value="maintenance">保養</option>
       <option value="repair">維修</option>
     </select>
+    <label>員工：</label><input id="fleetRecEmp" placeholder="名/編號" style="width:120px" oninput="loadFleetRecordsAdmin()">
     <button class="btn btn-sm btn-primary" onclick="exportFleetExcel()">&#128229; 匯出 Excel</button>
   </div>`;
   html += '<div id="fleetRecBox"></div></div>';
 
+  // --- 車輛月報 ---
+  const nowM = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 7);
+  html += `<div class="section-card"><h3>車輛月報</h3>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <label>月份：</label><input id="fleetRptMonth" type="month" value="${nowM}" style="width:150px">
+      <button class="btn btn-sm btn-primary" onclick="loadFleetMonthlyReport()">產生月報</button>
+      <button class="btn btn-sm btn-outline" onclick="exportFleetMonthlyReport()">&#128229; 匯出 Excel</button>
+      <span id="fleetRptMsg" style="font-size:13px"></span>
+    </div>
+    <div id="fleetRptBox"></div></div>`;
+
   document.getElementById('adminBody').innerHTML = html;
   renderFleetRecordsAdmin(fleetAdminCache.records);
+  loadFleetMonthlyReport();
 }
 
 async function loadFleetRecordsAdmin() {
   const plate = document.getElementById('fleetRecPlate').value;
   const month = document.getElementById('fleetRecMonth').value;
   const type = document.getElementById('fleetRecType').value;
+  const emp = document.getElementById('fleetRecEmp').value;
   const q = new URLSearchParams();
   if (plate) q.set('plate', plate);
   if (month) q.set('month', month);
   if (type) q.set('type', type);
+  if (emp) q.set('emp', emp);
   const box = document.getElementById('fleetRecBox');
   if (box) box.innerHTML = '<p>載入中...</p>';
   try {
@@ -2367,6 +2420,47 @@ async function loadFleetRecordsAdmin() {
     if (!data.success) { if (box) box.innerHTML = '<p>' + (data.error || '載入失敗') + '</p>'; return; }
     renderFleetRecordsAdmin(data.records || []);
   } catch (e) { if (box) box.innerHTML = '<p>載入失敗</p>'; }
+}
+
+async function loadFleetMonthlyReport() {
+  const month = document.getElementById('fleetRptMonth').value;
+  const box = document.getElementById('fleetRptBox');
+  const msg = document.getElementById('fleetRptMsg');
+  if (!month) { if (msg) msg.textContent = '請選月份'; return; }
+  if (box) box.innerHTML = '<p>載入中...</p>';
+  if (msg) msg.textContent = '';
+  try {
+    const res = await fetch(API + '/api/admin/fleet/monthly-report?month=' + encodeURIComponent(month), { credentials: 'include' });
+    const data = await res.json();
+    if (!data.success) { if (box) box.innerHTML = '<p>' + (data.error || '失敗') + '</p>'; return; }
+    const rows = data.rows || [];
+    if (!rows.length) { if (box) box.innerHTML = '<p style="color:var(--text-light)">暫無數據</p>'; return; }
+    let html = '<table class="data-table"><thead><tr><th>車牌</th><th>別名</th><th>總里數</th><th>出車</th><th>入油</th><th>升數</th><th>油費</th><th>保養</th><th>維修</th><th>每 km 油費</th></tr></thead><tbody>';
+    for (const r of rows) {
+      html += `<tr><td>${r.plate}</td><td>${r.alias || '—'}</td><td>${r.km} km</td><td>${r.trips}</td><td>${r.fuels}</td><td>${r.liters}</td><td>$${r.fuelCost}</td><td>${r.maint}</td><td>${r.repairs}</td><td>${r.costPerKm ? '$' + r.costPerKm : '—'}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    if (box) box.innerHTML = html;
+  } catch (e) { if (box) box.innerHTML = '<p>載入失敗</p>'; }
+}
+
+async function exportFleetMonthlyReport() {
+  const month = document.getElementById('fleetRptMonth').value;
+  if (!month) { alert('請選月份'); return; }
+  try {
+    const res = await fetch(API + '/api/admin/fleet/monthly-report?month=' + encodeURIComponent(month), { credentials: 'include' });
+    const data = await res.json();
+    if (!data.success) { alert(data.error || '失敗'); return; }
+    const rows = data.rows || [];
+    const aoa = [['車輛月報 — ' + month], [], ['車牌', '別名', '總里數', '出車次', '入油次', '升數', '油費', '保養次', '維修次', '每km油費']];
+    for (const r of rows) aoa.push([r.plate, r.alias || '', r.km, r.trips, r.fuels, r.liters, r.fuelCost, r.maint, r.repairs, r.costPerKm]);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '車輛月報');
+    const url = URL.createObjectURL(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/octet-stream' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'fleet_monthly_' + month + '.xlsx'; a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) { alert('匯出失敗'); }
 }
 
 // 車隊記錄每月統一序號（顯示用；內部 id 唔郁，刪除/API 照用內部 id）
@@ -2523,6 +2617,7 @@ function renderWorktimeAdmin() {
     <label>月份：</label><input id="wtAdminMonth" type="month" style="width:150px">
     <label>匯出日期（由）：</label><input id="wtAdminFrom" type="date" value="${monStr}">
     <label>至：</label><input id="wtAdminTo" type="date" value="${sunStr}">
+    <label>員工搜尋：</label><input id="wtAdminSearch" placeholder="名/編號" style="width:130px" oninput="loadWorktimeRecordsAdmin()">
     <button class="btn btn-sm btn-primary" onclick="loadWorktimeRecordsAdmin()">搜尋</button>
     <button class="btn btn-sm btn-outline" onclick="exportWorktimeExcel()">&#128229; 匯出 Excel</button>
   </div></div>`;
@@ -2534,9 +2629,11 @@ function renderWorktimeAdmin() {
 function loadWorktimeRecordsAdmin() {
   const emp = document.getElementById('wtAdminEmp').value;
   const month = document.getElementById('wtAdminMonth').value;
+  const search = (document.getElementById('wtAdminSearch').value || '').trim().toLowerCase();
   let rows = wtAdminCache.records.slice();
   if (emp) rows = rows.filter(r => String(r.emp_id) === String(emp));
   if (month) rows = rows.filter(r => (r.date || '').startsWith(month));
+  if (search) rows = rows.filter(r => (r.emp_name || '').toLowerCase().includes(search) || (r.emp_number || '').toLowerCase().includes(search));
   renderWorktimeRecordsAdmin(rows);
 }
 

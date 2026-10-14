@@ -1,0 +1,1926 @@
+{
+  "1": {
+    "name": "IPM",
+    "mc": [
+      {
+        "question": "根據香港漁農自然護理署，除害劑﹙滅蟲劑）的使用是受那一章監管呢 ﹖\nAccording to Hong Kong's Agriculture, Fisheries and Conservation Department (AFCD), which Ordinance regulates the use of pesticides (insecticides)?",
+        "options": [
+          "《 除 害 劑 條 例》﹙第 133章） (Pesticides Ordinance (Cap. 133))",
+          "《 除 害 劑 條 例》﹙第 144章） (Pesticides Ordinance (Cap. 144))",
+          "《 除 害 劑 條 例》﹙第 155章） (Pesticides Ordinance (Cap. 155))",
+          "《 除 害 劑 條 例》﹙第 166章） (Pesticides Ordinance (Cap. 166))"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "過量使用殺蟲劑會有什麼的後果呢?\nWhat are the consequences of excessive use of insecticides?\n\nI. 對益蟲產生影響\nI. Adverse effects on beneficial insects\n\nII. 長遠健康影響\nII. Long-term health effects\n\nIII. 昆蟲對殺蟲劑產生抗藥性\nIII. Insects develop resistance to insecticides\n\nIV. 於食物中留下殘留物\nIV. Residues left in food",
+        "options": [
+          "I+IV",
+          "I+II+IV",
+          "II+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "滅蟲劑是由漁農自然護理署這個政府部門管轄它的英文簡稱是 ﹖\nWhat is the English abbreviation of the government department, the Agriculture, Fisheries and Conservation Department, that regulates insecticides?",
+        "options": [
+          "AFCD",
+          "ACFD",
+          "ADFC",
+          "ABCD"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "根據漁農自然護理署規定，已註册的滅蟲劑必須在樽身的標纖顯示甚麼 ﹖\nAccording to AFCD regulations, what must a registered insecticide display on the label on its container?",
+        "options": [
+          "註冊商標 (Registered trademark)",
+          "註册編號 (Registration number)",
+          "藥物成效 (Drug efficacy)",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "所有滅蟲劑均有________﹙MSDS），其內容包含滅蟲劑的毒性及對健康的影響 ﹖\nAll insecticides have a ________ (MSDS), which contains information on the toxicity of the insecticide and its health effects.",
+        "options": [
+          "藥物安全資料表 (Pharmaceutical safety data sheet)",
+          "物料安全資料表 (Material Safety Data Sheet (MSDS))",
+          "物料及藥物健康資料表 (Material and pharmaceutical health data sheet)",
+          "滅蟲劑含量資料表 (Insecticide content data sheet)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "綜合害蟲管理的6個步驟次序是 ﹖\nWhat is the correct order of the 6 steps of Integrated Pest Management (IPM)?",
+        "options": [
+          "監測、辨認、偵察、檢討、教育、施行 (Monitoring, identification, inspection, review, education, implementation)",
+          "辨認、偵察、施行、監測、檢討、教育 (Identification, inspection, implementation, monitoring, review, education)",
+          "教育、施行、辨認、監測、偵察、檢討 (Education, implementation, identification, monitoring, inspection, review)",
+          "偵察、辨認、監測、施行、檢討、教育 (Inspection, identification, monitoring, implementation, review, education)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "香港所有滅蟲劑是否必須經過註冊方可合法使用呢 ﹖\nMust all insecticides in Hong Kong be registered before they can be legally used?",
+        "options": [
+          "是 (Yes)",
+          "否 (No)",
+          "不一定 (Not necessarily)",
+          "視付用途已定 (Depends on the intended use)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "甚麼是綜合害蟲管理﹖\n以一個持續性方法結合____:____:____:____的工具，去處理害蟲而減少對經濟、人類健康及環境的危機\nWhat is Integrated Pest Management (IPM)?\nA continuous approach that combines ____:____:____:____ tools to manage pests while reducing risks to the economy, human health and the environment.",
+        "options": [
+          "環保、生態、有機物、改善生活 (Environmental, ecological, organic, improved living)",
+          "生物、天敵、改善環境、安全施藥 (Biological, natural enemies, environmental improvement, safe application)",
+          "生理、生物、物理、化學 (Physiological, biological, physical, chemical)",
+          "生物、文化、物理、化學 (Biological, cultural, physical, chemical)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "滅蟲劑的註冊編號可以在那兒找到呢 ﹖\nWhere can the registration number of an insecticide be found?",
+        "options": [
+          "樽身貼紙的正面 (Front of the label sticker on the container)",
+          "樽身貼紙的背面 (Back of the label sticker)",
+          "樽身的底部 (Bottom of the container)",
+          "樽身的頂部 (Top of the container)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "在臭蟲的治理上多被_____影響，因受廣泛和過度使用____所致 ﹖\nBed bug control is often affected by _____, due to widespread and excessive use of ____?",
+        "options": [
+          "環境、殺蟲劑 (Environment, insecticide)",
+          "客人、數據 (Client, data)",
+          "抗藥性、臭滴涕 (Resistance, chlordane (variant))",
+          "抗藥性、滴滴涕 (Resistance, DDT)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "根據綜合害蟲管理內, 我們是如何偵察害蟲呢﹖\nUnder Integrated Pest Management, how do we inspect for pests?",
+        "options": [
+          "找出害蟲及其狀況、出現過的跡象 (Identify pests and their conditions, and signs of their presence)",
+          "相信客人的直覺 (Trust the client's intuition)",
+          "留意客人的反應 (Pay attention to the client's reaction)",
+          "直接噴灑滅蟲劑 (Spray insecticide directly)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "以下那一項不是除害劑的一種 ﹖\nWhich of the following is NOT a type of pesticide?",
+        "options": [
+          "除真菌劑 (Fungicide)",
+          "除蟎劑 (Acaricide (miticide))",
+          "除草劑 (Herbicide)",
+          "除臭劑 (Deodorant)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "根據綜合害蟲管理，施行不包括什麼方法 ﹖\nAccording to IPM, which method is NOT included in implementation?",
+        "options": [
+          "化學方法 (Chemical method)",
+          "生物方法 (Biological method)",
+          "物理方法 (Physical method)",
+          "心理方法 (Psychological method)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "在懷疑有蟲害地方安裝陷井後作定期檢查，在綜合害蟲防治管理上這行為是甚麼 ﹖\nInstalling traps in suspected infested areas and conducting regular inspections — under IPM, what is this action?",
+        "options": [
+          "施行 (Implementation)",
+          "監察 (Monitoring)",
+          "檢討 (Review)",
+          "辨認 (Identification)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "以下那一項是教育客人防止蚊子重臨影響我們正確方法 ﹖\nWhich of the following is the correct method to educate clients to prevent mosquitoes from returning?\n\nI. 放置蚊綱\nI. Install mosquito nets\n\nII. 持環境清潔衛生\nII. Maintain a clean and hygienic environment\n\nIII. 清理積水\nIII. Clear stagnant water\n\nIV. 打開窗戶保持空氣流通\nIV. Open windows to maintain ventilation",
+        "options": [
+          "I+II+III",
+          "I+III+IV",
+          "I+II+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "滅蟲劑是根據什麼準則去稀釋﹖\nAccording to what criteria are insecticides diluted?",
+        "options": [
+          "根據客人要求及指示 (According to the client's requests and instructions)",
+          "根據註冊的標纖上列明的份量 (According to the dosage stated on the registered label)",
+          "根據標纖並適量調節 (According to the label with appropriate adjustment)",
+          "根據自己經驗及現場情况 (According to one's own experience and site conditions)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "根據香港法例，除害劑﹙滅蟲劑）的使用是那個部門及是受那一章去監管?\nUnder Hong Kong law, which department and which Ordinance regulate the use of pesticides (insecticides)?",
+        "options": [
+          "漁農自然護理局及《 除 害 劑 條 例》﹙第 133章） (AFCD and the Pesticides Ordinance (Cap. 133))",
+          "漁護署及《 除 害 劑 條 例》﹙第 133章） (AFCD and the Pesticides Ordinance (Cap. 133))",
+          "漁農自然護理署及 《 除 害 劑 條 例》﹙第 133章） (Agriculture, Fisheries and Conservation Department and the Pesticides Ordinance (Cap. 133))",
+          "漁農自然護理署署長《 除 害 劑 條 例》﹙第 133章） (Director of AFCD and the Pesticides Ordinance (Cap. 133))"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "以下那項不是滅蟲劑標籤能告訴我們的資訊?\nWhich of the following is NOT information that an insecticide label tells us?",
+        "options": [
+          "出產來原�� (Source of origin)",
+          "生產過程 (Production process)",
+          "在哪裡及如何應用它 (Where and how to apply it)",
+          "可寄存的地方 (Storage location)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "使用蚊砂去殺滅蚊子的幼蟲是IPM施行中的那種方法﹖\nUsing mosquito sand (larvicide) to kill mosquito larvae is which IPM implementation method?",
+        "options": [
+          "生理 (Physiological)",
+          "物理 (Physical)",
+          "化學 (Chemical)",
+          "心理 (Psychological)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "公司不建議客人用膠紙密封渠口，防止美國蟑螂進入室內原因何在？\nWhy does the company advise clients not to seal drain openings with tape to prevent American cockroaches from entering?",
+        "options": [
+          "不美觀 (Not aesthetically pleasing)",
+          "影響生態 (Affects the ecology)",
+          "倒塞去水 (Blocks drainage)",
+          "生意考慮 (Business consideration)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "根據定義，「除害劑」（pesticide）一詞涵蓋以下哪類控制對象？\nBy definition, the term 'pesticide' covers which of the following target organisms?",
+        "options": [
+          "只包括昆蟲 (Only insects)",
+          "只包括昆蟲和鼠類 (Only insects and rodents)",
+          "昆蟲、鼠類、雀鳥、線蟲、細菌、真菌、雜草等任何形式的有害生物 (Any harmful organism including insects, rodents, birds, nematodes, bacteria, fungi, weeds, etc.)",
+          "只包括雜草和真菌 (Only weeds and fungi)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "下列哪一項是「過量使用殺蟲劑」所帶來的後果？\nWhich of the following is a consequence of 'excessive use of insecticides'?",
+        "options": [
+          "害蟲更快被消滅且永不復發 (Pests are eliminated faster and never return)",
+          "抗藥性 (Resistance)",
+          "蜜蜂數量增加 (Increase in bee populations)",
+          "環境污染 (Environmental pollution)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "益達胺（Imidacloprid）被全球批評的原因是其對哪類生物有傷害？\nWhy is Imidacloprid criticised globally — because it harms which group of organisms?",
+        "options": [
+          "鼠類 (Rodents)",
+          "蜜蜂族群 (Bee populations)",
+          "雀鳥 (Birds)",
+          "樹熊 (Koalas)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "「物理方法」中的「改變生活環境（Habit Modification）」例子包括？\nIn 'physical methods', examples of 'habit modification' include?",
+        "options": [
+          "清潔、除去害蟲居所 (Cleaning and removing pest habitats)",
+          "噴灑大量藥劑 (Spraying large amounts of chemicals)",
+          "釋放天敵 (Releasing natural enemies)",
+          "放置藥餌 (Placing bait)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "關於黏餌陷阱（sticky traps）與費洛蒙（pheromone），以下哪項正確？\nRegarding sticky traps and pheromones, which is correct?",
+        "options": [
+          "黏餌陷阱是很好的非化學控制方法，加入費洛蒙顆粒可加強功效 (Sticky traps are a good non-chemical control; adding pheromone granules enhances efficacy)",
+          "費洛蒙會吸引所有害蟲 (Pheromones attract all pests)",
+          "黏餌陷阱只能用於戶外 (Sticky traps can only be used outdoors)",
+          "費洛蒙對陷阱無幫助 (Pheromones do not help traps)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "使用化學方法（殺蟲劑）時，應採取什麼原則？\nWhen using chemical methods (insecticides), what principle should be followed?",
+        "options": [
+          "盡量噴遍所有地方 (Spray everywhere as much as possible)",
+          "針對性、有控制地使用 (Targeted, controlled use)",
+          "越濃越好 (The higher the concentration the better)",
+          "聽從上級,跟指示 (Follow superiors' instructions)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "「生物方法」中的人工合成「昆蟲生長調節劑（IGR）」主要用於治理哪一種害蟲？\nIn 'biological methods', synthetic insect growth regulators (IGR) are mainly used to control which pest?",
+        "options": [
+          "鼠類 (Rodents)",
+          "白蟻 (Termites)",
+          "雀鳥 (Birds)",
+          "雜草 (Weeds)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "旗腹姬蜂(栗米公公)是蟑螂的天敵,它如何殺滅蟑螂?\nThe ichneumon wasp (corn wasp) is a natural enemy of cockroaches; how does it kill them?",
+        "options": [
+          "它的氣味有酸性,能有效殺滅蟑螂 (Its acidic odour can effectively kill cockroaches)",
+          "旗腹姬蜂(栗米公公)天性愛吃蟑螂,所以有旗腹姬蜂(栗米公公)的地方蟑螂沒法生存 (It naturally eats cockroaches, so where it exists cockroaches cannot survive)",
+          "於蟑螂的卵中產卵。它的卵會於蟑螂的卵內孵化， 然後幼蟲會把在蟑螂幼蟲吃掉 。 (It lays eggs inside cockroach eggs; the larvae hatch and eat the cockroach larvae)",
+          "旗腹姬蜂(栗米公公)會持續發出超低聲波,影響蟑螂精神 (It continuously emits ultra-low sound waves that affect cockroaches mentally)"
+        ],
+        "correct": 2
+      }
+    ],
+    "essay": [
+      {
+        "question": "請解釋我們使用昆蟲監察站時，所擺放顆粒狀的費洛蒙有可作用及較吸引那類蟑螂？ (2分)",
+        "maxScore": 2
+      },
+      {
+        "question": "因費洛蒙能吸引它們走進監察器中，2.特別是德國蟑螂。 在臭蟲的治理上除卻施藥外，我們為何用熱的處理方法？(2分)",
+        "maxScore": 2
+      },
+      {
+        "question": "施藥未能完全殺滅它們未孵化的幼蟲2.成蟲有機會產生抗藥性，因此我們用熱的處理方法。 一個只做一次的客人，你噴完藥後給他改善環境意見在IPM裡稱為甚麼，這是完全運用了IPM嗎？為甚麽。(2分)",
+        "maxScore": 2
+      },
+      {
+        "question": "教育 .2.未因無機會作〝檢討〞。 請試列出IPM中〝檢討〞裡的三個方案？(3分)",
+        "maxScore": 3
+      },
+      {
+        "question": "繼續檢查，2.找出可行方法，3.研究改善方法。 根據IPM中的〝教育〞，會為客人及公司帶來甚麽？試列舉兩點。(2分)",
+        "maxScore": 2
+      },
+      {
+        "question": "在臭蟲的治理上除卻施藥外，我們為何用熱的處理方法？(2分)",
+        "maxScore": 2
+      },
+      {
+        "question": "一個只做一次的客人，你噴完藥後給他改善環境意見在IPM裡稱為甚麼，這是完全運用了IPM嗎？為甚麽。(2分)",
+        "maxScore": 2
+      },
+      {
+        "question": "請試列出IPM中〝檢討〞裡的三個方案？(3分)",
+        "maxScore": 3
+      },
+      {
+        "question": "根據IPM中的〝教育〞，會為客人及公司帶來甚麽？試列舉兩點。(2分)",
+        "maxScore": 2
+      },
+      {
+        "question": "試列舉過量使用殺蟲劑會導致的兩大後果及例子？(2分)",
+        "maxScore": 2
+      },
+      {
+        "question": "試列舉過量使用殺蟲劑會導致的兩大後果及例子(2分)",
+        "maxScore": 2
+      },
+      {
+        "question": "請把答案填滿 如要更改答案，請在更改的地方簽署作實。 如同一試題填上多於一個答案，該題目會被定為答錯。",
+        "maxScore": 5
+      },
+      {
+        "question": "請試列出IPM中〝施行〞裡的二個方案？(2分)",
+        "maxScore": 2
+      },
+      {
+        "question": "嘗試敘述整個Sentricon安裝過程 ，這是否完全運用了IPM嗎？為甚麽。(4分)",
+        "maxScore": 4
+      },
+      {
+        "question": "請試列出IPM中〝教育〞裡的二個方案？(2分)",
+        "maxScore": 2
+      }
+    ]
+  },
+  "2": {
+    "name": "BioKill",
+    "mc": [
+      {
+        "question": "Biocycle所採用的Final Blox(腊粒) 康特堡有甚麼特點？\nWhat are the features of the Final Blox (wax block) Contrac used by Biocycle?\n\nI.它是第三代抗凝血劑\nI. It is a third-generation anticoagulant\n\nII.抗紋設計配合老鼠進食喜好\nII. Its anti-strike design matches rodents' feeding preferences\n\nIII.含染色及螢光劑使鼠糞便容易被追查\nIII. It contains dye and fluorescent agent so rodent droppings can be easily traced\n\n\nIV.在嚴重鼠患的情況下，使用不同顏色藥餌可有助辦別治理效果\nIV. In severe infestations, using different coloured baits helps distinguish treatment effect",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "I+III+IV",
+          "II+III+IV"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "保而剋全效滅蟲劑(BKU)噴灑後，效力可長達多久？\nAfter spraying BioKill Universal Insecticide (BKU), how long does its effect last?",
+        "options": [
+          "一星期 (One week)",
+          "兩星期 (Two weeks)",
+          "四星期 (Four weeks)",
+          "十二星期  (Twelve weeks)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "保而剋環保老鼠膠內中間位置擺放的膠粒狀東西它的主要用途是？\nWhat is the main purpose of the granular object placed in the centre of BioKill's eco-friendly rodent glue board?",
+        "options": [
+          "能釋放氣味吸引老鼠走近  (Releases an odour to attract rats)",
+          "防止老鼠膠黏貼一起 (Prevents the glue board from sticking to itself)",
+          "夜晚會發出微光吸引老鼠走近  (Emits faint light at night to attract rats)",
+          "設計上需要沒實制用途  (No practical purpose; purely design requirement)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "作為一個專業的防治蟲害人員，應要有良好的操作習慣請選出合適答案？\nAs a professional pest control operator, you should have good working habits. Choose the correct answer.\n\nI. 以小心及負責的態度 \nWith a careful and responsible attitude\n\nII. 注意工業安全（對藥品要了解）\nPay attention to industrial safety (understand the products)\n\nIII. 注意環境保護\nPay attention to environmental protection\n\nIV. 注意公眾安全\nPay attention to public safety",
+        "options": [
+          "I+II",
+          "II+III",
+          "II+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "以下那一項是不常規殺蟲劑的作用方式？\nWhich of the following is NOT a conventional mode of action of insecticides?",
+        "options": [
+          "消化中毒  (Stomach poisoning)",
+          "燻蒸中毒 (Fumigation poisoning)",
+          "觸殺中毒 (Contact poisoning)",
+          "感染式中毒 (Infective poisoning)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "全效滅蟲劑(BKU) 是用甚麼殺蟲方式殺滅害蟲？\nWhat mode of action does BioKill Universal Insecticide (BKU) use to kill pests?\nWhat mode of action does BioKill Universal Insecticide (BKU) use to kill pests?",
+        "options": [
+          "觸殺中毒 (Contact poisoning)",
+          "消化中毒 (Stomach poisoning)",
+          "燻蒸中毒 (Fumigation poisoning)",
+          "感染式中毒 (Infective poisoning)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "保而剋產品中的全效滅蟲劑與持久強效滅蟲劑的最大分別是甚麼？\nWhat is the main difference between BioKill Universal Insecticide and BioKill Long Lasting Extra Insecticide?",
+        "options": [
+          "持久強效滅蟲劑特有的微膠囊能定期釋放有效殺蟲成份 (The microcapsule of Long Lasting Extra periodically releases active insecticide ingredients)",
+          "只有全效滅蟲劑可廣泛應用於住宅、辦公室、工廠、食肆、醫院、動物園、植物 (Only Universal can be widely applied to residences, offices, factories, restaurants, hospitals, zoos, plants)",
+          "持久強效滅蟲劑可應用於溫血動物的用品和四周等地方 (Long Lasting Extra can be applied to articles and surroundings of warm-blooded animals)",
+          "沒有， 兩者也可用於Hand pump， Turbo及Backpack (None; both can be used in Hand pump, Turbo and Backpack)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "Temephos 在治理中如何有效地制止蚊子生長？\nHow does Temephos effectively stop mosquito growth in treatment?",
+        "options": [
+          "有效地殺滅蚊成蟲。 (Effectively kills adult mosquitoes)",
+          "有效地吸收水中氧分。 (Effectively absorbs oxygen from water)",
+          "有效地制止蚊幼蟲成長，阻斷成長週期。 (Effectively stops mosquito larvae growth, interrupting the life cycle)",
+          "有效地殺滅所有飛蟲。 (Effectively kills all flying insects)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "根據Fendona的標讖指引，主要施藥位置應在甚麽位置？\nAccording to Fendona's label guidance, where should the main application be?",
+        "options": [
+          "渠位、裂縫、持續潮濕地方 (起孱) 位置 (Drains, cracks, persistently damp (deteriorated) locations)",
+          "沙井、斜波、隱藏地方 (Sewers, slopes, hidden places)",
+          "大範圍噴灑所有地方 (Broad-area spraying everywhere)",
+          "潮濕、害蟲滋擾及骯髒的地方及室內位置 (Damp, pest-harassed, dirty places and indoor locations)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "為何Premise不可直接噴灑在植物表面？\nWhy should Premise not be sprayed directly on plant surfaces?",
+        "options": [
+          "滲入泥土後會損害植物的根部 (It damages plant roots after penetrating the soil)",
+          "影響植物吸收養份 (Affects plant nutrient absorption)",
+          "會對蜜蜂造成很大傷害 (It causes great harm to bees)",
+          "阻止植物進行光合作用 (Prevents plants from photosynthesis)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "俗稱(曱甴三文治)是有效針對那一種類型的曱甴？\nWhat type of cockroach is the so-called 'cockroach sandwich' (roach bait gel) effective against?",
+        "options": [
+          "美國曱甴 (American cockroach)",
+          "啡間曱甴 (Brown-banded cockroach)",
+          "亞洲曱甴 (Asian cockroach)",
+          "德國曱甴 (German cockroach)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "如家中有曱甴、螞蟻、書蟲、衣魚這些害蟲；沒有詞養任何寵物，我們可以建議客人購買那種最適合的產品？\nIf a home has pests such as cockroaches, ants, booklice and silverfish, with no pets, which product would we suggest the client buy?",
+        "options": [
+          "保而剋滅蟎噴劑 BKA (BioKill Mite Spray BKA)",
+          "保而剋全效滅蟲劑 BKU (BioKill Universal Insecticide BKU)",
+          "保而剋持久強效滅蟲劑 BKL (BioKill Long Lasting Extra BKL)",
+          "保而剋安全消毒劑 BKS (BioKill Safe Disinfectant BKS)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "根據LD50的理論，請選出以下那個數字是最高毒性\nAccording to the LD50 theory, which of the following numbers represents the highest toxicity?",
+        "options": [
+          "LD50 0.022 mg/kg",
+          "LD50  200 mg/kg",
+          "LD50 2,000 mg/kg",
+          "LD50 0.002 mg/kg"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "老鼠藥餌盒當用作外圍控制時，我們一般會在建築物外圍約每隔多少米設置藥餌盒。\nWhen rodent bait stations are used for external perimeter control, approximately how many metres apart are they generally installed around a building?",
+        "options": [
+          "5-10米 (5-10 m)",
+          "10-15米 (10-15 m)",
+          "15-20米 (15-20 m)",
+          "20-25米 (20-25 m)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "燻蒸中毒是利用藥劑有效成分的______，經害蟲的呼吸系統 - 氣門或體壁侵入蟲體內\nFumigation poisoning uses the ______ of the active ingredient to enter the pest's body through the respiratory system (spiracles or body wall).",
+        "options": [
+          "氣體 (Gas)",
+          "固體 (Solid)",
+          "泡劑 (Foam)",
+          "液體 (Liquid)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "我們在使用Phantom 治理木蝨時，應留意那些事項？\nWhat should we pay attention to when using Phantom to treat bed bugs?\n\nI. 不可直接噴灑在人可接觸位置\nI. Must not be sprayed directly on occupant-contact surfaces\n\nII. 大範圍噴灑所有地方\nII. Broad-area spraying everywhere\n\nIII. 噴灑在床褥邊位及床架\nIII. Spray on mattress edges and bed frame\n\nIV. 噴灑在牆腳線、空隙裂縫\nIV. Spray on skirting boards, gaps and cracks",
+        "options": [
+          "I+II+III",
+          "II+III+IV",
+          "I+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "BKU喺老鼠測試嘅經口毒性LD50係\nThe oral toxicity LD50 of BKU in rat testing is",
+        "options": [
+          "> 5050 mg/kg",
+          "< 100 mg/kg",
+          "50 mg/kg",
+          "500 mg/kg"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "除害劑「慢性毒性」（Chronic toxicity）嘅染毒期限通常係？\nThe exposure period for pesticide 'chronic toxicity' is usually?",
+        "options": [
+          "24 小時內 (Within 24 hours)",
+          "1–2 年 (1-2 years)",
+          "1-2 個星期 (1-2 weeks)",
+          "1-2 個月 (1-2 months)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "除害劑經皮膚滲透入體係最常見嘅中毒途徑。身體邊個部位對藥物吸收速度最快？\nPercutaneous penetration through the skin is the most common poisoning route. Which body part absorbs the chemical fastest?",
+        "options": [
+          "前臂 (Forearm)",
+          "頭部與頭髮 (Head and hair)",
+          "陰囊 (Scrotum)",
+          "手掌 (Palm)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "保而剋®全效滅蟲劑（BioKill® Universal Insecticide）嘅有效成分係\nThe active ingredient of BioKill Universal Insecticide is",
+        "options": [
+          "Prallethrin 0.01%",
+          "Permethrin 0.25% w/w",
+          "Lambda-cyhalothrin 0.07%",
+          "Chlorfenapyr 24%"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "保而剋®持久強效滅蟲劑（Long Lasting Extra）嘅成分包含？\nThe ingredients of BioKill Long Lasting Extra Insecticide include?",
+        "options": [
+          "Permethrin 0.25%",
+          "Prallethrin 0.01% + Lambda-cyhalothrin 0.07%",
+          "d-Phenothrin 0.11%",
+          "Chlorfenapyr 24%"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "世界衛生組織（WHO）推薦除害劑毒性分類係邊一年？\nWhich year did the World Health Organization (WHO) recommend the pesticide toxicity classification?",
+        "options": [
+          "1970",
+          "1975",
+          "1980",
+          "1985"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "LD50 嘅意思係？\nWhat does LD50 mean?",
+        "options": [
+          "使 100% 動物致死嘅藥物量 (The amount of chemical that kills 100% of animals)",
+          "半數致病嘅濃度 (The concentration that makes half ill)",
+          "最大安全使用劑量 (Maximum safe dose)",
+          "使某種動物 50% 致死之藥物量 (The amount that kills 50% of a given animal species)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "表示除害劑「急性毒性」通常用邊種方式？\nWhich method is usually used to express pesticide 'acute toxicity'?",
+        "options": [
+          "LD50 或 LC50 (LD50 or LC50)",
+          "pH 值 (pH value)",
+          "濃度百分比 (Concentration percentage)",
+          "有效期長短 (Shelf-life length)"
+        ],
+        "correct": 0
+      }
+    ],
+    "essay": [
+      {
+        "question": "請簡述 BioKill® 持久強效滅蟲劑的微膠囊科技原理及其優點。"
+      },
+      {
+        "question": "請說明常規殺蟲劑的三種作用方式 (殺蟲方式) 及其原理。"
+      },
+      {
+        "question": "請列出使用 BioKill® 產品的正確步驟及注意事項。"
+      },
+      {
+        "question": "請比較 Phantom® 伐蟻克和 Fendona® 奮鬥吶的用途、成分及使用方法。"
+      },
+      {
+        "question": "請說明 Roach Bait Gel 的正確使用方法及針對德國蟑螂的治理位置。"
+      },
+      {
+        "question": "請解釋除害劑對哺乳類動物的的急性毒性和慢性毒性的分別。"
+      },
+      {
+        "question": "請列出選用不同除害劑劑型時需要考慮的因素。"
+      },
+      {
+        "question": "請說明除害劑的三種吸收中毒途徑及預防方法。"
+      },
+      {
+        "question": "請列出專業的防治蟲害人員應具備的良好操作習慣、衛生習慣及除害劑管理習慣。"
+      },
+      {
+        "question": "請比較 Contrac Blox 和 FINAL Blox 的成份、特性及使用方法。"
+      },
+      {
+        "question": "請說明 Temephos 1% S.G 的用途、使用方法及安全注意事項。"
+      },
+      {
+        "question": "請解釋為什麼 BioKill® 產品系列適合在日常防治蟲害工作中使用。"
+      }
+    ]
+  },
+  "3": {
+    "name": "Termite",
+    "mc": [
+      {
+        "question": "我們日常處理乾木白蟻牠們主要活動範圍是請選出合適答案？\nWhat is the main activity range of drywood termites that we normally treat? Choose the correct answer.",
+        "options": [
+          "枯乾樹林、叢林、木半制成品 (Dry forests, jungles, semi-finished wood products)",
+          "樹中，灌木、木製雕塑、木門框及木門 (Trees, shrubs, wood sculptures, wooden door frames and doors)",
+          "濕潤木材、潮濕發霉樹木、房屋周邊外圍 (Damp wood, mouldy trees, around the house exterior)",
+          "樹根，木製雕塑、室內任何位置 (Tree roots, wood sculptures, anywhere indoors)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "日常白蟻入藥治理我們所選用的鑽咀有幾多亳米？\nWhat diameter drill bit do we select for termite treatment drilling?",
+        "options": [
+          "0.3 mm",
+          "1 mm",
+          "2 mm",
+          "3 mm"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "一般處理白蟻治理時為何不建議客人使用殺蟲劑？\nWhy is use of insecticide generally not recommended for clients during termite treatment?",
+        "options": [
+          "A. 實情是純商業決定可收取較高費用。 (It is purely a commercial decision to charge higher fees)",
+          "B. 一般家用殺蟲劑有濃烈氣味，會使人不適可選用(保而剋)產品。",
+          "C. 家用殺蟲劑一般含有凝聚劑，加劇白蟻攻擊及破壞。 (Household insecticides generally contain coagulants that aggravate termite attack and damage)",
+          "D. 家用殺蟲劑一般含有驅趕劑，加劇白蟻擴散 (Household insecticides generally contain repellents that aggravate termite spread)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "最適合白蟻生存溫度為攝氏至度？\nWhat is the most suitable temperature for termite survival, in degrees Celsius?",
+        "options": [
+          "攝氏三十度至四十度 (30 to 40 degrees Celsius)",
+          "攝氏負三度至三十七度 (Minus 3 to 37 degrees Celsius)",
+          "攝氏二十四度至三十五度 (24 to 35 degrees Celsius)",
+          "攝氏二十度至三十度 (20 to 30 degrees Celsius)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "蟻皇在一個白蟻群體內扮演着十分重要的角色，牠會在巢穴內協助建造一個房間用作與蟻后交配繁殖之用及在白蟻巢形成初期協助甚麼工作，請選擇合適答案？\nThe king termite plays a very important role in a colony; in the nest he helps build a chamber for mating with the queen, and in the early formation of the colony assists with what? Choose the correct answer.",
+        "options": [
+          "突擊入侵者 (Attack intruders)",
+          "飼育兵蟻 (Feed soldier termites)",
+          "飼育若蟲 (Feed nymphs)",
+          "飼育蟻后 (Feed the queen)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "那一種是形容白蟻后的特徵？\nWhich describes the characteristics of the termite queen?",
+        "options": [
+          "身長約十五毫米；每日能生產大約100蟻卵 (About 15 mm long; lays about 100 eggs per day)",
+          "身長約二十五毫米；每日能生產大約1000蟻卵 (About 25 mm long; lays about 1000 eggs per day)",
+          "身長約三十五毫米；每日能生產大約1000蟻卵 (About 35 mm long; lays about 1000 eggs per day)",
+          "身長約四十五毫米；每日能生產大約1500蟻卵 (About 45 mm long; lays about 1500 eggs per day)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "請問乾木白蟻的糞粒是呈什麼形狀？\nWhat is the shape of drywood termite faecal pellets?",
+        "options": [
+          "六面形 (Hexagonal)",
+          "三角形 (Triangular)",
+          "圓柱形 (Cylindrical)",
+          "四方形 (Square)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "家白蟻中(兵蟻) 在蟻巢中工作是甚麼？\nWhat is the job of soldier termites in a Formosan termite nest?",
+        "options": [
+          "攻擊入侵者 (Attack intruders)",
+          "餵養若蟻(BB)",
+          "照顧蟻后 (Care for the queen)",
+          "分配食物 (Distribute food)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "使用心居康白蟻族群滅治系統的好處？\nWhat are the benefits of using the Sentricon colony elimination system?\n\nI. 提供長期保護\nI. Provides long-term protection\n\nII. 纖滅整個白蟻群\nII. Eliminates the entire termite colony\n\nIII. 降低治理風險\nIII. Reduces treatment risk\n\nIV. 沒有重複噴灑化學劑\nIV. No repeated chemical spraying",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "II+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "白蟻屬於___動物，它有相連的外骨骼和表皮？\nTermites belong to ___ animals; they have connected exoskeleton and cuticle?",
+        "options": [
+          "肢節 (Arthropod)",
+          "接肢 (Jointed-limb)",
+          "節肢 (Arthropod (articulated))",
+          "脫節 (Disjointed)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "家白蟻中(工蟻) 在蟻巢中工作或特徵是甚麼？\nWhat is the job or characteristic of worker termites in a Formosan termite nest?",
+        "options": [
+          "建設、修補蟻巢及蟻路 (Build and repair the nest and tunnels)",
+          "它們負責照顧及餵飼不同成員 (They are responsible for caring for and feeding different members)",
+          "白蟻工蟻長約五毫米 (Worker termites are about 5 mm long)",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "我們日常主要針對(家白蟻)台灣乳白蟻， 是全球第幾___進取的品種？\nWe mainly target Formosan termites / Taiwan subterranean termites; globally how ___ aggressive is this species?",
+        "options": [
+          "第一 (First)",
+          "笫二 (Second)",
+          "第三 (Third)",
+          "第四 (Fourth)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "白蟻藥水的原理是透過白蟻藥液噴注產生化學屏障，保護木結構控制白蟻入侵，以下那一樣不能用此法？\nTermite liquid chemical forms a chemical barrier via injection to protect wooden structures and control invasion; which of the following cannot use this method?",
+        "options": [
+          "白蟻活躍範圍 (Active termite range)",
+          "所有木的制成品 (All wood products)",
+          "所有帶電的物件 (All electrified objects)",
+          "所有固定櫃(入牆櫃)及洗滌盆 (All fixed cabinets (built-in) and sinks)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "如何可知道白蟻巢已被心居康滅治？\nHow can we know a termite nest has been eliminated by Sentricon?\n\nI. 已沒有工蟻\nI. No more worker termites\n\nII. 藥餌消耗達100%\nII. Bait consumption reaches 100%\n\nIII. 藥餌消耗比之前減少\nIII. Bait consumption is less than before\n\nIV. 已有一段時間沒有進食\nIV. No feeding for a period of time",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "I+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "心居康白蟻族群滅治系統是通過幾丁質控制白蟻的脫皮，它們蛻皮失敗，使整巢白蟻被滅治，它主要針對那一個類別的白議？\nSentricon controls termites via chitin synthesis inhibition, causing moulting failure and eliminating the whole colony. Which caste does it mainly target?",
+        "options": [
+          "蟻后 (Queen)",
+          "蟻皇 (King)",
+          "兵蟻 (Soldier)",
+          "工蟻 (Worker)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "以下那項是香港白蟻族群最活躍季節？\nWhich is the most active season for termite colonies in Hong Kong?",
+        "options": [
+          "秋、冬季 (Autumn, Winter)",
+          "夏、冬季 (Summer, Winter)",
+          "春、夏季 (Spring, Summer)",
+          "任何時候都活躍 (Active at any time)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "白蟻藥水灌注，在家居治理過程中我們會相距多少米進行鑽孔？\nDuring residential termite liquid injection, at what distance apart do we drill holes?",
+        "options": [
+          "1至2米 (1 to 2 metres)",
+          "3至4米 (3 to 4 metres)",
+          "5至6米 (5 to 6 metres)",
+          "7至8米 (7 to 8 metres)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "白蟻表皮的作用是什麼呢?\nWhat is the function of the termite cuticle?\n\nI. 保護身體\nI. Protect the body\n\nII. 支撐\nII. Support\n\nIII. 防止細菌入侵\nIII. Prevent bacterial invasion\n\nIV. 防止身體水分流失\nIV. Prevent body water loss",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "II+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "工蟻最多能夠離開巢穴多少尺去覓食呢?\nHow far from the nest can worker termites travel to forage?",
+        "options": [
+          "100尺 (100 feet)",
+          "300尺 (300 feet)",
+          "500尺 (500 feet)",
+          "800尺 (800 feet)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "那一個是最適合白蟻生存的溫度?\nWhich is the most suitable temperature for termite survival?",
+        "options": [
+          "攝氏十五度至四十度 (15 to 40 degrees Celsius)",
+          "攝氏負三度至三十七度 (Minus 3 to 37 degrees Celsius)",
+          "攝氏二十四度至三十五度 (24 to 35 degrees Celsius)",
+          "攝氏二十度至三十度 (20 to 30 degrees Celsius)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "蟻后生命週可達多少年?\nHow long can a termite queen live?",
+        "options": [
+          "5至8年 (5 to 8 years)",
+          "8至12年 (8 to 12 years)",
+          "8至15年 (8 to 15 years)",
+          "10至15年 (10 to 15 years)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "那種不是工蟻的工作?\nWhich is NOT the work of worker termites?",
+        "options": [
+          "建設、修補蟻巢及蟻路 (Build and repair the nest and tunnels)",
+          "保護巢穴及攻擊入侵者 (Protect the nest and attack intruders)",
+          "覓食 (Forage)",
+          "負責照顧及餵飼不同成員 (Care for and feed different members)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "當檢查時, 當兵蟻受到干擾時. 牠們會作出什麼行為?\nDuring inspection, when soldier termites are disturbed, what behaviour do they show?",
+        "options": [
+          "通知蟻后立即離開巢穴 (Notify the queen and immediately leave the nest)",
+          "將所有幼蟲搬遷到安全地方 (Move all larvae to a safe place)",
+          "用鉗發出聲音作為警號 (Make a sound with their mandibles as an alarm)",
+          "阻止工蟻活動一起攻擊入侵者 (Stop worker activity and attack intruders together)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "生殖蟻的特徵是什麼?\nWhat are the characteristics of reproductive termites?\n\nI. 善於飛行\nI. Good at flying\n\nII. 交配\nII. Mate\n\nIII. 稱為飛蟻\nIII. Called flying ants\n\nIV. 當巢穴發展到四至五年時間便出現\nIV. Appear when the colony develops to 4-5 years\n\nV. 數小時便死亡\nV. Die within a few hours",
+        "options": [
+          "I+II+III+IV",
+          "I+II+III+V",
+          "II+III+IV+V",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "下列哪項關於「濕木白蟻」與「乾木白蟻」的描述是正確的？\nWhich of the following descriptions of 'wetwood termites' and 'drywood termites' is correct?",
+        "options": [
+          "對建築物結構破壞最嚴重 (Causes the most severe structural damage)",
+          "主要在木材內築巢，群體比土棲性白蟻顯著較小 (Mainly nest inside wood; colony significantly smaller than soil-nesting termites)",
+          "必須與泥土接觸才能生存 (Must contact soil to survive)",
+          "糞粒呈圓形 (Faecal pellets are round)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "「黃翅大白蟻」（Macrotermes Barneyi）在公司內部的俗稱是什麼？\nWhat is the internal nickname of 'Yellow-winged termite' (Macrotermes Barneyi)?",
+        "options": [
+          "家白蟻 (Formosan termite)",
+          "土白蟻 (Soil termite)",
+          "乳白蟻 (Subterranean termite)",
+          "翅白蟻 (Winged termite)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "白蟻可以存活的溫度下限與上限約為？\nWhat are the approximate lower and upper temperature limits for termite survival?",
+        "options": [
+          "-3°C 至 37°C (-3 C to 37 C)",
+          "0°C 至 30°C (0 C to 30 C)",
+          "5°C 至 40°C (5 C to 40 C)",
+          "-10°C 至 25°C (-10 C to 25 C)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "台灣乳白蟻屬於土棲性白蟻，但它與一般土棲性白蟻不同之處是？\n。\nFormosan termites are soil-nesting termites, but how do they differ from typical soil-nesting termites?",
+        "options": [
+          "必須永久與泥土接觸 (Must permanently contact soil)",
+          "不需要與泥土接觸也能完全脫離地面生存 (Can survive fully脱离地面 without contacting soil)",
+          "不會築蟻路 (Do not build tunnels)",
+          "不會分飛 (Do not swarm)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "受白蟻侵擾的常見跡象不包括以下哪一項？\nWhich of the following is NOT a common sign of termite infestation?",
+        "options": [
+          "木製品被破壞 (Damaged wooden articles)",
+          "白蟻泥路 (Termite mud tubes)",
+          "聽到「嘀嘀」警號聲 (Hearing a 'beep' alarm sound)",
+          "牆壁出現大片水漬 (Large water stains on walls)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "Sentricon「心居康」 藥餌的主要有效成分及濃度是？\nWhat are the main active ingredient and concentration of the Sentricon bait?",
+        "options": [
+          "芬普尼 0.5% (Fipronil 0.5%)",
+          "多氟脲 0.5% (Novaluron 0.5%)",
+          "氯氰菊酯 1% (Cypermethrin 1%)",
+          "賽滅寧 0.5% (Permethrin 0.5%)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "白蟻成員之間主要透過什麼作溝通，引導同伴到達合適地方？\nHow do termite members mainly communicate, guiding companions to suitable places?",
+        "options": [
+          "聲波 (Sound waves)",
+          "費洛蒙 (Pheromone)",
+          "觸電 (Electric shock)",
+          "光線 (Light)"
+        ],
+        "correct": 1
+      }
+    ],
+    "essay": [
+      {
+        "question": "請簡述白蟻的3大類別及其主要分佈特徵。\nDescribe the 3 main categories of termites and their main characteristics.",
+        "maxScore": 5
+      },
+      {
+        "question": "白蟻群體中的社會階級有哪些？請說明每個階級的主要職責。\nWhat are the castes in a termite colony? Describe the main duty of each caste.",
+        "maxScore": 5
+      },
+      {
+        "question": "如客人發現白蟻入侵痕跡，應該如何處理？為什麼不應該噴灑家用殺蟲劑？\nWhat should a client do if they find termite infestation signs? Why should they NOT spray home-use insecticide?",
+        "maxScore": 5
+      },
+      {
+        "question": "什麼是 Sentricon（心居康）白蟻族群撲治系統？請說明其工作原理。\nWhat is the Sentricon colony elimination system? Explain how it works.",
+        "maxScore": 5
+      },
+      {
+        "question": "請列出至少4種白蟻入侵的常見跡象。\nList at least 4 common signs of termite infestation.",
+        "maxScore": 5
+      },
+      {
+        "question": "比較「藥餌系統治理」和「液體化學屏障治理」的優缺點。\nCompare the advantages and disadvantages of baiting system vs liquid chemical barrier treatment.",
+        "maxScore": 5
+      },
+      {
+        "question": "白蟻后和蟻王在群體中分別扮演什麼角色？\nWhat roles do the termite queen and king play in the colony?",
+        "maxScore": 5
+      },
+      {
+        "question": "什麼是白蟻的「分飛」現象？通常在什麼時候發生？\nWhat is termite swarming? When does it usually occur?",
+        "maxScore": 5
+      },
+      {
+        "question": "Noviflumuron 如何影響白蟻？它屬於哪一類物質？\nHow does Noviflumuron affect termites? What class of substance is it?",
+        "maxScore": 5
+      },
+      {
+        "question": "白蟻泥路（蟻路）有什麼功能？為什麼白蟻需要築建它們？\nWhat is the function of termite mud tubes? Why do termites need to build them?",
+        "maxScore": 5
+      },
+      {
+        "question": "請說明在進行白蟻治理前，為什麼需要進行詳細巡查？巡查時應注意什麼？\nWhy is detailed inspection needed before termite treatment? What should be noted during inspection?",
+        "maxScore": 5
+      },
+      {
+        "question": "如何判斷白蟻巢穴是否已被撲治？請列出至少3個指標。\nHow to determine if a termite colony has been eliminated? List at least 3 indicators.",
+        "maxScore": 5
+      }
+    ]
+  },
+  "4": {
+    "name": "OccSafe",
+    "mc": [
+      {
+        "question": "意外的定義是什麼？\nWhat is the definition of an accident?\n\nI. 意外是一宗或一連串沒有計劃的事件，而引致受傷、職業病，或引致設備或財物損毀，或令環境受到損害的事件。\nI. An accident is one or a series of unplanned events causing injury, occupational disease, or damage to equipment or property, or environmental harm.\n\nII. 意外是一宗或一連串沒有計劃的事件，而引致死亡、受傷、職業病，或引致設備，或令環境受到損害的事件。\nII. An accident is one or a series of unplanned events causing death, injury, occupational disease, or damage to equipment, or environmental harm.\n\nIII. 意外是一宗或一連串沒有計劃的事件，而引致死亡、受傷、職業病，或引致設備或財物損毀，或令環境受到損害的事件。\nIII. An accident is one or a series of unplanned events causing death, injury, occupational disease, or damage to equipment or property, or environmental harm.\n\nIV. 意外是一連串沒有計劃的事件，而引致死亡、受傷、職業病， 或引致設備或財物損毀，或令環境受到損害的事件。\nIV. An accident is a series of unplanned events causing death, injury, occupational disease, or damage to equipment or property, or environmental harm.",
+        "options": [
+          "意外是一宗或一連串沒有計劃的事件，而引致受傷、職業病，或引致設備或財物損毀，或令環境受到損害的事件。 (An accident is one or a series of unplanned events causing injury, occupational disease, or damage to equipment or property, or environmental harm.)",
+          "意外是一宗或一連串沒有計劃的事件，而引致死亡、受傷、職業病，或引致設備，或令環境受到損害的事件。 (An accident is one or a series of unplanned events causing death, injury, occupational disease, or damage to equipment, or environmental harm.)",
+          "意外是一宗或一連串沒有計劃的事件，而引致死亡、受傷、職業病，或引致設備或財物損毀，或令環境受到損害的事件。 (An accident is one or a series of unplanned events causing death, injury, occupational disease, or damage to equipment or property, or environmental harm.)",
+          "意外是一連串沒有計劃的事件，而引致死亡、受傷、職業病， 或引致設備或財物損毀，或令環境受到損害的事件。 (An accident is a series of unplanned events causing death, injury, occupational disease, or damage to equipment or property, or environmental harm.)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "公司選用全身式吊帶（又稱降落傘式安全帶）是因為以下甚麼理由？\nWhy does the company choose a full-body harness (also called parachute-style safety harness)?\n\nI. 滅蟲行業的要求\nI. Requirement of the pest control industry\n\nII. 價錢較平\nII. Lower price\n\nIII. 付合ISO要求\nIII. Complies with ISO requirements\n\nIV. 付合管理公司要求\nIV. Complies with management company requirements",
+        "options": [
+          "I+III",
+          "II+III+IV",
+          "以上皆是 (All of the above)",
+          "以上皆不是 (None of the above)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "如火警在狹窄及空氣不流通的地方發生時，我們不可以選用那種滅火筒？\nWhen a fire occurs in a confined, poorly ventilated place, which extinguisher must we NOT choose?\n\nI. 水劑滅火筒\nI. Water extinguisher\n\nII. 二氧化碳滅火筒\nII. Carbon dioxide extinguisher\n\nIII. 乾粉滅火筒\nIII. Dry powder extinguisher\n\nIV. 泡沫式滅火筒\nIV. Foam extinguisher",
+        "options": [
+          "水劑滅火筒 (Water extinguisher)",
+          "二氧化碳滅火筒 (Carbon dioxide extinguisher)",
+          "乾粉滅火筒 (Dry powder extinguisher)",
+          "泡沫式滅火筒 (Foam extinguisher)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "處理化學品後洗手，可預防患上下列甚麼病？\nWhat disease can be prevented by washing hands after handling chemicals?",
+        "options": [
+          "甲類肝炎 (Type A hepatitis)",
+          "前臂痙攣 (Forearm cramps)",
+          "皮膚炎 (Dermatitis)",
+          "支氣管炎 (Bronchitis)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "使用直梯時，其底部與高度須保持的擺放斜度比例是？\nWhen using a straight ladder, what ratio of base-to-height inclination must be maintained?\n\nI. 1：3\nI. 1:3\n\nII. 1：4\nII. 1:4\n\nIII. 1：5\nIII. 1:5\n\nIV. 1：6\nIV. 1:6",
+        "options": [
+          "1：3",
+          "1：4",
+          "1：5",
+          "1：6"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "在多少米以上的地方工作就應使用適當工作台呢？\nAt what height and above should appropriate work platforms be used?",
+        "options": [
+          "1.5米 (1.5 m)",
+          "2米 (2 m)",
+          "2.5米 (2.5 m)",
+          "3米 (3 m)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "安全帶最適當的扣法是？\nWhat is the most appropriate way to wear a safety harness?\n\nI. 低掛低用\nI. Low hang, low use\n\nII. 高掛高用\nII. High hang, high use\n\nIII. 低掛高用\nIII. Low hang, high use\n\nIV. 高掛低用\nIV. High hang, low use",
+        "options": [
+          "低掛低用 (Low hang, low use)",
+          "高掛高用 (High hang, high use)",
+          "低掛高用 (Low hang, high use)",
+          "高掛低用 (High hang, low use)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "在普通滅蟲治理途中，客人要求您出去竹棚噴外牆(可直接由窗出去)，客人是可以用廣東話溝通，客人告訴你與公司溝通好額外加一千元的，您會怎樣做？\nDuring normal pest treatment, a client asks you to go out onto the bamboo scaffold to spray the exterior wall (directly through the window). The client communicates in Cantonese and says they have confirmed with the company an extra $1000. What would you do?\n\nI. 返回車輛拿取安全帶、獨立救生繩及放墮裝置去竹棚完成完工作。\nI. Return to the vehicle to get the safety harness, independent lifeline and fall arrester, then go onto the scaffold to finish the work.\n\nII. 檢查竹栅是否穩固，然後出去竹棚工作。\nII. Check whether the scaffold is stable, then go out to work.\n\nIII. 致電公司確認是否可多收一千元，如是的話即出去竹棚完成完工作\nIII. Call the company to confirm whether an extra $1000 is acceptable; if yes, go out onto the scaffold to finish the work.",
+        "options": [
+          "I+II",
+          "II+III",
+          "I+II+III",
+          "以上皆不是 (None of the above)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "以下那項不是在治理老鼠過程中正確的方法？\nWhich of the following is NOT a correct method during rodent treatment?\n\nI. 工作時必須戴手套口罩\nI. Must wear gloves and mask at work\n\nII. 不可直接接觸老鼠身體\nII. Must not directly touch rat bodies\n\nIII. 把老鼠屍體即時棄掉\nIII. Discard rat carcasses immediately\n\nIV. 工作後立即徹底洗手\nIV. Wash hands thoroughly immediately after work\n\nV. 為了保障僱員安全， 政府設立了甚麼條例並於一九九七年五月二十三日實施。\nV. To protect employees' safety, what ordinance did the government enact and implement on 23 May 1997?\n\nVI. 職業保障健康條例\nVI. Occupational Protection Health Ordinance\n\nVII. 職業意外安全及健康條例\nVII. Occupational Accident Safety and Health Ordinance\n\nVIII. 職業保障安全條例\nVIII. Occupational Protection Safety Ordinance",
+        "options": [
+          "工作時必須戴手套口罩 (Must wear gloves and mask at work)",
+          "不可直接接觸老鼠身體 (Must not directly touch rat bodies)",
+          "把老鼠屍體即時棄掉 (Discard rat carcasses immediately)",
+          "工作後立即徹底洗手 (Wash hands thoroughly immediately after work)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "煙蛋應在治理位置的那裡開始燃點？\nWhere should a smoke egg be lit when treating a location?",
+        "options": [
+          "中間 (In the middle)",
+          "最盡頭 (At the farthest end)",
+          "出入口位置 (At the entrance/exit)",
+          "隨意 (Anywhere)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "以下那不是錯誤處理化學品會帶來的潛在危險？\nWhich is NOT a potential hazard from incorrect chemical handling?\n\nI. 引致火警\nI. Cause a fire\n\nII. 引致身體腰部受傷\nII. Cause injury to the lower back\n\nIII. 濺起腐蝕性或有毒的液體\nIII. Splash corrosive or toxic liquid\n\nIV. 引致受傷、潰瘍、中毒，甚至死亡\nIV. Cause injury, ulcers, poisoning or even death",
+        "options": [
+          "引致火警 (Cause a fire)",
+          "引致身體腰部受傷 (Cause injury to the lower back)",
+          "濺起腐蝕性或有毒的液體 (Splash corrosive or toxic liquid)",
+          "引致受傷、潰瘍、中毒，甚至死亡 (Cause injury, ulcers, poisoning or even death)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "公司車輛中的滅火筒是甚麼類型？\nWhat type of fire extinguisher is in the company vehicle?",
+        "options": [
+          "乾粉式 (Dry powder)",
+          "水式 (Water)",
+          "二氧化碳氣 (Carbon dioxide)",
+          "泡沫式滅火筒 (Foam)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "公司不選用二氧化碳滅火筒是基於以下甚麼主要原因：\nThe main reason the company does not choose carbon dioxide extinguishers is:",
+        "options": [
+          "ISO的要求 (ISO requirement)",
+          "價錢較高 (Higher price)",
+          "會導致使用者窒息 (It can cause asphyxiation to the user)",
+          "未能夠隔絕所有的火源 (It cannot isolate all fire sources)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "致電公司確認是否可多收一千元，如是的話即出去竹棚完成完工作\nCall the company to confirm whether an extra $1000 can be charged; if so, go out onto the scaffold to finish the work.",
+        "options": [
+          "I+II",
+          "II+III",
+          "I+II+III",
+          "以上皆不是 (None of the above)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "化學品標籤必須具備以下那項？\nWhat must a chemical label possess?\n\nI. 危險分類的符號\nI. Symbol of hazard classification\n\nII. 化學名稱\nII. Chemical name\n\nIII. 危險情況的指示\nIII. Indication of hazard situation\n\nIV. 化學品的成份\nIV. Composition of the chemical\n\nV. 需採取的安全措施\nV. Safety measures to be taken",
+        "options": [
+          "I+II+III+V",
+          "II+III+IV+V",
+          "I+II+IV+V",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "請嘗試列出最少一個在高空工作潛在甚麼危險，及我們不能在竹棚架上工作的原因。\nTry to list at least one potential danger of working at height, and the reason we cannot work on bamboo scaffolds.",
+        "options": [
+          "工 作 台 或 棚 架 倒 塌 引 致 工 人 下 墜 (Work platform or scaffold collapses causing the worker to fall)",
+          "工 人 從 工 作 台 、 棚 架 或 其 他 高 空 作 業 位 置 跌 下 (Worker falls from work platform, scaffold or other elevated position)",
+          "因保險不包括在竹棚架上工作 (Because insurance does not cover working on bamboo scaffolds)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "因應上級或專貴客戶指示突發性情況下有一些高風險工作，如沒有任何保護裝備我們要如何處理？\nIn sudden high-risk situations per instructions from superiors or VIP clients, if we have no protective equipment, how should we handle it?",
+        "options": [
+          "A.   不顧一切先為客人解決問題因我們是專業的。 (Solve the client's problem at all costs because we are professionals)",
+          "B.   在可能情況下沒有保護裝備應該可以如常處理，因為我們是專業的。 (Where possible, handle as usual without protection because we are professionals)",
+          "C.   拍下真實情況並通知公司，作好一切保護及裝備後才能開始工作。 (Photograph the real situation and notify the company; only start work after all protection and equipment are in place)",
+          "D.   上司及客人永遠是對的，沒有議價空間照做吧。 (The boss and client are always right; just do it without negotiation)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "在治理中如何正確使用霧化器(Turbo)的方法？\nWhat is the correct way to use a turbo atomiser (Turbo) during treatment?\n\nI. 觀察後，直接調大風速盡量使BKU覆蓋全屋。\nI. After observing, directly increase fan speed to cover the whole house with BKU.\n\nII. 先把電線佈滿全屋，務求不用來回多次減低意外及出錯機會。\nII. First lay electric wires throughout the house to avoid repeated trips and reduce accidents and errors.\n\nIII. 先想想才行動，控制風力及藥水份量，機身不要撞到客物件及裝飾。\nIII. Think before acting; control wind force and chemical amount; do not let the machine hit client objects and decorations.\n\nIV. 檢查背帶是否穩固，控制風力及藥水量，風向不穩固的物品噴灑。\nIV. Check the shoulder strap is secure; control wind force and chemical amount; spray unstable-wind objects.",
+        "options": [
+          "觀察後，直接調大風速盡量使BKU覆蓋全屋。 (After observing, directly increase fan speed to cover the whole house with BKU)",
+          "先把電線佈滿全屋，務求不用來回多次減低意外及出錯機會。 (First lay electric wires throughout the house to avoid repeated trips and reduce accidents and errors)",
+          "先想想才行動，控制風力及藥水份量，機身不要撞到客物件及裝飾。 (Think before acting; control wind force and chemical amount; do not let the machine hit client objects and decorations)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "根據公司指引我們不能在竹棚工作原因何在？\nAccording to company guidelines, why can we not work on bamboo scaffolds?\n\nI. 沒有正式訓練\nI. No formal training\n\nII. 因保險不包括這工作，我們得不到任何保障\nII. Insurance does not cover this work, so we get no protection\n\nIII. 要收取額外費才做\nIII. Extra fee required to do it\n\nIV. 因怕大家畏高，可嘗試但不建議\nIV. Because people fear heights; can try but not recommended",
+        "options": [
+          "沒有正式訓練 (No formal training)",
+          "因保險不包括這工作，我們得不到任何保障 (Insurance does not cover this work, so we get no protection)",
+          "要收取額外費才做 (Extra fee required to do it)",
+          "因怕大家畏高，可嘗試但不建議 (Because people fear heights; can try but not recommended)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "生火要有三種基本元素請選出最正確答案？\nWhat are the three basic elements of fire? Choose the most correct answer.\n\nI. 燃料、空氣和熱源\nI. Fuel, air and heat source\n\nII. 禾稈草、木棒、乾燥地方\nII. Rice straw, wooden sticks, dry places\n\nIII. 電油、打火機、紙碎屑\nIII. Petrol, lighter, paper scraps\n\nIV. 助燃劑、火柴、通爽地方\nIV. Accelerant, matches, ventilated place",
+        "options": [
+          "燃料、空氣和熱源 (Fuel, air and heat source)",
+          "禾稈草、木棒、乾燥地方 (Rice straw, wooden sticks, dry places)",
+          "電油、打火機、紙碎屑 (Petrol, lighter, paper scraps)",
+          "助燃劑、火柴、通爽地方 (Accelerant, matches, ventilated place)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "化學品標籤必須具備以下那項？\nWhat must a chemical label possess?\n\nI. 危險分類的符號\nI. Symbol of hazard classification\n\nII. 化學名稱\nII. Chemical name\n\nIII. 危險情況的指示\nIII. Indication of hazard situation\n\nIV. 化學品的成份\nIV. Composition of the chemical\n\nV. 需採取的安全措施\nV. Safety measures to be taken",
+        "options": [
+          "I+II+III+V",
+          "II+III+IV+V",
+          "I+II+IV+V",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "因應上級或客戶一些不清晰指示，我們可能會有一些高風險工作產生，如沒有任何保護裝備我們要如何處理？\nFor unclear instructions from superiors or clients, high-risk work may arise; if we have no protective equipment, how should we handle it?",
+        "options": [
+          "A.   不顧一切先為客人解決問題因我們是專業的。 (Solve the client's problem at all costs because we are professionals)",
+          "B.   在可能情況下沒有保護裝備應該可以如常處理，因為我們是專業的。 (Where possible, handle as usual without protection because we are professionals)",
+          "C.   拍下真實情況並通知公司，作好一切保護及裝備後才能開始工作。 (Photograph the real situation and notify the company; only start work after all protection and equipment are in place)",
+          "D.   上司及客人永遠是對的，沒有議價空間照做吧。 (The boss and client are always right; just do it without negotiation)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "放置煙霧器(煙蛋)或熱霧化(Hot fogger)治理過程中有那些地方必須注意？\nWhat must be noted when placing smoke generators (smoke eggs) or hot foggers during treatment?\n\nI. 必須戴上N95口罩\nI. Must wear an N95 mask\n\nII. 通知在場人仕及管理處打開窗户\nII. Notify people on site and management, open windows\n\nIII. 由最盡頭位置開始燃點煙霧器(煙蛋)或熱霧化\nIII. Start lighting the smoke generator (smoke egg) or hot fog from the farthest end\n\nIV. 在門外張貼煙燻滅蟲進行中的告示及附上MSDS\nIV. Post a 'fumigation in progress' notice outside the door with the MSDS attached\n\nV. 確保煙燻進行時沒有任何人或寵物在場\nV. Ensure no people or pets are present during fumigation",
+        "options": [
+          "I+II+III+IV",
+          "II+III+IV+V",
+          "I+III+IV+V",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "蜂巢拆除治理進行前有甚麽地方需留意及注意事項，找出合適答案？\nWhat should be noted before and during hornet nest removal treatment? Find the correct answer.",
+        "options": [
+          "I+II+II",
+          "II+III+IV",
+          "I+II+III",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "請列出白蟻药水治理小心的事項。(四個或以上) 4分\nList precautions for termite liquid treatment (four or more). (4 points)",
+        "options": [
+          "先想想才行動，小心客人的木器已被破壞有下墜危險 (Think before acting; beware that the client's wooden items may be damaged and fall)",
+          "檢查電鑽電線接駁良好，以免漏電，使用電鑽時雙手不可濕， 以免觸電 (Check the drill's wiring is good to avoid electric leakage; hands must be dry when using the drill)",
+          "留意客人電線鋪設，以免破壞導致觸電，工作時注意身體姿勢， 保持腰部挺直。 (Mind the client's wiring layout to avoid damage causing shock; keep proper posture and back straight at work)",
+          "石屎面治理時要留意地盤各種危險， 尊守安全規則 (For concrete surfaces, mind various site dangers and obey safety rules)",
+          "工作時要多角度留意四周環境 (Pay attention to the surroundings from multiple angles during work)"
+        ],
+        "correct": 4
+      },
+      {
+        "question": "工作期間如何界定為不安全行為？\nHow is unsafe behaviour defined during work?",
+        "options": [
+          "巳穿著未完善的個人防護設備 (Wearing incomplete personal protective equipment)",
+          "使用安全工具或機器 (Using safe tools or machines)",
+          "以安全方法搬運或放置物件及工具 (Moving or placing objects and tools by safe methods)",
+          "工友在午膳期間飲水 (A colleague drinking water during lunch)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "如火警在紙品、易燃液體及電源地方發生時，我們可以選用那種滅火筒較合適？\nIf a fire occurs near paper, flammable liquids and power sources, which extinguisher is more suitable?\n\nI. 水劑滅火筒\nI. Water extinguisher\n\nII. 二氧化碳滅火筒\nII. Carbon dioxide extinguisher\n\nIII. 乾粉滅火筒\nIII. Dry powder extinguisher\n\nIV. 泡沫式滅火筒\nIV. Foam extinguisher",
+        "options": [
+          "水劑滅火筒 (Water extinguisher)",
+          "二氧化碳滅火筒 (Carbon dioxide extinguisher)",
+          "乾粉滅火筒 (Dry powder extinguisher)",
+          "泡沫式滅火筒 (Foam extinguisher)"
+        ],
+        "correct": 2
+      }
+    ],
+    "essay": [
+      {
+        "question": "請嘗試列出最少一個在高空工作潛在甚麼危險，及我們不能在竹棚架上工作的原因。",
+        "maxScore": 5
+      },
+      {
+        "question": "請嘗試列出三個甚麼是不安全的工作環境。(例子一 : 沒 有 提 供 救 生 圈 給 岸 邊 進 行 工 作 的 員 工)",
+        "maxScore": 5
+      },
+      {
+        "question": "請列出公司車輛應有的安全設備。(兩個或以上)",
+        "maxScore": 5
+      },
+      {
+        "question": "請列出白蟻药水治理小心的事項。(四個或以上) 4分",
+        "maxScore": 5
+      },
+      {
+        "question": "請嘗試列出三個甚麼是不安全的工作環境。(例子一：沒有提供救生圈給岸邊進行工作的員工) 4分",
+        "maxScore": 5
+      },
+      {
+        "question": "請列出熱風槍(Hot Fog) 治理要小心的事項。(四個或以上) 4分",
+        "maxScore": 5
+      },
+      {
+        "question": "請列出公司車輛應有的安全設備。(四個或以上) 4分",
+        "maxScore": 5
+      },
+      {
+        "question": "請列煙蛋治理要小心的事項。(四個或以上) 4分",
+        "maxScore": 5
+      },
+      {
+        "question": "請嘗試列出Hot Fog治理時應預備的保護裝備(兩項)，進行治理時應注意的事項？",
+        "maxScore": 5
+      },
+      {
+        "question": "請嘗試列出三個甚麼是不安全的工作環境。(例子一：沒有提供救生圈給岸邊進行工作的員工) 就滅白蟻導致爆炸意外的新聞作分析，請列出兩個意外的成因。",
+        "maxScore": 5
+      }
+    ]
+  },
+  "7": {
+    "name": "FliesRodents",
+    "mc": [
+      {
+        "question": "在本港的家居環境中常見的鼠類有那幾類？\nWhat types of rodents are commonly found in local homes?\n\nI. 挪威鼠\nI. Norway rat\n\nII. 黑家鼠\nII. Black rat\n\nIII. 小家鼠\nIII. House mouse\n\nIV. 屋頂鼠\nIV. Roof rat",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "I+III+V",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "黑家鼠: 又名屋頂鼠、船鼠、玄鼠、黃胸鼠它們最愛出沒地方？\nBlack rat: also called roof rat, ship rat, black rat, yellow-breasted rat — where do they most appear?",
+        "options": [
+          "在高層、屋頂空隙、管道及 槽溝 (In high floors, roof voids, pipes and gutters)",
+          "在中低層、屋頂、空房間、管道及 槽溝 (In mid-low floors, roofs, empty rooms, pipes and gutters)",
+          "在低層、屋頂空隙、管道及槽溝 (In low floors, roof voids, pipes and gutters)",
+          "在中低高層、屋頂空隙、管道及槽溝 (In mid-low-high floors, roof voids, pipes and gutters)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "那些是老鼠的行為及特性？\nWhat are the behaviours and characteristics of rats?\n\nI. 每群均居於明確的領域內，成年的老鼠會攻擊所有侵略者\nI. Each group occupies a clear territory; adult rats attack all intruders\n\nII. 群居或與同族集居\nII. Live in groups or with their own kind\n\nIII. 對新奇物件充滿好奇\nIII. Full of curiosity about novel objects\n\nIV. 每群均被一雄性支配\nIV. Each group is dominated by a male",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "I+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "以下那些是老鼠的技能和習慣？\nWhat are the skills and habits of rats?\n\nI. 優良的平衡力，從高處跳下時能輕易地用雙腳著地\nI. Excellent balance; easily land on both feet when jumping from height\n\nII. 跳躍力很好，可跳至一米高\nII. Good jumping ability, can jump up to 1 m high\n\nIII. 善於爬行及游泳\nIII. Good at climbing and swimming\n\nIV. 活動範圍: 大鼠3-5米，小鼠50-100米\nIV. Range: rats 3-5 m, mice 50-100 m",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "I+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "以下那幾點是老鼠的感官能力？\nWhat are the sensory abilities of rats?\n\nI. 臭覺發達，能夠清楚記憶毒餌的氣味\nI. Keen sense of smell; can clearly remember the odour of poison bait\n\nII. 聽覺敏銳，可聽到超聲波\nII. Acute hearing; can hear ultrasound\n\nIII. 能夠辨別同族成員、活動範圍的標記及食物來源的位置\nIII. Can distinguish colony members, markers of activity range and food source locations\n\nIV. 視覺良好特別對黃色和綠色的物件反應較強\nIV. Good vision, especially reactive to yellow and green objects",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "I+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "通常在視察時都不會發現老鼠，所以應留意牠們留下的痕跡？\nUsually rats are not found during inspection, so we should look for the traces they leave.",
+        "options": [
+          "糞便、通道、鼠洞、擦積、傷痕 (Faeces, pathways, rat holes, rub marks, scars)",
+          "糞便、管道、鼠洞、擦積、咬痕 (Faeces, pipes, rat holes, rub marks, bite marks)",
+          "糞便、通道、鼠洞、擦積、咬痕 (Faeces, pathways, rat holes, rub marks, bite marks)",
+          "糞便、氣味、毛髮、擦積、咬痕 (Faeces, odour, hair, rub marks, bite marks)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "設置藥餌盒在外圍時藥餌盒相距約多遠較合適？\nHow far apart is it suitable to place bait stations on the perimeter?",
+        "options": [
+          "5-10 米 (5-10 m)",
+          "5-10尺 (5-10 feet)",
+          "10-15米 (10-15 m)",
+          "10-15尺 (10-15 feet)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "挪威鼠牠們一般體長(頭至尾) 約為多小厘米？\nApproximately how long is the Norway rat body (head to tail)?",
+        "options": [
+          "25厘米-45厘米 (25-45 cm)",
+          "30厘米-45厘米 (30-45 cm)",
+          "35厘米-45厘米 (35-45 cm)",
+          "40厘米-45厘米 (40-45 cm)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "當發現在餐廳厨房位置的老鼠膠未能完全發揮作用時，我們應如何跟進？\nWhen rat glue in a restaurant kitchen does not work fully, how should we follow up?\n\nI. 盡力堵塞牠們出入位置(找出牠們出入位置叫客人堵塞，手能觸及可由技術員處理\nI. Try to block their entry points (ask client to block where found; technician handles reachable ones)\n\nII. 杜絕牠們食物來源\nII. Cut off their food source\n\nIII. 放置老鼠籠\nIII. Place rat traps\n\nIV. 放置老鼠夾\nIV. Place rat snap traps",
+        "options": [
+          "II+III+IV",
+          "I+III+IV",
+          "I+II+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "老鼠的繁殖能力十分驚人每年能生產多少？\nHow many offspring can rats produce per year?",
+        "options": [
+          "A. 每年可產3-5胎，每胎產仔數約為5-14隻 (3-5 litters/year, 5-14 pups per litter)",
+          "B. 每年可產5-7胎，每胎產仔數約為5-14隻 (5-7 litters/year, 5-14 pups per litter)",
+          "C. 每年可產6-9胎，每胎產仔數約為5-14隻 (6-9 litters/year, 5-14 pups per litter)",
+          "D. 每年可產5-8胎，每胎產仔數約為5-14隻. (5-8 litters/year, 5-14 pups per litter)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "老鼠藥餌盒的警告標語為何是用紅色印刷請找合適答案？\nWhy is the rat bait station warning printed in red? Find the correct answer.",
+        "options": [
+          "A. 因牠們對紅色特別敏感及被吸引 (They are especially sensitive to and attracted by red)",
+          "B. 美觀、配合藥餌盒設計 (Aesthetic; matches the bait station design)",
+          "C. 紅色代表危險、警剔其他人，勿胡亂觸碰 (Red represents danger, warns others not to touch)",
+          "D. 牠們是色盲 (They are colour-blind)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "有一市民顧用了一間蟲害公司在屋內滅鼠，而家中小朋友因誤服了老鼠藥下報警召喚救護車送去醫院，就此事件你估計該蟲害公司沒有使用以下那種物資？\nA resident hired a pest company to eradicate rats indoors; a child was taken to hospital after ingesting rat poison. Which material do you estimate the company failed to use?",
+        "options": [
+          "鼠夾 (Mouse trap)",
+          "老鼠膠 (Rat glue)",
+          "老鼠藥餌盒 (Rat bait station)",
+          "老鼠籠 (Rat cage)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "一個已裝了蚊網並長開冷氣的物業，做了多次在課堂提及的品種的飛蟲治理仍有飛蟲問題但也有很多死的飛蟲，會是以下那個原因？\nA property with mosquito nets installed and air-conditioning left on, after many fly treatments still has fly problems but also many dead flies — which is the reason?",
+        "options": [
+          "殺蟲劑開得太稀 (Insecticide diluted too weakly)",
+          "冷霧(Turbo)噴得不均勻",
+          "殺蟲劑藥效已分解 (Insecticide efficacy has degraded)",
+          "繁殖源頭仍未處理 (Breeding source still not addressed)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "當更換老鼠藥餌時應注意那幾個步驟請找合適答案？\nWhat steps should be noted when replacing rat bait? Find the correct answer.\n\nI. 更換殘破及不清潔警告標語\nI. Replace damaged and unclean warning labels\n\nII. 不需要更換舊又發霉藥餌免做成浪費支持環保\nII. No need to replace old mouldy bait to avoid waste and support the environment\n\nIII. 設置藥餌盒於老鼠活躍、覓食及棲息的地方\nIII. Set bait stations where rats are active, foraging and nesting\n\nIV. 確保藥餌盒完整無缺、藥餌可穩妥存放\nIV. Ensure the bait station is intact and bait stored securely",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "I+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "以下那種方法是處理鼠患應做的基本控制？\nWhich method is the basic control for rodent infestation?\n\nI. 杜絕老鼠食物源\nI. Cut off rat food source\n\nII. 擺放老鼠籠及/或老鼠夾\nII. Place rat traps and/or snap traps\n\nIII. 設置藥餌盒\nIII. Set up bait stations\n\nIV. 安裝超聲波\nIV. Install ultrasound",
+        "options": [
+          "杜絕老鼠食物源 (Cut off rat food source)",
+          "擺放老鼠籠及/或老鼠夾 (Place rat traps and/or snap traps)",
+          "設置藥餌盒 (Set up bait stations)",
+          "安裝超聲波 (Install ultrasound)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "以下那幾種是果蠅的特性？\nWhat are the characteristics of fruit flies?\n\nI. 身長約3-4 毫米\nI. About 3-4 mm long\n\nII. 身呈黑色\nII. Black body\n\nIII. 眼睛通常紅色\nIII. Usually red eyes\n\nIV. 愛吃新鮮蔬果、醋、酒\nIV. Eat fresh fruit, vinegar, wine",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "I+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "以下那幾樣是蛾蠅的特徵？\nWhat are the characteristics of moth flies?\n\nI. 有絨毛及纖細\nI. Hairy and slender\n\nII. 黃色,啡灰色至深黑色\nII. Yellow, grey-brown to deep black\n\nIII. 翅膀呈三角形\nIII. Triangular wings\n\nIV. 全身有細毛\nIV. Covered with fine hairs",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "I+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "如有家蠅的滋擾我們需作檢查的重點在那，找出合適答案？\nWhere should we focus inspection for house fly nuisance? Find the correct answer.\n\nI. 牠不經常在室內繁殖，所以很可能來自外面\nI. They do not often breed indoors, so likely come from outside\n\nII. 檢查外面的建物－周邊\nII. Inspect external structures - surroundings\n\nIII. 尋找垃圾區域或腐爛的有機物品\nIII. Look for garbage areas or decaying organic matter\n\nIV. 檢查更衣室、什物房等等\nIV. Inspect changing rooms, storage rooms, etc.",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "I+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "溝鼠又名褐鼠、普通鼠、挪威鼠牠們最愛出沒地方\nNorway rat, also called brown rat, common rat, Norway rat — where do they most appear?",
+        "options": [
+          "A. 在高層、屋頂空隙、管道及槽溝 (In high floors, roof voids, pipes and gutters)",
+          "B. 在污水渠、低層、樹洞及草叢發現 (In sewers, low floors, tree holes and grass)",
+          "C. 在污水渠、低層、地洞發現 (In sewers, low floors, burrows)",
+          "D. 任何地方出沒 (Appear anywhere)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "處理鼠隻屍體的個人衛生應注意地方請找合適答案？\nWhat should be noted for personal hygiene when handling rat carcasses? Find the correct answer.\n\nI. 所有被死老鼠污染的衣物和物品都要徹底消毒\nI. All clothing and items contaminated by dead rats must be thoroughly disinfected\n\nII. 手套需要清洗和消毒或棄掉\nII. Gloves need cleaning, disinfection or disposal\n\nIII. 口罩需要清洗和消毒或棄掉\nIII. Masks need cleaning, disinfection or disposal\n\nIV. 緊閉呼吸免吸入細箘\nIV. Hold breath tightly to avoid inhaling bacteria",
+        "options": [
+          "I+II+III",
+          "I+II+IV",
+          "I+III+IV",
+          "II+III+IV"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "我們常用的老鼠藥餌Contrac Blox (藍色腊粒)康特堡它的主要成分是?\nWhat is the main ingredient of our commonly used Contrac Blox (blue wax block) rodent bait?",
+        "options": [
+          "Bromadiolone (溴敵隆) 0.005% w/w 加上食品級附加材料",
+          "Bromadiolone (溴敵隆) 0.05% w/w 加上食品級附加材料",
+          "Brodifacoum (溴敵拿鼠) 0.005% w/w 加上食品級附加材料",
+          "Brodifacoum (溴敵拿鼠) 0.05% w/w 加上食品級附加材料"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "以下那幾種是House Fly 家蠅的特性？\nWhat are the characteristics of the House Fly?\n\nI. 身長約4-7.5毫米\nI. About 4-7.5 mm long\n\nII. 身呈暗灰色\nII. Dark grey body\n\nIII. 眼睛通常紅色\nIII. Usually red eyes\n\nIV. 腹部有4 條垂直紋\nIV. Four vertical stripes on abdomen",
+        "options": [
+          "I+II+IV",
+          "I+II+III",
+          "II+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "鼠屬於以下哪一目？\nTo which order do rats belong?",
+        "options": [
+          "食肉目 (Carnivora)",
+          "囓齒目 (Rodentia)",
+          "翼手目 (Chiroptera)",
+          "偶蹄目 (Artiodactyla)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "辨別挪威鼠同屋頂鼠，以下邊項描述正確\nIdentifying Norway rat vs roof rat, which description is correct?",
+        "options": [
+          "挪威鼠尾長過頭加身軀，屋頂鼠尾短過頭加身軀 (Norway rat tail longer than head+body; roof rat tail shorter than head+body)",
+          "挪威鼠尾短過頭加身軀、身軀厚重；屋頂鼠尾長過頭加身軀、身軀苗條 (Norway rat tail shorter than head+body, heavy body; roof rat tail longer than head+body, slender body)",
+          "兩者尾巴長度一樣 (Both have the same tail length)",
+          "挪威鼠耳大、屋頂鼠耳細 (Norway rat has large ears; roof rat has small ears)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "老鼠嘅活動習性，以下邊項正確？\nWhich of the following about rat activity habits is correct?",
+        "options": [
+          "晝出夜伏 (Active by day, resting at night)",
+          "單獨生活，無領域性 (Live alone, no territoriality)",
+          "晝伏夜出，並沿牆邊或有遮蓋處建立保護路線 (Active at night, resting by day, and establish protective routes along walls or covered areas)",
+          "對新奇物件毫無戒心 (No wariness of novel objects)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "以下邊種唔屬於常見鼠傳疾病？\nWhich of the following is NOT a common rodent-borne disease?",
+        "options": [
+          "鼠疫 (Plague)",
+          "漢坦病 (Hantavirus)",
+          "戊型肝炎 (Hepatitis E)",
+          "登革熱 (Dengue fever)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "活躍嘅鼠洞通常有以下特徵？\nActive rat burrows usually have which characteristics?",
+        "options": [
+          "只有 1 個出口，洞口粗糙 (Only 1 exit, rough hole)",
+          "有 2–3 個出口，深達 50 cm，洞口平滑並有糞便/食物殘屑 (2-3 exits, 50 cm deep, smooth hole with faeces/food debris)",
+          "一定喺天花板 (Definitely in the ceiling)",
+          "洞口有蜘蛛網 (Spider webs at the hole)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "本公司常用嘅殺鼠劑主要屬於邊一類？\nWhat class do our commonly used rodenticides mainly belong to?",
+        "options": [
+          "神經毒劑 (Neurotoxins)",
+          "抗凝血劑 (Anticoagulants)",
+          "肌肉鬆弛劑 (Muscle relaxants)",
+          "催吐劑 (Emetics)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "抗凝血劑中毒嘅解毒劑係？\nThe antidote for anticoagulant poisoning is?",
+        "options": [
+          "維生素 C (Vitamin C)",
+          "維生素 K1 (Vitamin K1)",
+          "食鹽 (Salt)",
+          "葡萄糖 (Glucose)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "本公司唔係室內使用有毒餌，主要原因係？\nWhy do we not use toxic bait indoors?",
+        "options": [
+          "室內毒餌效果差 (Indoor bait is ineffective)",
+          "人和寵物安全；若老鼠死於不能觸及位置會造成嚴重衛生問題 (Human and pet safety; if a rat dies in an inaccessible place it causes serious hygiene problems)",
+          "室內法律禁止 (Indoor use is legally prohibited)",
+          "毒餌怕樹熊食 (Bait fears being eaten by koalas)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "老鼠藥餌盒嘅作用，以下邊項唔正確?\nWhich of the following about the rodent bait station is incorrect?",
+        "options": [
+          "設計只讓鼠類進入盒內進食藥餌 (Designed to allow only rodents to enter and feed)",
+          "防止非目標動物和人類篡改或進入 (Prevents non-target animals and humans from tampering or entering)",
+          "可以貼上警告和檢查標籤貼上 (Can have warning and inspection labels attached)",
+          "可以放入猫狗食粮吸引老鼠 (Can place cat/dog food inside to attract rats)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "蒼蠅嘅變態屬於？\nThe metamorphosis of flies belongs to?",
+        "options": [
+          "不完全變態 (Incomplete metamorphosis)",
+          "完全變態 (Complete metamorphosis)",
+          "無變態 (No metamorphosis)",
+          "半變態 (Hemimetabolism)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "以下那項不是蒼蠅造成嘅問題？\nWhich is NOT a problem caused by flies?",
+        "options": [
+          "騷擾 (Nuisance)",
+          "傳播疾病 (Disease transmission)",
+          "於食物源內產卵及成長 (Lay eggs and grow in food sources)",
+          "咬人吸血為主 (Mainly bite and suck blood)"
+        ],
+        "correct": 3
+      }
+    ],
+    "essay": [
+      {
+        "question": "嘗試列舉４個例子形容一下老鼠的感官能力？例一: 聽覺十分敏銳(4分)",
+        "maxScore": 4
+      },
+      {
+        "question": "案例: 有一客戶投訴每晚有蛾蠅(渠蠅) 不停在廚房出沒，相關資料及圖片也能正實此事情，但高級技術員初步處理後未有明顯改善。作為主管的你如何處理及跟進，並如何清晰解釋給客人聽，這情況如何發生及解決或改善方案請嘗試作答。(4分)",
+        "maxScore": 4
+      },
+      {
+        "question": "一般情况下我們不建議放置有毒藥餌在室內環境原因何在，請詳細寫下兩個原因？  請詳細說明我們為何在老鼠治理時要帶備紙張或報紙及爽身粉？(2分)",
+        "maxScore": 2
+      },
+      {
+        "question": "本公司採用的FINAL Blox (紅色老鼠腊) 有甚麼特式及好處請嘗試列舉兩個例子？(2分) 例一: 只需吃餌一次便可致死",
+        "maxScore": 2
+      },
+      {
+        "question": "案例: 有一客戶投訴每晚有蛾蠅(渠蠅) 不停在廚房出沒，相關資料及圖片也能正實此事情，但高級技術員初步處理後未有明顯改善。作為主管的你如何處理及跟進，並如何清晰解釋給客人聽，這情況是如何發生及有甚麼解決或改善方案請嘗試作答。(4分)",
+        "maxScore": 4
+      }
+    ]
+  },
+  "8": {
+    "name": "Cockroaches",
+    "mc": [
+      {
+        "question": "以下那種蟑螂是特别喜歡澱粉質食物？\nWhich cockroach especially likes starchy food?",
+        "options": [
+          "長鬚蜚蠊 (褐帶蠊) (Long-tailed cockroach (brown-banded))",
+          "長鬚蜚蠊 (褐帶蠊) 及德國蟑螂 (Long-tailed cockroach (brown-banded) and German cockroach)",
+          "長鬚蜚蠊 (褐帶蠊) 及澳洲蟑螂 (Long-tailed cockroach (brown-banded) and Australian cockroach)",
+          "長鬚蜚蠊 (褐帶蠊) 及美洲蟑螂 (Long-tailed cockroach (brown-banded) and American cockroach)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "蟑螂生命週期、行為及習性是以下那幾項 ？\nWhat are the life cycle, behaviour and habits of cockroaches?\n\nI. 極度頑強\nI. Extremely resilient\n\nII. 只需少量食物就能生長\nII. Can grow with only a small amount of food\n\nIII. 在長時間缺糧水的情況下仍能生長\nIII. Can survive long periods without food and water\n\nIV. 當在較寒冷地方的時候，會較活躍\nIV. More active in colder places",
+        "options": [
+          "I+II",
+          "I+III",
+          "II+III+IV",
+          "I+II+III"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "德國蟑螂主要治理方法 ？\nWhat are the main control methods for German cockroaches?\n\nI. 檢查及給客戶建議\nI. Inspection and advice to client\n\nII. 全屋入藥勁噴谷一谷、落Top Bait Gel\nII. Spray the whole house vigorously and apply Top Bait Gel\n\nIII. 使用有費洛蒙的蟑螂屋\nIII. Use pheromone cockroach traps\n\nIV. 減少噴灑殺蟲水是因為牠們是集中活躍地方及在下一代產生抗藥性\nIV. Reduce spraying because they concentrate in active spots and develop resistance in the next generation",
+        "options": [
+          "I+II+III",
+          "I+III+IV",
+          "II+III+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "德國蟑螂生命週期、行為及習性是以下那幾項 ？\nFind the correct answer for the life cycle, behaviour and habits of German cockroaches.",
+        "options": [
+          "I+II",
+          "I+II+III",
+          "I+II+IV",
+          "以上皆是 (All of the above)"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "美國蟑螂生命週期、行為及習性請找出正確答案？\nFind the correct answer for the life cycle, behaviour and habits of American cockroaches.",
+        "options": [
+          "A. 當氣溫高於30°c時，牠們才會飛行 (They only fly when temperature is above 30 C)",
+          "B. 雌蟑螂會有14-15個月的壽命 (Female lives 14-15 months)",
+          "C. 雄蟑螂的壽命會較短 (Male lives shorter)",
+          "D. 以上皆是 (All of the above)"
+        ],
+        "correct": 3
+      },
+      {
+        "question": "德國雌性蟑螂一生會自能生產         個卵囊，可有            個後代？\nHow many egg capsules can a female German cockroach produce in her lifetime, and how many offspring?",
+        "options": [
+          "A.    2-6個卵囊，可有300個後 (2-6 capsules, 300 offspring)",
+          "B.   6-10個卵囊，可有250個後 (6-10 capsules, 250 offspring)",
+          "C.    4-8個卵囊，可有300個後 (4-8 capsules, 300 offspring)",
+          "D.      4-8個卵囊，可有400個後 (4-8 capsules, 400 offspring)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "美洲蟑螂生命週期、行為及習性請找出正確答案 ？\nFind the correct answer for the life cycle, behaviour and habits of American cockroaches.",
+        "options": [
+          "I+II+III",
+          "II+III+IV",
+          "以上皆是 (All of the above)",
+          "以上皆不是 (None of the above)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "長鬚蜚蠊(褐帶蠊) 或俗稱啡間是如何治理 ？\nHow is the brown-banded cockroach (commonly called 'coffee-band') treated?",
+        "options": [
+          "先針對性處理並入藥在所有隱藏位置、全屋做Cold-Fog、如有需要廚櫃內可薄薄噴。 (First treat targeted and apply chemical in all hidden positions, do cold-fog for the whole house, thinly spray inside cabinets if needed.)",
+          "勁落GEL 、不噴藥、用蒸機(高溫治理)及吸塵機 。",
+          "全做、勁FOG、Set屋落費洛蒙、落GEL加入藥。 (Do everything, heavy fog, set pheromone in the house, add chemical to gel.)",
+          "致電公司，尋求意見並要求加點時間，下一個治理要遲三十分鐘。 (Call the company for advice and request extra time; next treatment delayed 30 minutes.)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "德國蟑螂生命週期、行為及習性請找出正確答案 ？\nFind the correct answer for the life cycle, behaviour and habits of German cockroaches.",
+        "options": [
+          "顏色 - 淺至中啡色、長度 - 1.5 - 2厘米、有翼但不會飛行、生命長至12 個月。 (Colour - light to medium brown, length 1.5-2 cm, winged but cannot fly, life up to 12 months.)",
+          "顏色 - 淺至深啡色、長度 - 2.5 -3厘米、善於會飛行、生命長至12 個月。 (Colour - light to dark brown, length 2.5-3 cm, good at flying, life up to 12 months.)",
+          "顏色 - 淺至中啡色、長度 - 2.5 -3厘米、不會飛行、生命長至12 個月。 (Colour - light to medium brown, length 2.5-3 cm, cannot fly, life up to 12 months.)",
+          "顏色 - 淺至深啡色、長度 - 1.5-2厘米、善於會飛行、生命長至12 個月。 (Colour - light to dark brown, length 1.5-2 cm, good at flying, life up to 12 months.)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "以下那類的德國蟑螂會特別被費洛蒙吸引？\nWhich German cockroaches are especially attracted by pheromones?",
+        "options": [
+          "雄性 (Male)",
+          "雌性 (Female)",
+          "未成熟的 (Immature)",
+          "所有 (All)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "從以下那兩種特徵去分辨出德國蟑螂及褐帶蠊(Brown banded 仔)？\nFrom which two features can German cockroaches and brown-banded cockroaches be distinguished?",
+        "options": [
+          "頭部的兩條深色及明顯的條紋與身形大細 (Two dark obvious stripes on the head and body size)",
+          "頭部的三條深色及明顯的條紋及身形大細 (Three dark obvious stripes on the head and body size)",
+          "頭部的兩條深色及明顯的條紋與是否散播出沒 (Two dark obvious stripes on the head and whether they scatter)",
+          "頭部的兩條深色及明顯的條紋與多少對腳 (Two dark obvious stripes on the head and number of legs)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "以下那兩種方法皆適合在所有品種蟑螂的治理中使用？\nWhich two methods are suitable for controlling all species of cockroaches?",
+        "options": [
+          "A.  噴灑滅蟲劑及使用藥餌 (Spray insecticide and use bait)",
+          "B.  使用藥餌及蟑螂陷阱(蟑螂屋)",
+          "C.  檢查及給客戶建議和吸塵 (Inspection, advice to client and vacuuming)",
+          "D.  噴灑滅蟲劑及使用蟑螂陷阱(蟑螂屋)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "如何釋辨衣魚請找出正確答案 ？\nHow to identify silverfish? Find the correct answer.",
+        "options": [
+          "12 – 25mm毫米、咖啡至銀灰色、象紅蘿蔔外形 (12-25 mm, coffee to silver-grey, carrot-shaped)",
+          "12 –25mm毫米、深咖啡至鐵灰色、象紅蘿蔔外形 (12-25 mm, dark coffee to iron-grey, carrot-shaped)",
+          "15 - 35 mm毫米、咖啡至銀灰色、象紅蘿蔔外形 (15-35 mm, coffee to silver-grey, carrot-shaped)",
+          "15 - 35mm毫米、深咖啡至鐵灰色、象紅蘿蔔外形 (15-35 mm, dark coffee to iron-grey, carrot-shaped)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "以下那兩種昆蟲是以霉作為主要食糧？\nWhich two insects mainly feed on mould?",
+        "options": [
+          "I+II",
+          "I+III",
+          "II+IV",
+          "III+IV"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "書蟲 (一般情況)要如何控制？\nHow to control booklice (generally)?",
+        "options": [
+          "A. 除去潮濕環境的條件，將相對濕度降低至 50％， 保持食物乾燥和如果需要可使用吸塵機 。 (Remove damp conditions, lower relative humidity to 50%, keep food dry and vacuum if needed.)",
+          "B. 除去乾爽環境，將相對濕度提升至 90％，建議客人保持家居乾淨。 (Remove dry conditions, raise relative humidity to 90%, advise client to keep home clean.)",
+          "C. 除去乾爽環境，將相對濕度提升至 90％，建議客人保持家居乾淨、加勁噴BK-Mite。 (Remove dry conditions, raise relative humidity to 90%, advise client to keep home clean and spray BK-Mite vigorously.)",
+          "D. 除去潮濕環境的條件，將相對濕度降低至 50％ - 70%， 保持食物乾燥和如果需要可使用吸塵機 。 (Remove damp conditions, lower relative humidity to 50%-70%, keep food dry and vacuum if needed.)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "有條身長約與尾指甲般的長度、呈灰色、身形是修身及尾有三條鬚的蟲，會是以下那種蟲？\nA bug about the length of a fingernail, grey, slim, with three tails at the rear — which is it?",
+        "options": [
+          "A.  躍尾蟲 (Springtail)",
+          "B.  蠼螋 (Earwig)",
+          "C.  衣魚 (Silverfish)",
+          "D.  德國蟑螂 (German cockroach)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "當發現德國蟑螂時我們一般會落Gel及昆蟲監察站 ，根據我們的做法應在哪裡落Gel？\nWhen German cockroaches are found, we generally apply gel and insect monitoring stations. Where should we apply gel according to our practice?",
+        "options": [
+          "A.   隨意落便可，因蟑螂會隨意活動。 (Anywhere, since cockroaches move randomly.)",
+          "B.   在當眼處，讓客人知道我們以作跟進。 (In conspicuous places so the client knows we followed up.)",
+          "C.    厨櫃的隱閉位置，門鉸，角位或踢腳板內及一些隱閉可躲藏地方。 (In hidden cabinet positions, hinges, corners or inside skirting boards and other hidden hiding places.)",
+          "D.      沙井，渠位或窗邊。 (Sewers, drains or window sills.)"
+        ],
+        "correct": 2
+      },
+      {
+        "question": "噴灑滅蟲劑是美洲蟑螂治理中主要的一部份，但以那位置是盡量減少直接噴灑滅蟲劑的？\nSpraying insecticide is a major part of American cockroach treatment, but which position should be minimally sprayed directly?",
+        "options": [
+          "( 與滅蟲劑的安全性無關) (Unrelated to insecticide safety)",
+          "A.主人房 (Master bedroom)",
+          "B. BB房 (Baby room)",
+          "C. 狗屋 (Dog house)",
+          "D. 沙井內 (Inside sewer)"
+        ],
+        "correct": 4
+      },
+      {
+        "question": "蠼螋 (發音「渠搜」) Earwigs一般情况下會在那裡進入家居環境？\nUnder what circumstances do earwigs generally enter the home environment?",
+        "options": [
+          "A. 經植物或花帶入，由空隙或裂縫進入。 (Brought in via plants or flowers, entering through gaps or cracks.)",
+          "B. 沙井、渠口或潮濕地方。 (Sewers, drains or damp places.)",
+          "C. 外帶的任可物品，如速遞物流物品 (Any externally brought item, e.g. delivery logistics items.)",
+          "D. 以上皆是 (All of the above)"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "有小狗的客人合約做四次書蝨治理，已做兩次(每星期一次準時做) ，問題已大有改善，你進行第三次治理時 你認為以下那項可幫助客人解決書蝨問題的正確方法？\nA client with a small dog has a 4-time booklice contract, two treatments done (weekly, on time); problem much improved. For the third treatment, which correct method helps the client solve the booklice problem?",
+        "options": [
+          "用Handpump加BKL噴牆 (Spray walls with Handpump and BKL)",
+          "用BKL噴Turbo (Spray Turbo with BKL)",
+          "游說她續約 (Persuade her to renew contract)",
+          "教育她控制濕度，減低霉菌生長 (Educate her to control humidity and reduce mould growth)"
+        ],
+        "correct": 3
+      }
+    ],
+    "essay": [
+      {
+        "id": 1,
+        "question": "請簡述蟑螂對健康的影響，包括可傳播的疾病和過敏原。"
+      },
+      {
+        "id": 2,
+        "question": "德國蟑螂、美洲蟑螂和澳洲蟑螂有什麼分別？請從外觀、習性和棲息環境說明。"
+      },
+      {
+        "id": 3,
+        "question": "德國蟑螂的治理方法是什么？為什麼要減少噴灑殺蟲水？"
+      },
+      {
+        "id": 4,
+        "question": "請簡述溝鼠、屋頂鼠和小家鼠的分別，包括體長、尾巴特徵和經常出沒的地方。"
+      },
+      {
+        "id": 5,
+        "question": "老鼠的感官能力如何？視覺、聽覺、嗅覺和觸覺各有什麼特點？"
+      },
+      {
+        "id": 6,
+        "question": "老鼠的繁殖能力如何？請列出平均妊娠期、每年胎數和每胎產仔數。"
+      },
+      {
+        "id": 7,
+        "question": "鼠患調查時應留意哪些痕跡？這些痕跡如何幫助判斷鼠患的嚴重程度？"
+      },
+      {
+        "id": 8,
+        "question": "控制鼠患的基本方法和直接方法分別是什么？"
+      },
+      {
+        "id": 9,
+        "question": "常用的殺鼠劑有哪些？抗凝血劑的作用原理是什么？解毒劑是什么？"
+      },
+      {
+        "id": 10,
+        "question": "為什麼公司不在室內使用有毒餌？如何處理鼠隻屍體？"
+      },
+      {
+        "id": 11,
+        "question": "如何防止鼠患再次發生？請列出防止鼠患的建築規格。"
+      },
+      {
+        "id": 12,
+        "question": "衣魚、蠼螋、書蝨、真菌甲蟲和躍尾蟲分別有什麼特點？如何治理？"
+      }
+    ]
+  }
+}

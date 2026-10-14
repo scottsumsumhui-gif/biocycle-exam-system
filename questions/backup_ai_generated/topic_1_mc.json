@@ -1,0 +1,801 @@
+[
+  {
+    "question": "在香港，哪個政府部門負責監管滅蟲劑的使用？\nIn Hong Kong, which government department regulates the use of insecticides?",
+    "options": [
+      "食物安全中心 Food Safety Centre",
+      "漁農自然護理署 AFCD",
+      "環保署 Environmental Protection Department",
+      "衛生署 Department of Health"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "監管滅蟲劑使用的法例是哪一條？\nWhich ordinance regulates the use of pesticides?",
+    "options": [
+      "公共衛生條例 Public Health Ordinance",
+      "空氣污染管制條例 Air Pollution Control Ordinance",
+      "除害劑條例(第133章) Pesticides Ordinance (Cap 133)",
+      "廢物處置條例 Waste Disposal Ordinance"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "「除害劑」一詞只指用於消滅昆蟲的物質。\nThe term \"pesticide\" only refers to substances used to destroy insects.",
+    "options": [
+      "正確 True",
+      "錯誤 False"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "滅蟲劑的註冊是根據什麼進行的？\nRegistration of insecticides is based on:",
+    "options": [
+      "價格和包裝 Price and packaging",
+      "配方類型及含量 Type of formulation and quantity",
+      "生產國家和品牌 Country of origin and brand",
+      "銷售數量和市場需求 Sales volume and market demand"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "滅蟲劑可以使用超出標籤上列明的稀釋度及使用方法。\nInsecticides can be used beyond the registered dilutions and methods on the label.",
+    "options": [
+      "正確 True",
+      "錯誤 False"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "物料安全資料表（MSDS）包含什麼重要資訊？\nWhat important information does the MSDS contain?",
+    "options": [
+      "滅蟲劑的價格和供應商 Price and supplier",
+      "滅蟲劑的毒性及對健康的影響 Toxicity and health effects",
+      "滅蟲劑的市場推廣策略 Marketing strategy",
+      "滅蟲劑的環保認證 Environmental certification"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "未經漁護署註冊的滅蟲劑也可以使用。\nUnregistered insecticides can also be used.",
+    "options": [
+      "正確 True",
+      "錯誤 False"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "已註冊的滅蟲劑的註冊編號應顯示在哪裡？\nWhere should the registration number of registered pesticides be displayed?",
+    "options": [
+      "樽身背面的標籤 Label on the back",
+      "樽身正面的標籤 Label on the front panel",
+      "包裝盒內側 Inside the packaging box",
+      "產品說明書內 In the product manual"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "殺蟲劑的標籤會告訴你什麼資訊？\nWhat does the pesticide label tell you?",
+    "options": [
+      "什麼情況可以應用 What situations",
+      "什麼蟲害和稀釋度 What pests and dilution",
+      "什麼情況、蟲害、稀釋度、在哪裡及如何應用 All of the above",
+      "只告訴安全警告 Only safety warnings"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "過量使用殺蟲劑會導致以下哪個后果？\nWhich is a consequence of overuse of pesticides?",
+    "options": [
+      "抗藥性 Resistance",
+      "對益蟲的影響 Effects on beneficial insects",
+      "長遠健康影響 Long-term health effects",
+      "以上全部 All of the above"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "臭蟲（bedbugs）的治理受到嚴重阻礙，主要原因是什么？\nWhat greatly hinders the treatment of bedbugs?",
+    "options": [
+      "臭蟲繁殖速度慢 Slow reproduction",
+      "臭蟲的抗藥性 Resistance to pesticides",
+      "缺乏有效的陷阱 Lack of effective traps",
+      "臭蟲體型太小 Small body size"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "益達胺（Imidacloprid）在全球受到批評，原因是什麼？\nWhy is Imidacloprid criticized worldwide?",
+    "options": [
+      "價格過高 Too expensive",
+      "傷害蜜蜂族群數量 Harm to bee populations",
+      "對人體有毒 Toxic to humans",
+      "污染水源 Water pollution"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "過度暴露於殺蟲劑會有什麼影響？\nWhat are the effects of over exposure to pesticides?",
+    "options": [
+      "只有呼吸影響 Only inhalation effects",
+      "呼吸影響、皮膚影響、長遠健康影響、殘留物影響 All: inhalation, skin, long-term health, residual effects",
+      "只有皮膚影響 Only skin effects",
+      "只有殘留物影響 Only residual effects"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "於灣仔演藝學院使用二嗪磷（Diazinon）的事件中，法庭判罰了多少？\nWhat was the court award in the Diazinon incident at HK Academy for Performing Arts?",
+    "options": [
+      "HK$2,400,000",
+      "HK$12,000,000",
+      "HK$24,000,000",
+      "HK$48,000,000"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "中草藥中殘留的殺蟲劑超出了歐盟標準多少倍？\nHow many times over the EU standard were pesticide residues in Chinese herbs?",
+    "options": [
+      "13倍",
+      "31倍",
+      "313倍",
+      "1313倍"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "芬普尼（Fipronil）是什麼？\nWhat is Fipronil?",
+    "options": [
+      "一種生物方法 A biological method",
+      "一種常見的殺蟲劑 A common insecticide",
+      "一種物理方法 A physical method",
+      "一種天然驅蟲劑 A natural repellent"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "IPM（綜合害蟲管理）的定義是什麼？\nWhat is the definition of IPM?",
+    "options": [
+      "只使用化學方法消滅害蟲 Using only chemical methods",
+      "持續性方法，結合生物、文化、物理和化學工具，減少風險 A sustainable approach combining bio/cultural/physical/chemical tools to minimize risks",
+      "盡量使用更多殺蟲劑 Using as many pesticides as possible",
+      "只依賴生物方法 Relying solely on biological control"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "IPM的6個步驟依次是什麼？\nWhat are the 6 steps of IPM in order?",
+    "options": [
+      "偵察→辨認→監測→施行→檢討→教育",
+      "辨認→偵察→施行→監測→教育→檢討",
+      "監測→偵察→辨認→施行→教育→檢討",
+      "施行→偵察→辨認→監測→檢討→教育"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "偵察（Inspection）的目的是什麼？\nWhat is the purpose of Inspection?",
+    "options": [
+      "直接消滅害蟲 Directly eliminate pests",
+      "找出害蟲及其跡象、認識害蟲 Look for pests, signs, conditions, and learn about them",
+      "監測害蟲活動 Monitor pest activity",
+      "施用殺蟲劑 Apply pesticides"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "偵察時可以通過什麼方式發現害蟲？\nHow can pests be discovered during Inspection?",
+    "options": [
+      "只有目測 Only visual inspection",
+      "物理目測及見到害蟲有關的痕跡 Physical sighting and signs of pests",
+      "只有使用陷阱 Only using traps",
+      "只有使用殺蟲劑 Only using pesticides"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "磁磚牆上的破位及罅隙對害蟲有什么影響？\nWhat effect do holes and gaps in wall tiles have on pests?",
+    "options": [
+      "阻止害蟲進入 Prevent pests from entering",
+      "提供害蟲很好的匿藏空間 Provide good hiding places for pests",
+      "對害蟲沒有影響 No effect on pests",
+      "會殺死害蟲 Will kill pests"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "破爛的雪柜膠邊對害蟲有什么影響？\nWhat effect do damaged fridge seals have on pests?",
+    "options": [
+      "阻止害蟲接近 Prevent pests from approaching",
+      "提供害蟲良好的生存環境 Create a great environment for pests to hide",
+      "對害蟲沒有影響 No effect on pests",
+      "會驅走害蟲 Will repel pests"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "我們可以通過什麼方式認識害蟲？\nHow can we learn about pests?",
+    "options": [
+      "只能靠經驗 Only by experience",
+      "參考書籍，了解其生態週期 Through reference books, learning about their lifecycle",
+      "只能靠培訓 Only through training",
+      "只能靠管理員告知 Only when told by management"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "辨認（Identification）時需要了解害蟲的什麼？\nWhat do you need to know about pests during Identification?",
+    "options": [
+      "只需知道害蟲名稱 Only the pest name",
+      "什麼害蟲、嚴重程度、繁殖速度、居住地、食性、特殊行為 All: type, severity, reproduction, habitat, diet, special behavior",
+      "只需知道食性 Only the diet",
+      "只需知道居住地 Only the habitat"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "德國蟑螂的每顆卵可以孵出多少隻幼蟲？\nHow many young can each German cockroach egg case produce?",
+    "options": [
+      "10-20隻",
+      "30-40隻",
+      "50-60隻",
+      "80-100隻"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "當駝背蠅（Phorid flies）受騷擾時會怎樣？\nWhat do Phorid flies do when disturbed?",
+    "options": [
+      "即時起飛及盤旋 Lift off and hover immediately",
+      "先跑才起飛 Run before taking flight",
+      "假死 Play dead",
+      "發出聲音 Make noise"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "當果蠅受騷擾時會怎樣？\nWhat do fruit flies do when disturbed?",
+    "options": [
+      "先跑才起飛 Run before taking flight",
+      "即時起飛及盤旋 Lift off and hover immediately",
+      "假死 Play dead",
+      "躲藏 Hide"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "監測（Monitoring）應該如何進行？\nHow should Monitoring be conducted?",
+    "options": [
+      "只在發現害蟲時才檢查 Only when pests found",
+      "定時檢查、實地目測、使用陷阱、保存記錄 Regular checks, visual inspection, traps, records",
+      "每年檢查一次 Once a year",
+      "只需使用化學方法 Only chemical methods"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "昆蟲監測陷阱的作用是什麼？\nWhat is the purpose of insect monitoring traps?",
+    "options": [
+      "殺死所有害蟲 Kill all pests",
+      "監測及檢查害蟲活動 Monitor and check for pest activity",
+      "替代殺蟲劑 Replace pesticides",
+      "驅走害蟲 Repel pests"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "監測時應保存什麼記錄？\nWhat records should be kept during Monitoring?",
+    "options": [
+      "不需要記錄 No records needed",
+      "檢查清單及檢查記錄 Inspection checklist and inspection records",
+      "只有殺蟲劑使用記錄 Only pesticide usage records",
+      "只有員工記錄 Only employee records"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "IPM的施行（Implementation）包括哪三種方法？\nWhat are the 3 methods of IPM Implementation?",
+    "options": [
+      "物理方法、化學方法、生物方法 Physical, Chemical, Biological",
+      "物理方法、化學方法、心理方法 Physical, Chemical, Psychological",
+      "生物方法、經濟方法、社會方法 Biological, Economic, Social",
+      "化學方法、法律方法、行政方法 Chemical, Legal, Administrative"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "物理方法中的「改變生活環境」包括什麼？\nWhat does Physical Method \"Habit Modification\" include?",
+    "options": [
+      "施用殺蟲劑 Applying pesticides",
+      "清潔、除去害蟲居所 Cleaning, removing shelter",
+      "使用陷阱 Using traps",
+      "引進天敵 Introducing natural enemies"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪項是物理方法中改變生活環境的例子？\nWhich is an example of Physical Method - Habit Modification?",
+    "options": [
+      "施用除害劑 Applying pesticide",
+      "清除蜘蛛網、拆除土蜂的土丘 Removing spider webs, knocking down wasps' mud tubes",
+      "使用吸塵機 Using vacuum",
+      "噴灑殺蟲劑 Spraying insecticide"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "使用黏性陷阱（Sticky traps）時，加入什麼可以增加功效？\nWhat can increase the effectiveness of sticky traps?",
+    "options": [
+      "加入殺蟲劑 Adding pesticide",
+      "加入費洛蒙顆粒 Adding pheromone tablets",
+      "加入水 Adding water",
+      "加入糖 Adding sugar"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "吸塵機於滅蟲工作中特別適用於治理什麼害蟲？\nVacuums are especially useful for treating which pests?",
+    "options": [
+      "蚊子和蒼蠅 Mosquitoes and flies",
+      "白蟻和螞蟻 Termites and ants",
+      "嚴重的蟑螂及木蝩 Serious roaches and bedbugs",
+      "老鼠 Rodents"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "當使用滅蟲劑時，應該怎樣使用？\nHow should pesticides be used?",
+    "options": [
+      "大量使用 Use as much as possible",
+      "隨意使用 Use freely",
+      "針對地及有控制地使用 In a controlled and targeted way",
+      "只在夏天使用 Only use in summer"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "旗腹姬蜂（Ensign wasp）如何控制蟑螂？\nHow does the Ensign wasp control cockroaches?",
+    "options": [
+      "直接捕食蟑螂 Directly preying on cockroaches",
+      "於蟑螂卵中產卵，幼蟲吃掉蟑螂卵 Lays egg inside cockroach egg case, larva feeds on cockroach eggs",
+      "釋放毒素殺死蟑螂 Releases toxins to kill cockroaches",
+      "破壞蟑螂巢穴 Destroys cockroach nests"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "白蟻治理中的藥餌如何工作？\nHow does the bait in termite treatment work?",
+    "options": [
+      "毒死所有昆蟲 Kills all insects",
+      "只針對白蟻，影響脫皮能力 Only targets termites, affecting their ability to molt",
+      "阻止白蟻繁殖 Prevents termite reproduction",
+      "改變白蟻行為 Changes termite behavior"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "昆蟲生態調節劑（Insect Growth Regulator）屬於哪種IPM方法？\nInsect Growth Regulator belongs to which IPM method?",
+    "options": [
+      "物理方法 Physical Method",
+      "化學方法 Chemical Method",
+      "生物方法（人工合成） Biological Method (Man-made)",
+      "文化方法 Cultural Method"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "教育（Education）中建議的預防害蟲措施包括什麼？\nWhat preventive measures are recommended in the Education step?",
+    "options": [
+      "維持環境清潔 Keep clean",
+      "裝置蚊網和渠網 Fit mesh screens and drain screens",
+      "填嵌空隙及裂縫 Caulk and seal gaps",
+      "以上全部 All of the above"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "以下哪項是教育步驟中建議的預防措施？\nWhich is a recommended preventive measure in the Education step?",
+    "options": [
+      "沿門底裝上刷子或膠條 Fitting brush/rubber strips along bottom of doors",
+      "使用更多殺蟲劑 Using more pesticides",
+      "不用做任何事 Do nothing",
+      "只在白天做清潔 Only clean during daytime"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "IPM的益處包括什麼？\nWhat are the benefits of IPM?",
+    "options": [
+      "減低對環境的影響 Decreasing environmental impact",
+      "提高效率以減少損失 Improved timing & efficiency",
+      "增強伙伴合作及創新方法 Increased partnership & innovative methods",
+      "以上全部 All of the above"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "IPM中「評估」（Evaluation）步驟的目的是什麼？\nWhat is the purpose of the Evaluation step in IPM?",
+    "options": [
+      "開始施用殺蟲劑 Start applying pesticides",
+      "檢討治理效果，確認方法是否有效 Review treatment effectiveness and confirm methods work",
+      "教育客戶 Educate clients",
+      "偵察害蟲 Inspect for pests"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "在演藝學院二嗪磷事件中，事故原因是什麼？\nWhat caused the Diazinon incident at HK Academy for Performing Arts?",
+    "options": [
+      "殺蟲劑過期 Expired pesticide",
+      "不安全工作守則 Unsafe working practices",
+      "害蟲太多 Too many pests",
+      "天氣問題 Weather issues"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "DDT的廣泛和過度使用導致了什麼問題？\nWhat problem did widespread overuse of DDT cause?",
+    "options": [
+      "害蟲數量減少 Reduced pest numbers",
+      "害蟲產生抗藥性 Pests developed resistance",
+      "環境變好 Environment improved",
+      "益蟲增多 More beneficial insects"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "重覆使用相同的農藥會導致什麼問題？\nWhat problem does repeated use of the same pesticide cause?",
+    "options": [
+      "更有效控制害蟲 Better pest control",
+      "害蟲產生抗藥性 Pest resistance",
+      "對環境無影響 No environmental impact",
+      "節省成本 Cost savings"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "殺蟲劑殘留物影響可以在哪裡出現？\nWhere can pesticide residual effects appear?",
+    "options": [
+      "只在空氣中 Only in air",
+      "只在水中 Only in water",
+      "食物中 In food",
+      "只在土壤中 Only in soil"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "「除害劑」一詞涵蓋了哪些物質類型？\nWhat types of substances does the term \"pesticide\" cover?",
+    "options": [
+      "只有除蟲劑 Only insecticides",
+      "除蟲劑、除真菌劑、除莠劑、除蟎劑等 Insecticides, fungicides, herbicides, miticides, etc.",
+      "只有化學物質 Only chemical substances",
+      "只有天然物質 Only natural substances"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪項不是IPM的6個步驟？\nWhich is NOT one of the 6 steps of IPM?",
+    "options": [
+      "偵察 Inspection",
+      "辨認 Identification",
+      "消滅 Eradication",
+      "教育 Education"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "物理方法中的「捕捉」包括什麼工具？\nWhat tools are included in the Physical Method \"Trapping\"?",
+    "options": [
+      "黏性陷阱 Sticky traps",
+      "費洛蒙陷阱 Pheromone traps",
+      "UV光陷阱 UV light traps",
+      "以上全部 All of the above"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "生物方法中的「天敵」例子是什麼？\nWhat is an example of \"Natural enemies\" in the Biological Method?",
+    "options": [
+      "益達胺 Imidacloprid",
+      "旗腹姬蜂（栗米公公） Ensign wasp",
+      "黏性陷阱 Sticky traps",
+      "吸塵機 Vacuum"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "IPM的「持續性方法」是指什麼？\nWhat does \"sustainable approach\" mean in IPM?",
+    "options": [
+      "短期使用殺蟲劑 Short-term use of pesticides",
+      "長期持續的害蟲管理策略 Long-term ongoing pest management strategy",
+      "一次性治理 One-time treatment",
+      "忽略害蟲 Ignoring pests"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪項是化學方法的正確使用方式？\nWhich is the correct way to use the Chemical Method?",
+    "options": [
+      "大量噴灑 Spray generously",
+      "針對地及有控制地使用 Use in a controlled and targeted way",
+      "隨意使用 Use freely",
+      "不需要遵循標籤指示 No need to follow label instructions"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "專門設計捕捉果蠅的陷阱屬於哪種IPM方法？\nSpecific traps for fruit flies belong to which IPM method?",
+    "options": [
+      "生物方法 Biological Method",
+      "物理方法 Physical Method",
+      "化學方法 Chemical Method",
+      "文化方法 Cultural Method"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "在IPM中，以下哪個步驟是在施行之前進行的？\nWhich IPM step comes before Implementation?",
+    "options": [
+      "教育 Education",
+      "檢討 Evaluation",
+      "監測 Monitoring",
+      "辨認 Identification"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "蜜蜂族群數量減少與哪種殺蟲劑有關？\nDecline in bee populations is linked to which pesticide?",
+    "options": [
+      "芬普尼 Fipronil",
+      "益達胺 Imidacloprid",
+      "二嗪磷 Diazinon",
+      "滴滴涕 DDT"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "在IPM框架中，化學方法應該是最後的手段。\nIn the IPM framework, chemical methods should be the last resort.",
+    "options": [
+      "正確 True",
+      "錯誤 False"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "以下哪項關於MSDS是正確的？\nWhich statement about MSDS is correct?",
+    "options": [
+      "MSDS只供管理員查看 MSDS is only for management",
+      "所有滅蟲劑均有MSDS，包含毒性及健康影響 All pesticides have MSDS stating toxicity and health effects",
+      "MSDS只包含價格資訊 MSDS only contains pricing info",
+      "MSDS不需要更新 MSDS doesn't need updating"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "治理嚴重蟑螂及木蝩時，什麼工具最有效？\nWhat tool is most effective for treating serious roaches and bedbugs?",
+    "options": [
+      "殺蟲劑噴灑 Pesticide spray",
+      "吸塵機 Vacuum",
+      "黏性陷阱 Sticky traps",
+      "費洛蒙 Pheromone"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪項不屬於IPM施行的方法？\nWhich does NOT belong to IPM Implementation methods?",
+    "options": [
+      "物理方法 Physical Method",
+      "化學方法 Chemical Method",
+      "生物方法 Biological Method",
+      "法律方法 Legal Method"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "在灣仔演藝學院事件中，受害者是誰？\nWho was the victim in the HK Academy for Performing Arts incident?",
+    "options": [
+      "技術員 Technician",
+      "音樂家 Musician",
+      "學生 Student",
+      "保安員 Security guard"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "裝置蚊網是哪個IPM步驟的建議措施？\nInstalling mesh screens is a recommended measure in which IPM step?",
+    "options": [
+      "偵察 Inspection",
+      "施行 Implementation",
+      "監測 Monitoring",
+      "教育 Education"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "IPM中「結合生物、文化、物理和化學工具」是指什麼？\nWhat does \"combining biological, cultural, physical and chemical tools\" mean in IPM?",
+    "options": [
+      "只使用一種方法 Using only one method",
+      "綜合使用多種方法達到最佳效果 Using multiple methods together for best results",
+      "隨意選擇方法 Choosing methods randomly",
+      "只用化學方法 Only chemical methods"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "昆蟲生態調節劑用於什害蟲治理？\nInsect Growth Regulator is used for treating which pest?",
+    "options": [
+      "蟑螂 Cockroaches",
+      "白蟻 Termites",
+      "蒼蠅 Flies",
+      "老鼠 Rodents"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "在監測步驟中，「定時檢查」的目的是什麼？\nWhat is the purpose of \"regular basis checking\" in the Monitoring step?",
+    "options": [
+      "只在問題出現時檢查 Only check when problems appear",
+      "持續追蹤害蟲活動，及早發現問題 Continuously track pest activity, detect problems early",
+      "節省成本 Save costs",
+      "避免使用殺蟲劑 Avoid using pesticides"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪項是教育步驟中「填嵌及封口」措施的例子？\nWhich is an example of \"caulking and sealing\" in the Education step?",
+    "options": [
+      "噴灑殺蟲劑 Spraying pesticide",
+      "將空隙及裂縫填嵌及封口 Caulking and sealing gaps and cracks",
+      "使用吸塵機 Using vacuum",
+      "放置陷阱 Placing traps"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "門底裝上刷子或膠條的作用是什麼？\nWhat is the purpose of fitting brush/rubber strips along the bottom of doors?",
+    "options": [
+      "美化門面 Decorating the door",
+      "阻止害蟲從門底進入 Prevent pests from entering through the door bottom",
+      "增加通風 Increase ventilation",
+      "減少噪音 Reduce noise"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "渠口裝置渠網的作用是什麼？\nWhat is the purpose of installing mesh screens for drains?",
+    "options": [
+      "防止害蟲從渠口進入 Prevent pests from entering through drains",
+      "增加排水速度 Increase drainage speed",
+      "美化渠口 Decorating the drain",
+      "防止堵塞 Prevent blockage"
+    ],
+    "correct": 0
+  },
+  {
+    "question": "IPM策略能「減少損失」是通過什方式？\nHow do IPM strategies \"reduce loss\"?",
+    "options": [
+      "增加殺蟲劑用量 Increase pesticide usage",
+      "提高時效和效率 Improved timing and efficiency",
+      "減少員工數量 Reduce staff",
+      "忽略害蟲問題 Ignore pest problems"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪項關於殺蟲劑標籤是正確的？\nWhich statement about pesticide labels is correct?",
+    "options": [
+      "標籤可以忽略 Labels can be ignored",
+      "標籤清楚標明稀釋和施用指示 Labels clearly state dilution and application instructions",
+      "標籤只供參考 Labels are for reference only",
+      "標籤不需要閱讀 Labels don't need to be read"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "在IPM中，「減少對經濟、人類健康及環境的危機」是什意思？\nWhat does \"minimizes economic, health and environmental risks\" mean in IPM?",
+    "options": [
+      "完全不使用殺蟲劑 Never use pesticides",
+      "在有效控制害蟲的同時降低各方面風險 Control pests effectively while reducing risks in all areas",
+      "只考慮經濟效益 Only consider economic benefits",
+      "只考慮環境影響 Only consider environmental impact"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "辨認害蟲時，「繁殖速度」為什麼重要？\nWhy is \"reproduction rate\" important when identifying pests?",
+    "options": [
+      "不重要 Not important",
+      "繁殖快的害蟲需要更快的應對 Fast-reproducing pests require quicker response",
+      "只用來記錄 Only for record keeping",
+      "只用來比較 Only for comparison"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "以下哪項是物理方法中「環境改造」的例子？\nWhich is an example of \"Habit Modification\" in the Physical Method?",
+    "options": [
+      "噴灑殺蟲劑 Spraying pesticide",
+      "簡單地清除在屋檐或角落的蜘蛛網 Simply removing spider webs from eaves or corners",
+      "使用費洛蒙 Using pheromone",
+      "引進天敵 Introducing natural enemies"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "IPM（綜合害蟲管理）與傳統滅蟲方法的最大分別是什麼？",
+    "options": [
+      "IPM只用化學藥劑",
+      "IPM結合多種方法並注重預防",
+      "IPM只使用生物方法",
+      "IPM不考虑環境影響"
+    ],
+    "id": 74,
+    "correct": 1
+  },
+  {
+    "question": "在IPM的監測步驟中，黏性陷阱（Sticky traps）應該如何放置？",
+    "options": [
+      "隨意放置",
+      "沿牆邊和害蟲出沒路徑放置",
+      "只放在中央",
+      "掛在天花板上"
+    ],
+    "id": 75,
+    "correct": 1
+  },
+  {
+    "question": "生物方法在IPM中的缺點是什麼？",
+    "options": [
+      "效果太快",
+      "效果慢，易受環境因素影響",
+      "太昂貴",
+      "對人體有毒"
+    ],
+    "id": 76,
+    "correct": 1
+  },
+  {
+    "question": "物理方法中的「陷阱」不包括以下哪一項？",
+    "options": [
+      "黏性陷阱",
+      "誘餌陷阱",
+      "吸塵機",
+      "熱霧機"
+    ],
+    "id": 77,
+    "correct": 3
+  },
+  {
+    "question": "在實施IPM時，為什麼需要先進行偵察（Inspection）？",
+    "options": [
+      "可以直接施用藥劑",
+      "了解害蟲種類、數量和分布，以制定針對性方案",
+      "可以不用辨認害蟲",
+      "可以節省時間"
+    ],
+    "id": 78,
+    "correct": 1
+  },
+  {
+    "question": "IPM中的「教育」步驟主要是指什麼？",
+    "options": [
+      "教育害蟲",
+      "教育客戶和管理人員有關害蟲預防和治理的知識",
+      "只教育員工",
+      "教育公眾"
+    ],
+    "id": 79,
+    "correct": 1
+  },
+  {
+    "question": "為什麼需要定期檢討IPM治理效果？",
+    "options": [
+      "沒有原因",
+      "可以了解方法是否有效，並根據需要調整方案",
+      "只是公司規定",
+      "可以收取更多費用"
+    ],
+    "id": 80,
+    "correct": 1
+  }
+]

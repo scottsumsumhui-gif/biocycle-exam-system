@@ -1,1 +1,327 @@
-[]
+[
+  {
+    "id": 993001,
+    "emp_id": 4,
+    "emp_number": "ST82",
+    "emp_name": "Lee Kin Fai",
+    "date": "2026-08-05",
+    "day_status": "病假",
+    "schedule_in": "",
+    "actual_in": "",
+    "off_time": "",
+    "remark": "",
+    "jobs": [],
+    "members": [],
+    "total_duty_hours": 0,
+    "standard_hours": 0,
+    "ot_hours": 0,
+    "ot_evening_hours": 0,
+    "ot_night_hours": 0
+  },
+  {
+    "id": 993002,
+    "emp_id": 4,
+    "emp_number": "ST82",
+    "emp_name": "Lee Kin Fai",
+    "date": "2026-08-06",
+    "day_status": "正常上班",
+    "schedule_in": "08:00",
+    "actual_in": "09:00",
+    "off_time": "",
+    "remark": "",
+    "jobs": [],
+    "members": [],
+    "total_duty_hours": 0,
+    "standard_hours": 0,
+    "ot_hours": 0,
+    "ot_evening_hours": 0,
+    "ot_night_hours": 0
+  },
+  {
+    "id": 990001,
+    "emp_id": 4,
+    "emp_number": "ST82",
+    "emp_name": "Lee Kin Fai",
+    "date": "2026-09-23",
+    "day_status": "正常上班",
+    "schedule_in": "08:00",
+    "actual_in": "08:00",
+    "off_time": "18:30",
+    "remark": "",
+    "jobs": [
+      {
+        "client_no": "J1001",
+        "start": "09:00",
+        "end": "11:30",
+        "types": [
+          "PC"
+        ],
+        "remarks": "",
+        "no_sync": false,
+        "night_allowance": false
+      },
+      {
+        "client_no": "J1002",
+        "start": "14:00",
+        "end": "16:30",
+        "types": [
+          "TC"
+        ],
+        "remarks": "",
+        "no_sync": false,
+        "night_allowance": false
+      }
+    ],
+    "members": [
+      {
+        "emp_id": 4,
+        "emp_name": "Lee Kin Fai",
+        "emp_number": "ST82"
+      }
+    ],
+    "total_duty_hours": 10.5,
+    "standard_hours": 10,
+    "ot_hours": 0.5,
+    "ot_evening_hours": 0.5,
+    "ot_night_hours": 0,
+    "holiday_work": false,
+    "night_recovery": false,
+    "jobs_synced_from": null,
+    "updated_at": "2026-09-28 14:36:47"
+  },
+  {
+    "id": 990002,
+    "emp_id": 4,
+    "emp_number": "ST82",
+    "emp_name": "Lee Kin Fai",
+    "date": "2026-09-22",
+    "day_status": "正常上班",
+    "schedule_in": "08:00",
+    "actual_in": "08:00",
+    "off_time": "18:30",
+    "remark": "",
+    "jobs": [
+      {
+        "client_no": "J1001",
+        "start": "09:00",
+        "end": "11:30",
+        "types": [
+          "PC"
+        ],
+        "remarks": "",
+        "no_sync": false,
+        "night_allowance": false
+      },
+      {
+        "client_no": "J1002",
+        "start": "14:00",
+        "end": "16:30",
+        "types": [
+          "TC"
+        ],
+        "remarks": "夜急單跟進",
+        "no_sync": false,
+        "night_allowance": true
+      }
+    ],
+    "members": [
+      {
+        "emp_id": 4,
+        "emp_name": "Lee Kin Fai",
+        "emp_number": "ST82"
+      }
+    ],
+    "total_duty_hours": 10.5,
+    "standard_hours": 10,
+    "ot_hours": 0.5,
+    "ot_evening_hours": 0.5,
+    "ot_night_hours": 0,
+    "holiday_work": false,
+    "night_recovery": false,
+    "jobs_synced_from": null,
+    "updated_at": "2026-09-28 14:36:47"
+  },
+  {
+    "id": 990003,
+    "emp_id": 4,
+    "emp_number": "ST82",
+    "emp_name": "Lee Kin Fai",
+    "date": "2026-09-21",
+    "day_status": "正常上班",
+    "schedule_in": "08:00",
+    "actual_in": "08:00",
+    "off_time": "18:30",
+    "remark": "",
+    "jobs": [
+      {
+        "client_no": "J1001",
+        "start": "09:00",
+        "end": "11:30",
+        "types": [
+          "PC"
+        ],
+        "remarks": "",
+        "no_sync": false,
+        "night_allowance": false
+      },
+      {
+        "client_no": "J1002",
+        "start": "14:00",
+        "end": "16:30",
+        "types": [
+          "TC"
+        ],
+        "remarks": "",
+        "no_sync": false,
+        "night_allowance": false
+      }
+    ],
+    "members": [
+      {
+        "emp_id": 4,
+        "emp_name": "Lee Kin Fai",
+        "emp_number": "ST82"
+      }
+    ],
+    "total_duty_hours": 10.5,
+    "standard_hours": 10,
+    "ot_hours": 0.5,
+    "ot_evening_hours": 0.5,
+    "ot_night_hours": 0,
+    "holiday_work": false,
+    "night_recovery": false,
+    "jobs_synced_from": null,
+    "updated_at": "2026-09-28 14:36:47"
+  },
+  {
+    "date": "2026-09-26",
+    "day_status": "公眾假期",
+    "holiday_work": false,
+    "night_recovery": false,
+    "schedule_in": "10:00",
+    "actual_in": "10:00",
+    "off_time": "18:30",
+    "remark": "e2e 備註",
+    "jobs": [],
+    "members": [],
+    "emp_id": 4,
+    "emp_number": "ST82",
+    "emp_name": "Lee Kin Fai",
+    "total_duty_hours": 8.5,
+    "standard_hours": 0,
+    "ot_hours": 8.5,
+    "ot_evening_hours": 8.5,
+    "ot_night_hours": 0,
+    "id": 993003,
+    "created_by_emp_id": 4,
+    "created_at": "2026-09-28 12:09:52",
+    "jobs_synced_from": null,
+    "updated_at": "2026-09-28 14:34:25"
+  },
+  {
+    "date": "2026-09-25",
+    "day_status": "正常上班",
+    "holiday_work": false,
+    "night_recovery": false,
+    "schedule_in": "08:00",
+    "actual_in": "08:00",
+    "off_time": "18:30",
+    "remark": "",
+    "jobs": [
+      {
+        "client_no": "J1001",
+        "start": "09:00",
+        "end": "11:30",
+        "types": [
+          "PC"
+        ],
+        "remarks": "",
+        "no_sync": false,
+        "night_allowance": false
+      },
+      {
+        "client_no": "J1002",
+        "start": "14:00",
+        "end": "16:30",
+        "types": [
+          "TC"
+        ],
+        "remarks": "",
+        "no_sync": false,
+        "night_allowance": false
+      }
+    ],
+    "members": [
+      {
+        "emp_id": 4,
+        "emp_name": "Lee Kin Fai",
+        "emp_number": "ST82"
+      }
+    ],
+    "emp_id": 4,
+    "emp_number": "ST82",
+    "emp_name": "Lee Kin Fai",
+    "total_duty_hours": 10.5,
+    "standard_hours": 10,
+    "ot_hours": 0.5,
+    "ot_evening_hours": 0.5,
+    "ot_night_hours": 0,
+    "id": 993004,
+    "created_by_emp_id": 4,
+    "created_at": "2026-09-28 12:09:52",
+    "jobs_synced_from": null,
+    "updated_at": "2026-09-28 14:36:47"
+  },
+  {
+    "date": "2026-09-24",
+    "day_status": "正常上班",
+    "holiday_work": false,
+    "night_recovery": false,
+    "schedule_in": "08:00",
+    "actual_in": "08:00",
+    "off_time": "18:30",
+    "remark": "",
+    "jobs": [
+      {
+        "client_no": "J1001",
+        "start": "09:00",
+        "end": "11:30",
+        "types": [
+          "PC"
+        ],
+        "remarks": "",
+        "no_sync": false,
+        "night_allowance": false
+      },
+      {
+        "client_no": "J1002",
+        "start": "14:00",
+        "end": "16:30",
+        "types": [
+          "TC"
+        ],
+        "remarks": "",
+        "no_sync": false,
+        "night_allowance": false
+      }
+    ],
+    "members": [
+      {
+        "emp_id": 4,
+        "emp_name": "Lee Kin Fai",
+        "emp_number": "ST82"
+      }
+    ],
+    "emp_id": 4,
+    "emp_number": "ST82",
+    "emp_name": "Lee Kin Fai",
+    "total_duty_hours": 10.5,
+    "standard_hours": 10,
+    "ot_hours": 0.5,
+    "ot_evening_hours": 0.5,
+    "ot_night_hours": 0,
+    "id": 993005,
+    "created_by_emp_id": 4,
+    "created_at": "2026-09-28 14:36:47"
+  }
+]
