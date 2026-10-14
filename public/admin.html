@@ -2521,15 +2521,30 @@ function loadWorktimeRecordsAdmin() {
   renderWorktimeRecordsAdmin(rows);
 }
 
+// 每月序號：全部記錄按日期+id 排序，每個月由 01 重新計起（純顯示用，內部 id 唔變）
+function wtMonthlySerialMap() {
+  const map = {};
+  const all = (wtAdminCache.records || []).slice().sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.id - b.id));
+  const counters = {};
+  for (const r of all) {
+    const ym = (r.date || '').slice(0, 7);
+    if (!ym) continue;
+    counters[ym] = (counters[ym] || 0) + 1;
+    map[r.id] = String(counters[ym]).padStart(2, '0');
+  }
+  return map;
+}
+
 function renderWorktimeRecordsAdmin(rows) {
   const box = document.getElementById('wtAdminBox');
   if (!box) return;
   if (!rows.length) { box.innerHTML = '<p style="color:var(--text-light)">暫無記錄</p>'; return; }
   rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id));
+  const serials = wtMonthlySerialMap();
   let html = '<table class="data-table"><thead><tr><th>編號</th><th>日期</th><th>員工</th><th>狀態</th><th>上班</th><th>實際</th><th>下班</th><th>總當值</th><th>標準</th><th>OT</th><th>20:00後OT</th><th>單數</th><th>隊員</th><th>備註</th><th>操作</th></tr></thead><tbody>';
   for (const r of rows) {
     const team = (r.members || []).map(m => m.emp_name || m.emp_number).join('、') || '-';
-    html += `<tr><td>${r.id}</td><td>${r.date}</td><td>${r.emp_name} (${r.emp_number})</td><td>${r.day_status}${r.holiday_work ? '（開工）' : ''}</td>
+    html += `<tr><td title="內部編號 ${r.id}">${serials[r.id] || r.id}</td><td>${r.date}</td><td>${r.emp_name} (${r.emp_number})</td><td>${r.day_status}${r.holiday_work ? '（開工）' : ''}</td>
       <td>${r.schedule_in || '-'}</td><td>${r.actual_in || '-'}</td><td>${r.off_time || '-'}</td>
       <td>${r.total_duty_hours}h</td><td>${r.standard_hours}h</td><td><b style="color:var(--warning)">${fmtH(r.ot_hours)}h</b></td>
       <td><b style="color:var(--accent-dark)">${fmtH(r.ot_night_hours || 0)}h</b></td>
