@@ -40,7 +40,7 @@ preview-*.html
 *_scan_snapshot_*.json
 *_backup_*.json
 allowance_*.json
-allowance_logic.js
+# allowance_logic.js 係 runtime 必需（server.js require），必須入 git，唔好 ignore
 joblevel_*.json
 joblevels_*.json
 exec_joblevel_migration.js
