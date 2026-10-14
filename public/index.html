@@ -2440,7 +2440,7 @@ function startHeartbeat() {
   stopHeartbeat();
   heartbeatInterval = setInterval(async () => {
     await pingHeartbeat();
-  }, 60 * 1000);
+  }, 5 * 60 * 1000);
 }
 
 async function pingHeartbeat() {

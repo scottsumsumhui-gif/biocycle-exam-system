@@ -215,34 +215,51 @@ function saveJSONSync(file, data) {
   fs.writeFileSync(path.join(DATA_DIR, file), JSON.stringify(data, null, 2), 'utf-8');
 }
 
+// ====== In-memory read cache (減少 Upstash command 用量) ======
+// Free tier 每日只俾 10K commands；dashboard/自動刷新會重複讀同一 key，
+// 加 15s TTL 快取 → 短時間內重複讀唔使打 Redis。寫入時同步更新快取，數據唔會舊。
+const _jsonCache = new Map();
+const JSON_CACHE_TTL = 15 * 1000;
+function _cacheGet(file) {
+  const c = _jsonCache.get(file);
+  if (c && Date.now() - c.ts < JSON_CACHE_TTL) return c.data;
+  if (c) _jsonCache.delete(file);
+  return undefined;
+}
+function _cacheSet(file, data) { _jsonCache.set(file, { ts: Date.now(), data }); }
+
 // Async dual-mode: Upstash Redis on cloud, JSON files locally
 async function loadJSON(file, defaultVal) {
   if (redis) {
+    const cached = _cacheGet(file);
+    if (cached !== undefined) return cached;
     const data = await redis.get(file);
+    let result;
     if (data !== null && data !== undefined) {
-      return typeof data === 'string' ? JSON.parse(data) : data;
-    }
-    // Seed from bundled data file
-    // ⚠️ admins.json 特別處理：絕對唔好用 bundled 舊檔成個 array 覆寫 Redis，
-    // 否則一旦 Redis key 消失（eviction / DB reset / 新容器首次讀取），就會用舊嘅 5 個 admin
-    // 連權限一齊拎走 user 嘅 custom 設定。key 唔喺先 seed 一個超管，其餘靠 Redis 累積。
-    if (file === 'admins.json') {
+      result = typeof data === 'string' ? JSON.parse(data) : data;
+    } else if (file === 'admins.json') {
+      // ⚠️ admins.json 特別處理：絕對唔好用 bundled 舊檔成個 array 覆寫 Redis，
+      // 否則一旦 Redis key 消失（eviction / DB reset / 新容器首次讀取），就會用舊嘅 5 個 admin
+      // 連權限一齊拎走 user 嘅 custom 設定。key 唔喺先 seed 一個超管，其餘靠 Redis 累積。
       const seed = [{ id: 1, username: 'ST140', password_hash: bcrypt.hashSync('61583398', 10), display_name: 'Super Admin', is_super: 1, created_at: new Date().toISOString(), permissions: [] }];
       await redis.set(file, JSON.stringify(seed));
-      return seed;
+      result = seed;
+    } else {
+      const seedFile = path.join(__dirname, 'data', file);
+      if (fs.existsSync(seedFile)) {
+        const seedData = JSON.parse(fs.readFileSync(seedFile, 'utf-8'));
+        await redis.set(file, JSON.stringify(seedData));
+        result = seedData;
+      } else if (defaultVal) {
+        const seed = JSON.parse(JSON.stringify(defaultVal));
+        await redis.set(file, JSON.stringify(seed));
+        result = seed;
+      } else {
+        result = [];
+      }
     }
-    const seedFile = path.join(__dirname, 'data', file);
-    if (fs.existsSync(seedFile)) {
-      const seedData = JSON.parse(fs.readFileSync(seedFile, 'utf-8'));
-      await redis.set(file, JSON.stringify(seedData));
-      return seedData;
-    }
-    if (defaultVal) {
-      const seed = JSON.parse(JSON.stringify(defaultVal));
-      await redis.set(file, JSON.stringify(seed));
-      return seed;
-    }
-    return [];
+    _cacheSet(file, result);
+    return result;
   }
   // Local: use sync file operations
   const fp = path.join(DATA_DIR, file);
@@ -255,6 +272,7 @@ async function loadJSON(file, defaultVal) {
 async function saveJSON(file, data) {
   if (redis) {
     await redis.set(file, JSON.stringify(data));
+    _cacheSet(file, data);
     return;
   }
   saveJSONSync(file, data);
@@ -264,17 +282,24 @@ async function saveJSON(file, data) {
 async function loadQuestions(type, topicId) {
   const key = `questions_topic_${topicId}_${type}`;
   if (redis) {
+    const cached = _cacheGet(key);
+    if (cached !== undefined) return cached;
     const data = await redis.get(key);
+    let result;
     if (data !== null && data !== undefined) {
-      return typeof data === 'string' ? JSON.parse(data) : data;
+      result = typeof data === 'string' ? JSON.parse(data) : data;
+    } else {
+      const seedFile = path.join(__dirname, 'questions', `topic_${topicId}_${type}.json`);
+      if (fs.existsSync(seedFile)) {
+        const seedData = JSON.parse(fs.readFileSync(seedFile, 'utf-8'));
+        await redis.set(key, JSON.stringify(seedData));
+        result = seedData;
+      } else {
+        result = [];
+      }
     }
-    const seedFile = path.join(__dirname, 'questions', `topic_${topicId}_${type}.json`);
-    if (fs.existsSync(seedFile)) {
-      const seedData = JSON.parse(fs.readFileSync(seedFile, 'utf-8'));
-      await redis.set(key, JSON.stringify(seedData));
-      return seedData;
-    }
-    return [];
+    _cacheSet(key, result);
+    return result;
   }
   const file = path.join(__dirname, 'questions', `topic_${topicId}_${type}.json`);
   if (!fs.existsSync(file)) return [];
@@ -285,6 +310,7 @@ async function saveQuestions(type, topicId, data) {
   const key = `questions_topic_${topicId}_${type}`;
   if (redis) {
     await redis.set(key, JSON.stringify(data));
+    _cacheSet(key, data);
     return;
   }
   const file = path.join(__dirname, 'questions', `topic_${topicId}_${type}.json`);
