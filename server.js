@@ -21,6 +21,17 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ====== CRASH SAFETY NET ======
+// Express 4 唔會捉 async handler 嘅 rejection；任何漏 catch 嘅 async 錯誤會變
+// unhandledRejection 直接撞死個 process（Railway 表現：deployment crashed / 全站 502）。
+// 呢度 log 唔退出，等服務唔會因為單一請求錯誤成個死掉；錯誤詳情會出喺 Railway logs。
+process.on('unhandledRejection', (reason) => {
+  console.error('[UNHANDLED_REJECTION]', reason && reason.stack ? reason.stack : reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[UNCAUGHT_EXCEPTION]', err && err.stack ? err.stack : err);
+});
+
 // Session lifetime: 24 hours for both the cookie and the server-side expiry.
 // Long enough to survive a full exam (max 45 min) plus prep time, and rolling
 // refresh via heartbeat keeps it alive while the exam page stays open.
