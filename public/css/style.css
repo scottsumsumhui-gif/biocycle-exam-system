@@ -919,13 +919,15 @@ h2 { font-size: 18px; color: var(--text-light); margin-bottom: 24px; }
   }
   .section-card label { margin-top: 4px; }
 
-  /* 表格橫向滾動，唔好爆版 */
-  .data-table { display: block; width: 100%; overflow-x: auto; white-space: nowrap; }
-  .data-table th, .data-table td { padding: 10px 12px; font-size: 14px; }
+  /* 表格保持表格排版（❌ 唔好用 display:block，會炸版面：日期逐隻字打直疊） */
+  .data-table { display: table; width: 100%; }
+  .data-table th, .data-table td { padding: 10px 12px; font-size: 14px; white-space: nowrap; }
+  /* 太闊嘅表：由直接母 div / 卡片做橫向滾動容器 */
+  div:has(> .data-table) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
   /* 卡片/格仔堆疊 */
   .stat-card, .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr !important; }
-  .section-card { padding: 14px; }
+  .section-card { padding: 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
   /* 導航掣可以橫向滾 */
   .nav-tabs, .top-nav { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
