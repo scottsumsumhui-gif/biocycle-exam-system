@@ -511,6 +511,9 @@ h2 { font-size: 18px; color: var(--text-light); margin-bottom: 24px; }
   overflow-wrap: anywhere;
 }
 
+/* 手機橫向滾動容器（JS 自動幾 .data-table 套上） */
+.tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+
 .data-table th {
   background: #eef6f0;
   padding: 12px 14px;

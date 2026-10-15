@@ -3421,5 +3421,37 @@ function dismissAnnouncement() {
   document.getElementById('annOverlay').style.display = 'none';
 }
 </script>
+<script>
+// Mobile: wrap data-tables in horizontal scroll container (auto re-wrap on dynamic render)
+(function () {
+  function wrapTable(t) {
+    if (t.parentElement && t.parentElement.classList && t.parentElement.classList.contains('tbl-scroll')) return;
+    var w = document.createElement('div');
+    w.className = 'tbl-scroll';
+    t.parentNode.insertBefore(w, t);
+    w.appendChild(t);
+  }
+  function scanNode(n) {
+    if (!n || n.nodeType !== 1) return;
+    if (n.tagName === 'TABLE' && n.classList.contains('data-table')) wrapTable(n);
+    if (n.querySelectorAll) {
+      var list = n.querySelectorAll('table.data-table');
+      for (var i = 0; i < list.length; i++) wrapTable(list[i]);
+    }
+  }
+  var mo = new MutationObserver(function (muts) {
+    for (var i = 0; i < muts.length; i++) {
+      var added = muts[i].addedNodes;
+      for (var j = 0; j < added.length; j++) scanNode(added[j]);
+    }
+  });
+  function start() {
+    scanNode(document.body);
+    mo.observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
 </body>
 </html>
