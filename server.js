@@ -4835,6 +4835,17 @@ async function takeDailyBackupSnapshot() {
     };
     await saveJSON('backup:' + day, payload);
     console.log('[BACKUP] daily snapshot saved backup:' + day + ' (' + Object.keys(snapshot).length + ' keys)');
+    // Retention: 清走 7 日前嘅舊快照，避免 backup:* keys 無限累積（慳 Upstash storage）
+    try {
+      if (redis) {
+        const oldKeys = await redis.keys('backup:*');
+        const cutoff = new Date(Date.now() + 8 * 3600000 - 7 * 86400000).toISOString().slice(0, 10);
+        for (const k of oldKeys) {
+          const d = String(k).replace('backup:', '');
+          if (d && d < cutoff) { await redis.del(k); console.log('[BACKUP] pruned old snapshot ' + k); }
+        }
+      }
+    } catch (pe) { console.warn('[BACKUP] prune old snapshots failed:', pe.message); }
   } catch (e) {
     console.warn('[BACKUP] daily snapshot failed:', e.message);
   }
