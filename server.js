@@ -5500,7 +5500,8 @@ const GAMES = {
   dirreact: { id: 'dirreact', name: '方向反應', desc: '出箭嘴撳對應方向，愈快愈高分', unit: '分', lowerIsBetter: false, min: 0, max: 750 },
   math: { id: 'math', name: '數學心算', desc: '限時計算式，愈快愈高分', unit: '分', lowerIsBetter: false, min: 0, max: 750 },
   schulte: { id: 'schulte', name: '舒爾特方格', desc: '按 1→25 順序撳，愈快愈高分（無上限）', unit: '分', lowerIsBetter: false, min: 0, max: 99999999 },
-  mahjong: { id: 'mahjong', name: '上海麻雀', desc: '配對消除所有麻雀牌，愈快愈高分', unit: '分', lowerIsBetter: false, min: 0, max: 2500 }
+  mahjong: { id: 'mahjong', name: '上海麻雀', desc: '配對消除所有麻雀牌，愈快愈高分', unit: '分', lowerIsBetter: false, min: 0, max: 2500 },
+  dash: { id: 'dash', name: '閃身步 · 老頭回避怪', desc: '左右閃避怪物，撐越耐分數越高', unit: '分', lowerIsBetter: false, min: 0, max: 999999 }
 };
 const GAME_IDS = Object.keys(GAMES);
 

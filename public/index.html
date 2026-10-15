@@ -1046,6 +1046,36 @@ function openGame(id) {
   else if (id === 'math') renderMath();
   else if (id === 'schulte') renderSchulte();
   else if (id === 'mahjong') renderMahjong();
+  else if (id === 'dash') renderDash();
+}
+
+// ---------- 閃身步 · 老頭回避怪（iframe 載入 + postMessage 報分） ----------
+let dashScoreBound = false;
+function bindDashScoreOnce() {
+  if (dashScoreBound) return; dashScoreBound = true;
+  window.addEventListener('message', function (ev) {
+    const d = ev.data || {};
+    if (!d || d.type !== 'biocycle-game-score' || d.game !== 'dash') return;
+    const sc = Math.round(Number(d.score));
+    if (!isFinite(sc) || sc < 0) return;
+    submitGameScore('dash', sc);
+  });
+}
+function renderDash() {
+  const el = document.getElementById('gameArea');
+  el.innerHTML = `
+    <div class="h-between" style="margin:14px 0;align-items:center">
+      <h2>🏃 閃身步 · 老頭回避怪</h2>
+      <button class="btn btn-sm btn-outline" onclick="renderGamesHome()">← 返遊戲列表</button>
+    </div>
+    <p class="text-muted">手指左右拖（或鍵盤 ← → / A D）閃避怪物，撐越耐分數越高。</p>
+    <div style="position:relative;width:100%;height:72vh;max-height:660px;border-radius:12px;overflow:hidden;border:1px solid #e0e6e0">
+      <iframe id="dashFrame" src="games/dash.html" style="width:100%;height:100%;border:0;display:block" allow="autoplay"></iframe>
+    </div>
+    <div id="gameResult"></div>
+    <div id="gameBoard"></div>`;
+  bindDashScoreOnce();
+  loadGameBoard('dash');
 }
 
 // ---------- 反應測試 ----------
