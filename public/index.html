@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2e7d32">
-<link rel="stylesheet" href="css/style.css?v=20261015">
+<link rel="stylesheet" href="css/style.css?v=20261020">
 </head>
 <body>
 <!-- LOGIN -->
@@ -812,6 +812,16 @@ function ensureFestivalCss() {
   body.fest-halloween .quote-bar{background:linear-gradient(135deg,#1c1c1c 0%,#101010 100%) !important;
     border-left-color:#ff7518 !important;box-shadow:0 1px 6px rgba(0,0,0,.45) !important}
   body.fest-halloween .quote-bar span{color:#ffd6a5 !important}
+  /* 工作類型 chip：萬聖節深色底，壓過 .center-card label 淺灰字 */
+  body.fest-halloween label.wt-type-chip,
+  body.fest-halloween .center-card label.wt-type-chip{
+    background:#2a2a2a !important; border-color:#4a4a4a !important; color:#f0f0f0 !important; box-shadow:none;
+  }
+  body.fest-halloween label.wt-type-chip input{ accent-color:#ff7518; }
+  body.fest-halloween label.wt-type-chip.is-checked,
+  body.fest-halloween .center-card label.wt-type-chip.is-checked{
+    background:#ff7518 !important; border-color:#ff7518 !important; color:#1a1a1a !important;
+  }
   `;
   document.head.appendChild(s);
 }
@@ -3618,6 +3628,13 @@ function wtAddJob(preset) {
   `;
   box.appendChild(div);
   div.querySelectorAll('.wt-start, .wt-end').forEach(wtBindTimeInput);
+  // 工作類型 chip：同步 is-checked（唔靠 :has()，舊 iOS 都識高亮）
+  div.querySelectorAll('.wt-type-chip').forEach(lb => {
+    const cb = lb.querySelector('.wt-type');
+    if (!cb) return;
+    if (cb.checked) lb.classList.add('is-checked');
+    cb.addEventListener('change', () => lb.classList.toggle('is-checked', cb.checked));
+  });
 }
 
 function wtAddJobAndScroll(btn) {

@@ -617,6 +617,7 @@ h2 { font-size: 18px; color: var(--text-light); margin-bottom: 24px; }
 }
 .wt-type-chip input { margin: 0; accent-color: var(--primary); }
 .wt-type-chip:has(input:checked) { background: var(--primary); color: #fff; border-color: var(--primary); }
+.wt-type-chip.is-checked { background: var(--primary); color: #fff; border-color: var(--primary); }
 .wt-time {
   font-size: 15px; padding: 7px 8px; border: 2px solid var(--border);
   border-radius: 8px; background: #fff; color: var(--text);
