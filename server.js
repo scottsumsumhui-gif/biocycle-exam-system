@@ -3862,8 +3862,10 @@ app.post('/api/admin/worktime/compare', authRequired('admin'), requirePermission
     };
     const buf = Buffer.from(await worktimeCompare.buildCombinedWorkbook({ teamOff, apptVsWt, firstLast, meta }));
     const safeDates = [...apptDateKeys].sort().join('_').replace(/\//g, '-');
+    // 檔名加生成時間（HHmm，香港時間）：每次下載都係新檔名，避免同舊報告混淆
+    const genStamp = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(11, 16).replace(':', '');
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="worktime_compare_${safeDates}.xlsx"`);
+    res.setHeader('Content-Disposition', `attachment; filename="worktime_compare_${safeDates}_${genStamp}.xlsx"`);
     res.send(buf);
   } catch (e) {
     res.status(500).json({ success: false, error: '對比失敗: ' + (e && e.message ? e.message : e) });
