@@ -822,6 +822,17 @@ function ensureFestivalCss() {
   body.fest-halloween .center-card label.wt-type-chip.is-checked{
     background:#ff7518 !important; border-color:#ff7518 !important; color:#1a1a1a !important;
   }
+  /* 深色 panel：標題／段落／label 轉淺色，否則深灰字喺 #161616 底上睇唔到
+     （排除白底 chip：lead-chip / wt-type-chip 保留原本深色字） */
+  body.fest-halloween .panel{color:#e8e8e8}
+  body.fest-halloween .panel h1,body.fest-halloween .panel h2,body.fest-halloween .panel h3,
+  body.fest-halloween .panel h4,body.fest-halloween .panel p,
+  body.fest-halloween .panel li{
+    color:#e8e8e8 !important;
+  }
+  body.fest-halloween .panel label:not(.lead-chip):not(.wt-type-chip){color:#e8e8e8 !important}
+  /* outline 按鈕透明底要淺色字先睇到 */
+  body.fest-halloween .panel .btn-outline{color:#ffb066;border-color:#ff7518}
   `;
   document.head.appendChild(s);
 }
