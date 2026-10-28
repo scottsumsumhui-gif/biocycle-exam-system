@@ -785,22 +785,23 @@ function ensureFestivalCss() {
   .fest-banner .fest-title{font-size:20px;font-weight:700;color:#8a5a00}
   .fest-banner .fest-sub{font-size:13px;color:#a0781e;margin-top:4px}
 
-  /* ===== 萬聖節 Halloween（黑色版）===== */
+  /* ===== 萬聖節 Halloween（黑色版 — 只影響首頁 #homeScreen，其他分頁保持原色；用戶要求 2026-10-28）===== */
   body.fest-halloween .brand-bar{background:linear-gradient(135deg,#000 0%,#141414 60%,#1f0e00 100%)}
   body.fest-halloween .brand-bar .bb-logo{color:#ff9f1c}
   body.fest-halloween .brand-bar .bb-user{color:#ffd6a5}
-  body.fest-halloween .center-card{position:relative;background:linear-gradient(180deg,#1a1a1a 0%,#0c0c0c 100%);
+  body.fest-halloween #homeScreen{background:#0c0c0c !important}
+  body.fest-halloween #homeScreen .center-card{position:relative;background:linear-gradient(180deg,#1a1a1a 0%,#0c0c0c 100%);
     border-top-color:#ff7518;box-shadow:0 6px 24px rgba(0,0,0,.55);padding-top:88px}
-  body.fest-halloween .center-card h1,body.fest-halloween .center-card h2,body.fest-halloween .center-card h3,
-  body.fest-halloween .center-card p,body.fest-halloween .center-card span,body.fest-halloween .center-card div,
-  body.fest-halloween .center-card label,body.fest-halloween .center-card li{color:#e8e8e8 !important}
-  body.fest-halloween .module-card{background:linear-gradient(180deg,#242424 0%,#141414 100%);
+  body.fest-halloween #homeScreen .center-card h1,body.fest-halloween #homeScreen .center-card h2,
+  body.fest-halloween #homeScreen .center-card h3,body.fest-halloween #homeScreen .center-card p,
+  body.fest-halloween #homeScreen .center-card span,body.fest-halloween #homeScreen .center-card div,
+  body.fest-halloween #homeScreen .center-card label,body.fest-halloween #homeScreen .center-card li{color:#e8e8e8 !important}
+  body.fest-halloween #homeScreen .module-card{background:linear-gradient(180deg,#242424 0%,#141414 100%);
     border:1px solid #3a3a3a;box-shadow:0 4px 14px rgba(0,0,0,.5)}
-  body.fest-halloween .module-card:hover{border-color:#ff7518;box-shadow:0 6px 18px rgba(255,117,24,.25)}
-  body.fest-halloween .module-title{color:#ff9f1c !important}
-  body.fest-halloween .module-desc{color:#c9c9c9 !important}
-  body.fest-halloween .panel{background:#161616;border-color:#3a3a3a}
-  body.fest-halloween .center-card > div[style*="border-left:4px solid var(--primary)"]{border-left-color:#ff7518 !important}
+  body.fest-halloween #homeScreen .module-card:hover{border-color:#ff7518;box-shadow:0 6px 18px rgba(255,117,24,.25)}
+  body.fest-halloween #homeScreen .module-title{color:#ff9f1c !important}
+  body.fest-halloween #homeScreen .module-desc{color:#c9c9c9 !important}
+  body.fest-halloween #homeScreen .center-card > div[style*="border-left:4px solid var(--primary)"]{border-left-color:#ff7518 !important}
   body.fest-halloween .fest-deco .lantern{filter:drop-shadow(0 4px 10px rgba(255,117,24,.45))}
   body.fest-halloween .fest-banner{margin:18px 0 6px;padding:14px 20px;border-radius:12px;text-align:center;
     background:linear-gradient(135deg,#000 0%,#1c1108 100%);border:1px solid #ff7518;
@@ -808,31 +809,17 @@ function ensureFestivalCss() {
   body.fest-halloween .fest-banner .fest-title{font-size:20px;font-weight:700;color:#ff9f1c}
   body.fest-halloween .fest-banner .fest-sub{font-size:13px;color:#ffd6a5;margin-top:4px}
   body.fest-halloween{background:#ffffff !important}
-  body.fest-halloween .screen,body.fest-halloween .app-shell{background:#0c0c0c !important}
-  body.fest-halloween .quote-bar{background:linear-gradient(135deg,#1c1c1c 0%,#101010 100%) !important;
+  body.fest-halloween #homeScreen .quote-bar{background:linear-gradient(135deg,#1c1c1c 0%,#101010 100%) !important;
     border-left-color:#ff7518 !important;box-shadow:0 1px 6px rgba(0,0,0,.45) !important}
-  body.fest-halloween .quote-bar span{color:#ffd6a5 !important}
-  /* 工作類型 chip：萬聖節深色底，壓過 .center-card label 淺灰字 */
-  body.fest-halloween label.wt-type-chip,
-  body.fest-halloween .center-card label.wt-type-chip{
+  body.fest-halloween #homeScreen .quote-bar span{color:#ffd6a5 !important}
+  /* 首頁工作類型 chip（worktime 分頁唔受影響，用返原色） */
+  body.fest-halloween #homeScreen label.wt-type-chip{
     background:#2a2a2a !important; border-color:#4a4a4a !important; color:#f0f0f0 !important; box-shadow:none;
   }
-  body.fest-halloween label.wt-type-chip input{ accent-color:#ff7518; }
-  body.fest-halloween label.wt-type-chip.is-checked,
-  body.fest-halloween .center-card label.wt-type-chip.is-checked{
+  body.fest-halloween #homeScreen label.wt-type-chip input{ accent-color:#ff7518; }
+  body.fest-halloween #homeScreen label.wt-type-chip.is-checked{
     background:#ff7518 !important; border-color:#ff7518 !important; color:#1a1a1a !important;
   }
-  /* 深色 panel：標題／段落／label 轉淺色，否則深灰字喺 #161616 底上睇唔到
-     （排除白底 chip：lead-chip / wt-type-chip 保留原本深色字） */
-  body.fest-halloween .panel{color:#e8e8e8}
-  body.fest-halloween .panel h1,body.fest-halloween .panel h2,body.fest-halloween .panel h3,
-  body.fest-halloween .panel h4,body.fest-halloween .panel p,
-  body.fest-halloween .panel li{
-    color:#e8e8e8 !important;
-  }
-  body.fest-halloween .panel label:not(.lead-chip):not(.wt-type-chip){color:#e8e8e8 !important}
-  /* outline 按鈕透明底要淺色字先睇到 */
-  body.fest-halloween .panel .btn-outline{color:#ffb066;border-color:#ff7518}
   `;
   document.head.appendChild(s);
 }
