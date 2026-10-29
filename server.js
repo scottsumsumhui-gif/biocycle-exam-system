@@ -1095,27 +1095,9 @@ app.post('/api/admin/employees/:id/terminate', authRequired('admin'), requirePer
   res.json({ success: true, active, employee: { id: employees[idx].id, emp_number: employees[idx].emp_number, name: employees[idx].name } });
 });
 
+// 員工唔可以硬刪除 —— 改為直接拒絕，強制用「停用」(terminate)，避免工時/佣金/考試記錄斷 link 產生 orphan（2026-10-29）
 app.delete('/api/admin/employees/:id', authRequired('admin'), requirePermission('employees'), async (req, res) => {
-  const eid = parseInt(req.params.id);
-  const employees = await loadJSON('employees.json', []);
-  const emp = employees.find(e => e.id === eid);
-  if (!emp) return res.status(404).json({ success: false, error: '員工不存在' });
-  const empNo = emp.emp_number;
-  // 有相關記錄就唔俾硬刪（會令工時/佣金記錄斷 link），強制用「停用」
-  const wt = await loadJSON(WORKTIME_FILE, []);
-  const hasWt = wt.some(r => r.emp_id === eid || r.emp_number === empNo);
-  const comm = await loadJSON(COMM_FILE, []);
-  const hasComm = comm.some(r => r.emp_id === eid || r.emp_number === empNo);
-  const leads = await loadJSON(LEAD_FILE, []);
-  const hasLead = leads.some(r => String(r.emp_number) === String(empNo)
-    || (r.members || []).some(m => m.emp_id === eid)
-    || (r.created_by_emp_id != null && r.created_by_emp_id === eid));
-  if (hasWt || hasComm || hasLead) {
-    return res.status(400).json({ success: false, error: '呢位員工有工時／佣金／tech-leads 記錄，唔可以刪除，請用「停用」。' });
-  }
-  const remaining = employees.filter(e => e.id !== eid);
-  await saveJSON('employees.json', remaining);
-  res.json({ success: true });
+  return res.status(400).json({ success: false, error: '員工唔可以硬刪除，請用「停用」(terminate) 取代。' });
 });
 
 app.post('/api/admin/reset-password/:id', authRequired('admin'), requirePermission('employees'), async (req, res) => {

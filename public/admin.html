@@ -1073,7 +1073,7 @@ async function loadEmployees() {
       } else {
         html += `<button class="btn btn-xs btn-outline" onclick="terminateEmployee(${e.id},'${e.emp_number}',true)">啟用</button>`;
       }
-      html += `<button class="btn btn-xs btn-danger" onclick="deleteEmployee(${e.id},'${e.name}')">刪除</button></td></tr>`;
+      html += `</td></tr>`;
     }
     html += `</tbody></table></div>`;
 
@@ -1276,16 +1276,6 @@ async function resetPassword(id, empNum) {
   });
   const data = await res.json();
   if (data.success) { alert('密碼已重置為: ' + newPw); } else { alert(data.error); }
-}
-
-async function deleteEmployee(id, name) {
-  if (!confirm(`確定刪除員工 ${name}? (有記錄嘅員工唔可以刪，解僱請用「停用」)`)) return;
-  try {
-    const res = await fetch(API + `/api/admin/employees/${id}`, {method:'DELETE', credentials:'include'});
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.success) { alert(data.error || '刪除失敗'); loadEmployees(); return; }
-  } catch (e) { alert('刪除失敗'); }
-  loadEmployees();
 }
 
 // 停用 / 啟用員工（soft delete，保留記錄）。解僱用呢個，唔好用刪除。
