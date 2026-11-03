@@ -3689,7 +3689,7 @@ app.post('/api/admin/attendance-reconcile', authRequired('admin'), requirePermis
     if (!attRows.length) return res.status(400).json({ success: false, error: '打卡文件無有效資料（請確認係 S008/S009 attendance xlsx）' });
     const wtRecs = await loadJSON(WORKTIME_FILE, []);
     const exemptAdmins = (process.env.RECONCILE_EXEMPT_ADMINS || 'ST065,ST140,ST340').split(',').map(s => s.trim()).filter(Boolean);
-    const lateTol = parseInt(process.env.RECONCILE_LATE_TOL || '30', 10);
+    const lateTol = parseInt(process.env.RECONCILE_LATE_TOL || '1', 10);
     const { summary, mismatches } = RE.reconcileAttendance(attRows, wtRecs, {
       exemptAdmins, lateToleranceMin: lateTol, scopeEmployer: 'S008',
     });

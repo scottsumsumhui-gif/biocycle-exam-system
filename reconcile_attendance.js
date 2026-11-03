@@ -77,10 +77,10 @@ function parseAttendance(bufOrPath) {
 }
 
 // 對賬：attRows(打卡結構化) + wtRecs(worktime.json array) + opts
-// opts: { exemptAdmins:['ST065',...], lateToleranceMin:30, scopeEmployer:'S008' }
+// opts: { exemptAdmins:['ST065',...], lateToleranceMin:1, scopeEmployer:'S008' }
 function reconcileAttendance(attRows, wtRecs, opts = {}) {
   const exempt = new Set(opts.exemptAdmins || []);
-  const lateTol = opts.lateToleranceMin != null ? opts.lateToleranceMin : 30;
+  const lateTol = opts.lateToleranceMin != null ? opts.lateToleranceMin : 1;
   const scope = opts.scopeEmployer || 'S008';
 
   // 打卡側：只對 scope 雇主 + 真正出勤日（worked_min > 0）
