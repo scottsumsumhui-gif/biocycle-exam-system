@@ -57,6 +57,7 @@
     <button class="nav-btn" data-tab="commission" onclick="showTab('commission')" id="tabCommission">&#128176; 服務銷售佣金</button>
     <button class="nav-btn" data-tab="fleet" onclick="showTab('fleet')" id="tabFleet">&#128663; 車輛管理</button>
     <button class="nav-btn" data-tab="worktime" onclick="showTab('worktime')" id="tabWorktime">&#9201; 工時記錄</button>
+    <button class="nav-btn" data-tab="attReconcile" onclick="showTab('attReconcile')" id="tabAttReconcile">&#128269; 打卡對賬</button>
     <button class="nav-btn" data-tab="meetings" onclick="showTab('meetings')" id="tabMeetings">&#128220; 會議記錄</button>
     <button class="nav-btn" data-tab="feedback" onclick="showTab('feedback')" id="tabFeedback">&#128172; 意見箱</button>
     <button class="nav-btn" data-tab="monthlyOt" onclick="showTab('monthlyOt')" id="tabMonthlyOt">&#128176; 月度OT出糧</button>
@@ -154,6 +155,7 @@ const TAB_PERMISSION_MAP = {
   commission: 'commission',
   fleet: 'fleet',
   worktime: 'worktime',
+  attReconcile: 'worktime',
   feedback: 'feedback',
   monthlyOt: 'monthly_ot_payroll',
   allowance: 'allowance',
@@ -178,7 +180,7 @@ function applyNavPermissions() {
 
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet', worktime:'tabWorktime', feedback:'tabFeedback', allowance:'tabAllowance', guaranteedPay:'tabGuaranteedPay', quiz:'tabQuiz' };
+  const tabIdMap = { dashboard:'tabDashboard', employees:'tabEmployees', admins:'tabAdmins', examConfig:'tabExamConfig', results:'tabResults', grading:'tabGrading', questionBank:'tabQuestionBank', warehouse:'tabWarehouse', commission:'tabCommission', fleet:'tabFleet', worktime:'tabWorktime', attReconcile:'tabAttReconcile', feedback:'tabFeedback', allowance:'tabAllowance', guaranteedPay:'tabGuaranteedPay', quiz:'tabQuiz' };
   const tabEl = document.getElementById(tabIdMap[tab]);
   if (tabEl) tabEl.classList.add('active');
   
@@ -195,6 +197,7 @@ function showTab(tab) {
     case 'commission': loadCommissionAdmin(); break;
     case 'fleet': loadFleetAdmin(); break;
     case 'worktime': loadWorktimeAdmin(); break;
+    case 'attReconcile': loadAttReconcile(); break;
     case 'meetings': loadMeetingsAdmin(); break;
     case 'feedback': loadFeedbackAdmin(); break;
     case 'monthlyOt': loadMonthlyOtAdmin(); break;
@@ -2699,6 +2702,90 @@ async function generateWorktimeCompare() {
   } finally {
     btn.disabled = false;
   }
+}
+
+// ===== 打卡對賬 (ATTENDANCE RECONCILE) =====
+function loadAttReconcile() {
+  const body = document.getElementById('adminBody');
+  body.innerHTML = `
+    <div class="section-card">
+      <h2>🔍 打卡對賬（考勤記錄 vs 系統工時）</h2>
+      <p style="color:var(--text-light,#6b7280); font-size:13px; line-height:1.7">
+        上載會計部嘅打卡 xlsx（S008/S009 attendance details），系統會同內部工時記錄自動對比，搵出踐唔踐得上。<br>
+        規則：只對 <b>S008 技術員</b>；只對真正出勤日（打卡工時＞0）；管理員 ST065/ST140/ST340 豁免；打卡入卡遲過系統上班超過 30 分鐘當「時間對唔上」。
+      </p>
+      <div style="margin:16px 0; display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+        <input type="file" id="attFile" accept=".xlsx,.xls" style="max-width:320px">
+        <button class="btn btn-primary" id="attUploadBtn" onclick="uploadAttendance()">上載並對賬</button>
+        <button class="btn btn-outline" id="attExportBtn" style="display:none" onclick="exportAttCsv()">匯出 CSV</button>
+        <span id="attStatus" style="font-size:13px"></span>
+      </div>
+      <div id="attSummary"></div>
+      <div id="attResult"></div>
+    </div>`;
+}
+
+let _attMismatches = [];
+async function uploadAttendance() {
+  const fileInput = document.getElementById('attFile');
+  const btn = document.getElementById('attUploadBtn');
+  const status = document.getElementById('attStatus');
+  if (!fileInput.files || !fileInput.files[0]) { status.textContent = '請先揀打卡 xlsx'; status.style.color = '#c0392b'; return; }
+  btn.disabled = true; status.textContent = '對賬中...'; status.style.color = '#6b7280';
+  try {
+    const fd = new FormData();
+    fd.append('file', fileInput.files[0]);
+    const res = await fetch(API + '/api/admin/attendance-reconcile', { method: 'POST', credentials: 'include', body: fd });
+    const data = await res.json();
+    if (!res.ok || !data.success) { status.textContent = '失敗：' + (data.error || '未知錯誤'); status.style.color = '#c0392b'; btn.disabled = false; return; }
+    _attMismatches = data.mismatches || [];
+    renderAttSummary(data.summary);
+    renderAttResult(_attMismatches);
+    document.getElementById('attExportBtn').style.display = _attMismatches.length ? '' : 'none';
+    status.textContent = '完成'; status.style.color = '#2c6e49';
+  } catch (e) {
+    status.textContent = '錯誤：' + (e && e.message ? e.message : e); status.style.color = '#c0392b';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderAttSummary(s) {
+  if (!s) return;
+  const c = s.分類統計 || {};
+  const card = (n, label, color) => `<div style="flex:1; min-width:120px; border:1px solid ${color}; border-radius:10px; padding:12px; text-align:center; background:#fff"><div style="font-size:24px; font-weight:700; color:${color}">${n}</div><div style="font-size:12px; color:#6b7280; margin-top:4px">${label}</div></div>`;
+  document.getElementById('attSummary').innerHTML = `
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin:14px 0">
+      ${card(s.打卡出勤日數, '打卡出勤日', '#2c6e49')}
+      ${card(s.系統出勤日數, '系統出勤日', '#2c6e49')}
+      ${card(c.系統有打卡無 || 0, '系統有·打卡無', '#e67e22')}
+      ${card(c.打卡有系統無 || 0, '打卡有·系統無', '#e74c3c')}
+      ${card(c.時間對唔上 || 0, '時間對唔上', '#c0392b')}
+      ${card(c.狀態對唔上 || 0, '狀態對唔上', '#8e44ad')}
+    </div>`;
+}
+
+function renderAttResult(list) {
+  const el = document.getElementById('attResult');
+  if (!list.length) { el.innerHTML = '<p style="color:#2c6e49; margin-top:16px">✅ 無例外，打卡同系統工時完全踐得上。</p>'; return; }
+  let html = '<table class="data-table" style="margin-top:16px"><thead><tr><th>員工編號</th><th>姓名</th><th>日期</th><th>類型</th><th>打卡入卡</th><th>系統上班</th><th>詳細</th></tr></thead><tbody>';
+  for (const m of list) {
+    html += `<tr><td>${esc(m.emp_number || '')}</td><td>${esc(m.emp_name || '')}</td><td>${esc(m.date || '')}</td><td>${esc(m.type || '')}</td><td>${esc(m.att_in || '')}</td><td>${esc(m.wt_in || '')}</td><td>${esc(m.detail || '')}</td></tr>`;
+  }
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function exportAttCsv() {
+  if (!_attMismatches.length) return;
+  const header = ['員工編號','姓名','日期','類型','打卡入卡','系統上班','打卡狀態','系統狀態','詳細'];
+  const rows = _attMismatches.map(m => [m.emp_number||'', m.emp_name||'', m.date||'', m.type||'', m.att_in||'', m.wt_in||'', m.att_status||'', m.wt_status||'', m.detail||'']);
+  const csv = [header, ...rows].map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['﻿'+csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '打卡對賬例外_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
 }
 
 // ===== MEETINGS ADMIN (會議記錄) =====

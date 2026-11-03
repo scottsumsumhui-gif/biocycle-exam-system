@@ -3675,6 +3675,31 @@ app.delete('/api/admin/worktime/records/:id', authRequired('admin'), requirePerm
 });
 
 // Admin: export a week to Excel — one sheet per employee (matching the paper form).
+// 打卡對賬：上載會計部打卡 xlsx，對比系統 worktime 記錄，搵出踐唔踐得上
+app.post('/api/admin/attendance-reconcile', authRequired('admin'), requirePermission('worktime'), upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, error: '請上載打卡 xlsx 文件' });
+    const RE = require('./reconcile_attendance');
+    let attRows;
+    try {
+      attRows = RE.parseAttendance(req.file.buffer);
+    } catch (e) {
+      return res.status(400).json({ success: false, error: '打卡文件解析失敗：' + e.message });
+    }
+    if (!attRows.length) return res.status(400).json({ success: false, error: '打卡文件無有效資料（請確認係 S008/S009 attendance xlsx）' });
+    const wtRecs = await loadJSON(WORKTIME_FILE, []);
+    const exemptAdmins = (process.env.RECONCILE_EXEMPT_ADMINS || 'ST065,ST140,ST340').split(',').map(s => s.trim()).filter(Boolean);
+    const lateTol = parseInt(process.env.RECONCILE_LATE_TOL || '30', 10);
+    const { summary, mismatches } = RE.reconcileAttendance(attRows, wtRecs, {
+      exemptAdmins, lateToleranceMin: lateTol, scopeEmployer: 'S008',
+    });
+    res.json({ success: true, summary, mismatches });
+  } catch (e) {
+    console.error('attendance-reconcile error', e);
+    res.status(500).json({ success: false, error: '對賬失敗：' + e.message });
+  }
+});
+
 app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('worktime'), async (req, res) => {
   try {
     // 支援日期範圍 (from/to)；無 from 時 fallback 舊 `week`（週一，取 7 日）保留兼容
