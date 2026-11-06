@@ -3370,6 +3370,8 @@ async function sanitizeWorktimePayload(body, emp) {
   vals.off_time = off_time;
   // 開夜番晏（琴晚夜急單遲收，今日提早收工）— 剔咗 OT 由 18:00 起計
   const night_recovery = body.night_recovery === true;
+  // 考試番早（今日考試提早完成）— 純備註 flag，不影響 OT 計算
+  const exam_early = body.exam_early === true;
   const remark = (body.remark == null ? '' : String(body.remark)).trim().slice(0, 200);
 
   const rawJobs = Array.isArray(body.jobs) ? body.jobs : [];
@@ -3410,7 +3412,7 @@ async function sanitizeWorktimePayload(body, emp) {
   const ot = computeWorktimeOt({ day_status, date, schedule_in: vals.schedule_in, actual_in: vals.actual_in, off_time: vals.off_time, night_recovery: night_recovery });
   return {
     ok: true, value: {
-      date, day_status, holiday_work, night_recovery,
+      date, day_status, holiday_work, night_recovery, exam_early,
       schedule_in: vals.schedule_in, actual_in: vals.actual_in, off_time: vals.off_time,
       remark, jobs, members,
       emp_id: emp.id, emp_number: emp.emp_number || '', emp_name: emp.name || '',
@@ -3452,6 +3454,7 @@ function syncTeamJobs(recs, source, employees) {
         day_status: '正常上班',
         holiday_work: false,
         night_recovery: false,
+        exam_early: false,
         schedule_in: '', actual_in: '', off_time: '',
         remark: '',
         jobs: JSON.parse(JSON.stringify(jobsCopy)),
@@ -3765,6 +3768,7 @@ app.get('/api/admin/worktime/export', authRequired('admin'), requirePermission('
         }
         push(['總當值(h)', round1(rec.total_duty_hours), '標準(h)', round1(rec.standard_hours), 'OT(h)', fmtQH(rec.ot_hours), '20:00前OT(h)', fmtQH(rec.ot_evening_hours), '20:00後OT(h)', fmtQH(rec.ot_night_hours)], { bold: [0, 2, 4, 6, 8] });
         if (rec.night_recovery) push(['🌙 開夜番晏', '琴晚夜急單遲收，OT 由 18:00 起計（20:00 後照舊深夜價）'], { bold: [0], italic: true, wrap: [1] });
+        if (rec.exam_early) push(['✓ 考試番早', '今日考試提早完成'], { bold: [0], italic: true, wrap: [1] });
         if (rec.jobs && rec.jobs.length) {
           push(['單號', '開始', '完結', '工作類型', '備註'], { allBold: true, fill: 'D9E1F2' });
           for (const j of rec.jobs) push([j.client_no || '—', j.start || '—', j.end || '—', ((j.types || []).join('/') || '—') + (j.night_allowance ? ' 🌙急單' : ''), j.remarks || '—'], {});

@@ -557,13 +557,24 @@
         <div><label>下班時間</label><br><input type="tel" inputmode="numeric" class="wt-time" id="wtOff" placeholder="--:--"></div>
         <div style="align-self:flex-end"><button class="btn btn-primary btn-sm" onclick="submitWorktime()">儲存</button><br><span id="wtMsgTop" style="font-size:12px"></span></div>
       </div>
-      <div class="mt-8" id="wtNightRecoveryBox">
-        <label style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:14px">
-          <input type="checkbox" id="wtNightRecovery" onchange="wtNightRecoveryChange()">
-          🌙 開夜番晏
-        </label>
-        <div id="wtNightRecoveryHint" style="display:none; font-size:12px; color:#8e44ad; margin:4px 0 0 24px">
-          已剔：今日 OT 由 <b>18:00</b> 起計（20:00 後照舊深夜價），無論幾點開始上班都一樣
+      <div class="mt-8" id="wtNightRecoveryBox" style="display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start">
+        <div>
+          <label style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:14px">
+            <input type="checkbox" id="wtNightRecovery" onchange="wtNightRecoveryChange()">
+            🌙 開夜番晏
+          </label>
+          <div id="wtNightRecoveryHint" style="display:none; font-size:12px; color:#8e44ad; margin:4px 0 0 24px">
+            已剔：今日 OT 由 <b>18:00</b> 起計（20:00 後照舊深夜價），無論幾點開始上班都一樣
+          </div>
+        </div>
+        <div>
+          <label style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:14px">
+            <input type="checkbox" id="wtExamEarly" onchange="wtExamEarlyChange()">
+            ✓ 考試番早
+          </label>
+          <div id="wtExamEarlyHint" style="display:none; font-size:12px; color:#0F6E56; margin:4px 0 0 24px">
+            已剔：今日考試提早完成（備註用途，不影響 OT 計算）
+          </div>
         </div>
       </div>
       <div class="mt-10" >
@@ -3540,6 +3551,8 @@ async function wtDateChange() {
   document.getElementById('wtHolidayWork').checked = false;
   document.getElementById('wtNightRecovery').checked = false;
   wtNightRecoveryChange();
+  document.getElementById('wtExamEarly').checked = false;
+  wtExamEarlyChange();
   document.getElementById('wtScheduleIn').value = '';
   document.getElementById('wtActualIn').value = '';
   document.getElementById('wtOff').value = '';
@@ -3559,6 +3572,8 @@ async function wtDateChange() {
       document.getElementById('wtOff').value = rec.off_time || '';
       document.getElementById('wtNightRecovery').checked = rec.night_recovery === true;
       wtNightRecoveryChange();
+      document.getElementById('wtExamEarly').checked = rec.exam_early === true;
+      wtExamEarlyChange();
       document.getElementById('wtRemark').value = rec.remark || '';
       if (rec.jobs && rec.jobs.length) rec.jobs.forEach(j => wtAddJob(j)); else wtAddJob();
       const mems = (rec.members && rec.members.length) ? rec.members : [];
@@ -3731,6 +3746,13 @@ function wtNightRecoveryChange() {
   if (c && h) h.style.display = c.checked ? '' : 'none';
 }
 
+// 考試番早 checkbox 提示
+function wtExamEarlyChange() {
+  const c = document.getElementById('wtExamEarly');
+  const h = document.getElementById('wtExamEarlyHint');
+  if (c && h) h.style.display = c.checked ? '' : 'none';
+}
+
 async function submitWorktime() {
   const date = document.getElementById('wtDate').value;
   if (!date) { wtMsg('請選擇日期', false); return; }
@@ -3742,6 +3764,7 @@ async function submitWorktime() {
   const payload = {
     date, day_status, holiday_work,
     night_recovery: document.getElementById('wtNightRecovery').checked,
+    exam_early: document.getElementById('wtExamEarly').checked,
     schedule_in: wtNormalizeTime(document.getElementById('wtScheduleIn').value),
     actual_in: wtNormalizeTime(document.getElementById('wtActualIn').value),
     off_time: wtNormalizeTime(document.getElementById('wtOff').value),
@@ -3879,7 +3902,7 @@ async function loadWtWeek() {
     if (!data.success || !data.records.length) { box.innerHTML = '<p style="color:var(--text-light)">本週暫無記錄</p>'; return; }
     const dowName = ['日', '一', '二', '三', '四', '五', '六'];
     data.records.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-    let html = '<table class="data-table"><thead><tr><th>日期</th><th>狀態</th><th>上班</th><th>實際</th><th>下班</th><th>總當值</th><th>OT</th><th>20:00後OT</th><th>單數</th><th>隊員</th></tr></thead><tbody>';
+    let html = '<table class="data-table"><thead><tr><th>日期</th><th>狀態</th><th>上班</th><th>實際</th><th>下班</th><th>總當值</th><th>OT</th><th>20:00後OT</th><th>單數</th><th>隊員</th><th>考試番早</th></tr></thead><tbody>';
     let weekOt = 0, weekNightOt = 0;
     for (const r of data.records) {
       weekOt += (r.ot_hours || 0);
@@ -3895,6 +3918,7 @@ async function loadWtWeek() {
         <td><b style="color:var(--accent-dark)">${fmtH(r.ot_night_hours || 0)}h</b></td>
         <td>${(r.jobs || []).length}</td>
         <td>${team}</td>
+        <td>${r.exam_early ? '✓' : ''}</td>
       </tr>`;
     }
     html += `</tbody></table><p><b>本週 OT 合計：${fmtH(weekOt)}h（其中 20:00後 ${fmtH(weekNightOt)}h）</b></p>`;
