@@ -8,14 +8,17 @@
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2e7d32">
-<link rel="stylesheet" href="css/style.css?v=20261020">
+<link rel="stylesheet" href="css/style.css?v=20261106">
 </head>
 <body>
 <!-- LOGIN -->
 <div id="loginScreen" class="screen login-bg">
   <div class="brand-bar">
     <div class="bb-logo">BIOCYCLE OPERATION SYSTEM</div>
-    <div class="bb-user">技術員平台</div>
+    <div class="bb-right">
+      <div class="bb-user">技術員平台</div>
+      <div class="bb-author">系統作者 / System Author: <b>Hui Sum Sum</b></div>
+    </div>
   </div>
   <div class="center-card">
     <div class="logo"><img src="img/biocycle-logo.png" alt="BIOCYCLE 生機源(香港)有限公司"></div>
@@ -41,7 +44,10 @@
 <div id="homeScreen" class="screen app-shell" style="display:none">
   <div class="brand-bar">
     <div class="bb-logo">BIOCYCLE OPERATION SYSTEM</div>
-    <div class="bb-user">技術員平台</div>
+    <div class="bb-right">
+      <div class="bb-user">技術員平台</div>
+      <div class="bb-author">系統作者 / System Author: <b>Hui Sum Sum</b></div>
+    </div>
   </div>
   <div class="app-main">
   <div class="center-card">
@@ -775,7 +781,8 @@ function ensureFestivalCss() {
   s.textContent = `
   body.fest-midautumn .brand-bar{background:linear-gradient(135deg,#41295a 0%,#2F0743 45%,#1a2f5e 100%)}
   body.fest-midautumn .brand-bar .bb-logo{color:#ffd97a}
-  body.fest-midautumn .brand-bar .bb-user{color:#ffe9b3}
+  body.fest-midautumn .brand-bar .bb-user,
+  body.fest-midautumn .brand-bar .bb-author{color:#ffe9b3}
   /* 白色卡位變暖金色調（節日氣氛，唔再純白） */
   body.fest-midautumn .center-card{position:relative;background:linear-gradient(180deg,#fffdf3 0%,#fff4d6 100%);
     border-top-color:#d4a017;box-shadow:0 6px 24px rgba(212,160,23,.22);padding-top:88px}
@@ -799,7 +806,8 @@ function ensureFestivalCss() {
   /* ===== 萬聖節 Halloween（黑色版 — 只影響首頁 #homeScreen，其他分頁保持原色；用戶要求 2026-10-28）===== */
   body.fest-halloween .brand-bar{background:linear-gradient(135deg,#000 0%,#141414 60%,#1f0e00 100%)}
   body.fest-halloween .brand-bar .bb-logo{color:#ff9f1c}
-  body.fest-halloween .brand-bar .bb-user{color:#ffd6a5}
+  body.fest-halloween .brand-bar .bb-user,
+  body.fest-halloween .brand-bar .bb-author{color:#ffd6a5}
   body.fest-halloween #homeScreen{background:#0c0c0c !important}
   body.fest-halloween #homeScreen .center-card{position:relative;background:linear-gradient(180deg,#1a1a1a 0%,#0c0c0c 100%);
     border-top-color:#ff7518;box-shadow:0 6px 24px rgba(0,0,0,.55);padding-top:88px}

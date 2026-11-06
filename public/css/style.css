@@ -55,6 +55,32 @@ body {
 }
 .brand-bar .bb-logo { font-weight: 800; font-size: 17px; letter-spacing: 0.6px; }
 .brand-bar .bb-user { font-size: 14px; opacity: 0.92; }
+
+/* 系統作者署名 System Author credit (前台 brand-bar / 後台 header / 管理員登入頁) */
+.brand-bar .bb-right { display: flex; align-items: center; gap: 14px; }
+.brand-bar .bb-author,
+.admin-header .admin-author {
+  font-size: 12.5px;
+  line-height: 1.3;
+  opacity: 0.92;
+  border-left: 1px solid rgba(255,255,255,0.35);
+  padding-left: 14px;
+  white-space: nowrap;
+}
+.brand-bar .bb-author b,
+.admin-header .admin-author b { font-weight: 800; letter-spacing: 0.3px; }
+.admin-header .admin-author { border-left-color: rgba(255,255,255,0.3); padding-left: 12px; margin-left: 4px; }
+.login-author { font-size: 12.5px; color: var(--text, #1f2d3d); opacity: 0.72; margin: -6px 0 20px; }
+.login-author b { font-weight: 700; }
+@media (max-width: 700px) {
+  .brand-bar { padding: 12px 14px; }
+  .brand-bar .bb-logo { font-size: 14px; }
+  .brand-bar .bb-right { gap: 8px; }
+  .brand-bar .bb-author,
+  .admin-header .admin-author { font-size: 11px; padding-left: 8px; white-space: normal; }
+  .admin-header .header-title-text { font-size: 12px; }
+}
+
 .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
 .app-main { flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 24px 12px; }
 
