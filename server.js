@@ -3339,6 +3339,39 @@ app.get('/api/worktime/employees', authRequired('employee'), async (req, res) =>
   res.json({ success: true, employees: list });
 });
 
+// 防叠單去重（2026-11-07）：只作用喺「今次提交嘅 payload」，唔會掃／改／刪任何已存在嘅舊記錄。
+// 只drop兩類：完全相同嘅單、同單號但「得單號、完全無時間／類型／備註」嘅空殼。
+// 兩張內容唔同嘅同號單（例如同一客戶早晚兩次）全部保留，避免誤刪資料。
+function dedupeWorktimeJobs(jobs) {
+  const key = j => [j.client_no || '', j.start || '', j.end || '',
+    (j.types || []).slice().sort().join(','), j.remarks || '',
+    j.no_sync ? 1 : 0, j.night_allowance ? 1 : 0].join('|');
+  const hasBody = j => !!(j.start || j.end || (j.types || []).length || j.remarks);
+  // 「空殼」定義收得好窄：a 得單號（無時間／類型／備註），b 同單號且有內容。
+  // 兩張都有內容但唔同（時間／類型／備註／標記）→ 一律兩張都留，絕不誤刪。
+  const isShell = (a, b) => !hasBody(a) && hasBody(b) &&
+    a.no_sync === b.no_sync && a.night_allowance === b.night_allowance;
+  const out = [];
+  for (const j of (Array.isArray(jobs) ? jobs : [])) {
+    if (!j || typeof j !== 'object') continue;
+    if (!j.client_no) {
+      if (!out.some(o => !o.client_no && key(o) === key(j))) out.push(j);
+      continue;
+    }
+    let hit = -1, replace = false;
+    for (let i = 0; i < out.length; i++) {
+      const o = out[i];
+      if (o.client_no !== j.client_no) continue;
+      if (key(o) === key(j)) { hit = i; replace = false; break; }   // 完全相同
+      if (isShell(j, o)) { hit = i; replace = false; break; }       // 新嗰張係空殼
+      if (isShell(o, j)) { hit = i; replace = true; break; }        // 已留嗰張係空殼
+    }
+    if (hit >= 0) { if (replace) out[hit] = j; continue; }
+    out.push(j);
+  }
+  return out;
+}
+
 // Sanitize + validate a day record payload. Returns { ok, error, value }.
 async function sanitizeWorktimePayload(body, emp) {
   const date = (body.date || '').toString().trim();
@@ -3414,7 +3447,7 @@ async function sanitizeWorktimePayload(body, emp) {
     ok: true, value: {
       date, day_status, holiday_work, night_recovery, exam_early,
       schedule_in: vals.schedule_in, actual_in: vals.actual_in, off_time: vals.off_time,
-      remark, jobs, members,
+      remark, jobs: dedupeWorktimeJobs(jobs), members,
       emp_id: emp.id, emp_number: emp.emp_number || '', emp_name: emp.name || '',
       total_duty_hours: ot.total_duty_hours, standard_hours: ot.standard_hours, ot_hours: ot.ot_hours,
       ot_evening_hours: ot.ot_evening_hours, ot_night_hours: ot.ot_night_hours
@@ -3430,7 +3463,10 @@ function syncTeamJobs(recs, source, employees) {
   // 只同步「冇剔『此單不同步到其他隊員』」嗰啲單；如果全部單都係唔同步，就唔郁隊員（避免清走人哋）
   const syncedJobs = source.jobs.filter(j => j && !j.no_sync);
   if (syncedJobs.length === 0) return;
-  const jobsCopy = JSON.parse(JSON.stringify(syncedJobs));
+  // 防叠單擴散：同步出去嗰批先去重，避免把重複單複製去全隊。
+  // 注意：只處理「今次同步嘅嗰批」，唔會掃／清／改隊員記錄入面既有嘅舊資料（用戶要求保留舊數）。
+  const jobsCopy = dedupeWorktimeJobs(JSON.parse(JSON.stringify(syncedJobs)));
+  if (jobsCopy.length === 0) return;
   const teammates = (source.members || []).filter(m => m && Number(m.emp_id) !== Number(source.emp_id));
   for (const t of teammates) {
     const tid = Number(t.emp_id);
@@ -3600,15 +3636,7 @@ app.put('/api/worktime/records/:id', authRequired('employee'), async (req, res) 
     const s = await sanitizeWorktimePayload(req.body || {}, me);
     if (!s.ok) return res.status(400).json({ success: false, error: s.error });
     const v = s.value;
-    // 防重複：過濾完全相同嘅工作單（同一單號 + 相同時間/類型/備註 + 同步標記），避免導入多次疊單
-    if (v.jobs && v.jobs.length) {
-      const seen = new Set();
-      v.jobs = v.jobs.filter(j => {
-        const key = [j.client_no || '', j.start || '', j.end || '', (j.types || []).join(','), j.remarks || '', j.no_sync ? 1 : 0].join('|');
-        if (seen.has(key)) return false;
-        seen.add(key); return true;
-      });
-    }
+    // 防重複已統一到 sanitizeWorktimePayload() 嘅 dedupeWorktimeJobs()（POST/PUT/admin PUT 共用）
     recs[idx] = { ...recs[idx], ...v, jobs_synced_from: null, updated_at: nowStr() };
     syncTeamJobs(recs, recs[idx], employees);
     await saveJSON(WORKTIME_FILE, recs);
