@@ -3132,6 +3132,8 @@ function showScreen(id) {
 // ===== FLEET (車輛里數記錄) =====
 let fleetVehicles = [];
 let fleetCurrentPlate = null;
+let fleetDetailSeq = 0;        // 每次開／離開車輛明細遞增，丟棄過期 fetch 回覆
+let fleetDetailReady = false;  // 明細載入完成先准寫入，避免用上一架車嘅表單值寫入新車
 let fleetMaintTypes = [];
 let fleetRepairTypes = [];
 
@@ -3150,6 +3152,8 @@ async function showFleet() {
 }
 
 function fleetBackToList() {
+  fleetDetailSeq++;              // 丟棄仲未回覆嘅車輛明細 fetch
+  fleetDetailReady = false;
   document.getElementById('fleetListView').style.display = '';
   document.getElementById('fleetDetailView').style.display = 'none';
   document.getElementById('fleetMsg').innerHTML = '';
@@ -3212,15 +3216,19 @@ function fleetShowForm(id) {
 }
 
 async function openFleetVehicle(plate) {
+  const seq = ++fleetDetailSeq;   // 快速切車：舊 fetch 回覆一律丟棄，唔好寫入畫面／global
+  fleetDetailReady = false;
   fleetCurrentPlate = plate;
   document.getElementById('fleetListView').style.display = 'none';
   document.getElementById('fleetDetailView').style.display = '';
   document.getElementById('fleetMsg').innerHTML = '';
+  document.getElementById('fleetActionBar').innerHTML = '';  // 載入期間唔畀撳出車／入油／保養／維修
   ['fleetDepartBox', 'fleetReturnBox', 'fleetFuelBox', 'fleetMaintBox', 'fleetRepairBox'].forEach(id => document.getElementById(id).style.display = 'none');
   document.getElementById('fleetDetailTables').innerHTML = '<p>載入中…</p>';
   try {
     const res = await fetch(API + '/api/fleet/vehicles/' + encodeURIComponent(plate), { credentials: 'include' });
     const data = await res.json();
+    if (seq !== fleetDetailSeq) return;
     if (!data.success) { document.getElementById('fleetDetailTables').innerHTML = '<p>' + (data.error || '載入失敗') + '</p>'; return; }
     const v = data.vehicle, s = data.stats;
     document.getElementById('fleetDetailTitle').textContent =
@@ -3243,7 +3251,11 @@ async function openFleetVehicle(plate) {
     document.getElementById('fleetRepairMileage').value = v.last_mileage || '';
     document.getElementById('fleetReturnMileage').value = v.active_trip ? v.active_trip.start_mileage : '';
     renderFleetDetailTables(data);
-  } catch (e) { document.getElementById('fleetDetailTables').innerHTML = '<p>載入失敗</p>'; }
+    fleetDetailReady = true;
+  } catch (e) {
+    if (seq !== fleetDetailSeq) return;
+    document.getElementById('fleetDetailTables').innerHTML = '<p>載入失敗</p>';
+  }
 }
 
 function renderFleetDetailTables(data) {
@@ -3281,37 +3293,43 @@ function renderFleetDetailTables(data) {
 }
 
 async function submitFleetDepart() {
+  const plate = fleetCurrentPlate;
+  if (!fleetDetailReady || !plate) { fleetMsg('車輛資料載入中，請等一陣再儲存', false); return; }
   const mileage = document.getElementById('fleetDepartMileage').value;
   const note = document.getElementById('fleetDepartNote').value;
   if (mileage === '' || isNaN(Number(mileage))) { alert('請輸入有效起始里數'); return; }
-  const last = (fleetVehicles.find(v => v.plate === fleetCurrentPlate) || {}).last_mileage || 0;
+  const last = (fleetVehicles.find(v => v.plate === plate) || {}).last_mileage || 0;
   if (last && Number(mileage) < last - 50) {
     if (!confirm(`你輸入嘅里數（${mileage} km）比上次記錄（${last} km）低超過 50 km，確定繼續？`)) return;
   }
   const hb = await pingHeartbeat();
   if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  if (plate !== fleetCurrentPlate || !fleetDetailReady) { alert('車輛資料已更新，請重新載入再儲存'); return; }
   try {
     const res = await fetch(API + '/api/fleet/trips', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-      body: JSON.stringify({ plate: fleetCurrentPlate, start_mileage: Number(mileage), note })
+      body: JSON.stringify({ plate: plate, start_mileage: Number(mileage), note })
     });
     const data = await res.json();
     if (!data.success) { alert(data.error || '記錄失敗'); return; }
     document.getElementById('fleetDepartNote').value = '';
     fleetMsg('✅ 出車記錄已儲存', true);
     await loadFleetVehicles();
-    await openFleetVehicle(fleetCurrentPlate);
+    await openFleetVehicle(plate);
     await loadFleetRecords();
   } catch (e) { alert('提交失敗，請重試'); }
 }
 
 async function submitFleetReturn() {
+  const plate = fleetCurrentPlate;
+  if (!fleetDetailReady || !plate) { fleetMsg('車輛資料載入中，請等一陣再儲存', false); return; }
   const mileage = document.getElementById('fleetReturnMileage').value;
   if (mileage === '' || isNaN(Number(mileage))) { alert('請輸入有效返回里數'); return; }
   const hb = await pingHeartbeat();
   if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  if (plate !== fleetCurrentPlate || !fleetDetailReady) { alert('車輛資料已更新，請重新載入再儲存'); return; }
   try {
-    const res = await fetch(API + '/api/fleet/vehicles/' + encodeURIComponent(fleetCurrentPlate), { credentials: 'include' });
+    const res = await fetch(API + '/api/fleet/vehicles/' + encodeURIComponent(plate), { credentials: 'include' });
     const d = await res.json();
     if (!d.success || !d.vehicle.active_trip) { alert('搵唔到進行中嘅出車記錄'); return; }
     const startM = Number(d.vehicle.active_trip.start_mileage);
@@ -3326,12 +3344,14 @@ async function submitFleetReturn() {
     if (!data.success) { alert(data.error || '記錄失敗'); return; }
     fleetMsg(`✅ 返回記錄已儲存，今次行車 ${data.record.daily_mileage} km`, true);
     await loadFleetVehicles();
-    await openFleetVehicle(fleetCurrentPlate);
+    await openFleetVehicle(plate);
     await loadFleetRecords();
   } catch (e) { alert('提交失敗，請重試'); }
 }
 
 async function submitFleetFuel() {
+  const plate = fleetCurrentPlate;
+  if (!fleetDetailReady || !plate) { fleetMsg('車輛資料載入中，請等一陣再儲存', false); return; }
   const mileageRaw = document.getElementById('fleetFuelMileage').value;
   const liters = document.getElementById('fleetFuelLiters').value;
   const price = document.getElementById('fleetFuelPrice').value;
@@ -3344,44 +3364,50 @@ async function submitFleetFuel() {
   if (cost === '' || isNaN(Number(cost)) || Number(cost) <= 0) { alert('請輸入有效油費'); return; }
   const hb = await pingHeartbeat();
   if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  if (plate !== fleetCurrentPlate || !fleetDetailReady) { alert('車輛資料已更新，請重新載入再儲存'); return; }
   try {
     const res = await fetch(API + '/api/fleet/fuels', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-      body: JSON.stringify({ plate: fleetCurrentPlate, mileage: mileage === '' ? null : Number(mileage), liters, price_per_liter: price, total_cost: Number(cost) })
+      body: JSON.stringify({ plate: plate, mileage: mileage === '' ? null : Number(mileage), liters, price_per_liter: price, total_cost: Number(cost) })
     });
     const data = await res.json();
     if (!data.success) { alert(data.error || '記錄失敗'); return; }
     ['fleetFuelMileage', 'fleetFuelLiters', 'fleetFuelPrice', 'fleetFuelCost'].forEach(id => document.getElementById(id).value = '');
     fleetMsg('✅ 入油記錄已儲存', true);
     await loadFleetVehicles();
-    await openFleetVehicle(fleetCurrentPlate);
+    await openFleetVehicle(plate);
     await loadFleetRecords();
   } catch (e) { alert('提交失敗，請重試'); }
 }
 
 async function submitFleetMaint() {
+  const plate = fleetCurrentPlate;
+  if (!fleetDetailReady || !plate) { fleetMsg('車輛資料載入中，請等一陣再儲存', false); return; }
   const type = document.getElementById('fleetMaintType').value;
   const mileage = document.getElementById('fleetMaintMileage').value;
   const note = document.getElementById('fleetMaintNote').value;
   if (!type) { alert('請選擇保養類型'); return; }
   const hb = await pingHeartbeat();
   if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  if (plate !== fleetCurrentPlate || !fleetDetailReady) { alert('車輛資料已更新，請重新載入再儲存'); return; }
   try {
     const res = await fetch(API + '/api/fleet/maintenance', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-      body: JSON.stringify({ plate: fleetCurrentPlate, type, mileage, note })
+      body: JSON.stringify({ plate: plate, type, mileage, note })
     });
     const data = await res.json();
     if (!data.success) { alert(data.error || '記錄失敗'); return; }
     document.getElementById('fleetMaintNote').value = '';
     fleetMsg('✅ 保養記錄已儲存', true);
     await loadFleetVehicles();
-    await openFleetVehicle(fleetCurrentPlate);
+    await openFleetVehicle(plate);
     await loadFleetRecords();
   } catch (e) { alert('提交失敗，請重試'); }
 }
 
 async function submitFleetRepair() {
+  const plate = fleetCurrentPlate;
+  if (!fleetDetailReady || !plate) { fleetMsg('車輛資料載入中，請等一陣再儲存', false); return; }
   const type = document.getElementById('fleetRepairType').value;
   const mileage = document.getElementById('fleetRepairMileage').value;
   const location = document.getElementById('fleetRepairLocation').value;
@@ -3389,17 +3415,18 @@ async function submitFleetRepair() {
   if (!type) { alert('請選擇維修類型'); return; }
   const hb = await pingHeartbeat();
   if (!hb.ok) { alert('登入狀態已過期，請重新登入。'); await logout(); return; }
+  if (plate !== fleetCurrentPlate || !fleetDetailReady) { alert('車輛資料已更新，請重新載入再儲存'); return; }
   try {
     const res = await fetch(API + '/api/fleet/repairs', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-      body: JSON.stringify({ plate: fleetCurrentPlate, type, mileage, location, note })
+      body: JSON.stringify({ plate: plate, type, mileage, location, note })
     });
     const data = await res.json();
     if (!data.success) { alert(data.error || '記錄失敗'); return; }
     ['fleetRepairLocation', 'fleetRepairNote'].forEach(id => document.getElementById(id).value = '');
     fleetMsg('✅ 維修記錄已儲存', true);
     await loadFleetVehicles();
-    await openFleetVehicle(fleetCurrentPlate);
+    await openFleetVehicle(plate);
     await loadFleetRecords();
   } catch (e) { alert('提交失敗，請重試'); }
 }

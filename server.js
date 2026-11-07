@@ -614,7 +614,7 @@ app.get('/api/announcement', async (req, res) => {
   try { res.json(await loadAnnouncement()); }
   catch (e) { res.status(500).json({ error: 'load announcement failed' }); }
 });
-app.post('/api/admin/announcement', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/announcement', authRequired('admin'), requirePermission('admin_mgmt'), async (req, res) => {
   try {
     const text = typeof req.body.text === 'string' ? req.body.text.trim() : '';
     const data = { text, version: text ? Date.now() : 0 };
@@ -910,7 +910,7 @@ app.get('/api/exam/my-results', authRequired('employee'), async (req, res) => {
 
 // ===== ADMIN ROUTES =====
 
-app.get('/api/admin/dashboard', authRequired('admin'), async (req, res) => {
+app.get('/api/admin/dashboard', authRequired('admin'), requirePermission('dashboard'), async (req, res) => {
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
@@ -1300,12 +1300,13 @@ app.get('/api/admin/mail/status', authRequired('admin'), requirePermission('admi
 });
 
 // Admin: 發送測試電郵（寄去自己嘅電郵，用嚟確認 SMTP 設定啱唔啱）
-app.post('/api/admin/mail/test', authRequired('admin'), async (req, res) => {
+app.post('/api/admin/mail/test', authRequired('admin'), requirePermission('admin_mgmt'), async (req, res) => {
   try {
     const admins = await loadJSON('admins.json', []);
     const me = admins.find(a => a.id === req.session.user_id);
     if (!me) return res.status(401).json({ success: false, error: 'Session invalid' });
-    const target = String((req.body && req.body.to) || '').trim() || String(me.email || '').trim();
+    // 只可以寄去自己已登記嘅電郵；唔接受 body.to，避免借用公司 SMTP 寄去任意地址
+    const target = String(me.email || '').trim();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(target)) {
       return res.json({ success: false, error: '你未設定電郵，請先喺管理員頁填電郵' });
     }
