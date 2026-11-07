@@ -368,8 +368,10 @@ function nowStr() {
 }
 
 // Helper: get expiry time (current local + ttl). Defaults to employee TTL.
+// ⚠️ 必須同 nowStr() 一樣用 HKT 字串：authRequired 係用「expires_at > nowStr()」字典序比較。
+// 舊版呢度用 UTC 字串，令 24h TTL 實際得 16h（管理員 30 日得 29 日 16h）→ 長時間開頁／考試被無故踢走。
 function expiresAtStr(ttl = SESSION_TTL_MS) {
-  const d = new Date(Date.now() + ttl);
+  const d = new Date(Date.now() + 8 * 3600000 + ttl);
   return d.toISOString().replace('T', ' ').substring(0, 19);
 }
 
@@ -518,16 +520,22 @@ app.post('/api/auth/admin-change-password', authRequired('admin'), async (req, r
 });
 
 app.post('/api/auth/logout', async (req, res) => {
-  const sid = req.cookies.session_id || req.cookies.admin_session_id;
-  if (sid) {
+  // ⚠️ 以前一律清兩個 cookie + 只刪「session_id 優先」嗰個 session，
+  // 同一 browser 開住員工考試頁再喺後台登出 → 員工 cookie 被清、考試交卷 401。
+  // 而家按前端傳嘅 scope 只登出嗰邊；無 scope（舊版快取頁面）先維持清兩個。
+  const scope = req.body && req.body.scope;
+  const pairs = [];
+  if (scope !== 'admin') pairs.push(['session_id', req.cookies.session_id]);
+  if (scope !== 'employee') pairs.push(['admin_session_id', req.cookies.admin_session_id]);
+  const ids = pairs.map(p => p[1]).filter(Boolean);
+  if (ids.length) {
     try {
       let sessions = await loadJSON('sessions.json', []);
-      sessions = sessions.filter(s => s.id !== sid);
+      sessions = sessions.filter(s => !ids.includes(s.id));
       await saveJSON('sessions.json', sessions);
     } catch (e) {}
   }
-  res.clearCookie('session_id');
-  res.clearCookie('admin_session_id');
+  pairs.forEach(([name]) => res.clearCookie(name));
   res.json({ success: true });
 });
 
@@ -570,18 +578,24 @@ app.get('/api/health', (req, res) => {
 // Heartbeat: keep the session alive while the exam/tab is open.
 // Works for both employee and admin sessions, extends expiry and cookie.
 app.post('/api/auth/heartbeat', async (req, res) => {
-  const sessionId = req.cookies.session_id || req.cookies.admin_session_id;
-  if (!sessionId) return res.status(401).json({ error: 'Not authenticated' });
+  // 同一 browser 可能同時有員工 + 管理員 cookie；兩個都續命，唔好只揀第一個。
+  const ids = [req.cookies.session_id, req.cookies.admin_session_id].filter(Boolean);
+  if (!ids.length) return res.status(401).json({ error: 'Not authenticated' });
   try {
     const sessions = await loadJSON('sessions.json', []);
-    const idx = sessions.findIndex(s => s.id === sessionId && s.expires_at > nowStr());
-    if (idx < 0) return res.status(401).json({ error: 'Session expired or invalid' });
-    const ttl = sessions[idx].user_type === 'admin' ? ADMIN_SESSION_TTL_MS : SESSION_TTL_MS;
-    const newExpiry = expiresAtStr(ttl);
-    sessions[idx].expires_at = newExpiry;
+    let newExpiry = null, refreshed = 0;
+    for (const id of ids) {
+      const s = sessions.find(x => x.id === id && x.expires_at > nowStr());
+      if (!s) continue;
+      const ttl = s.user_type === 'admin' ? ADMIN_SESSION_TTL_MS : SESSION_TTL_MS;
+      newExpiry = expiresAtStr(ttl);
+      s.expires_at = newExpiry;
+      const cookieName = s.user_type === 'admin' ? 'admin_session_id' : 'session_id';
+      res.cookie(cookieName, id, { maxAge: ttl, httpOnly: true });
+      refreshed++;
+    }
+    if (!refreshed) return res.status(401).json({ error: 'Session expired or invalid' });
     await saveJSON('sessions.json', sessions);
-    const cookieName = sessions[idx].user_type === 'admin' ? 'admin_session_id' : 'session_id';
-    res.cookie(cookieName, sessionId, { maxAge: ttl, httpOnly: true });
     res.json({ success: true, expiresAt: newExpiry });
   } catch (e) {
     res.status(503).json({ success: false, error: '伺服器暫時無法讀取會話，請稍後重試' });

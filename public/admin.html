@@ -138,7 +138,8 @@ async function adminLogin() {
 }
 
 async function adminLogout() {
-  await fetch(API + '/api/auth/logout', {method:'POST', credentials:'include'});
+  await fetch(API + '/api/auth/logout', {method:'POST', credentials:'include',
+    headers:{'Content-Type':'application/json'}, body: JSON.stringify({scope:'admin'})});
   adminData = null;
   showScreen('adminLogin');
 }

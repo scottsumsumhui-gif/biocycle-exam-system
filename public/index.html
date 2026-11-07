@@ -628,6 +628,7 @@ let answers = {};
 let startTime = null;
 let timerInterval = null;
 let heartbeatInterval = null;
+let examSessionWarned = false;
 let timeRemaining = 0;
 
 const levelNames = { junior: '初級技術員', senior: '高級技術員', supervisor: '技術員主管' };
@@ -2495,9 +2496,28 @@ async function startExam() {
 // and keeps the container awake if it would otherwise idle out.
 function startHeartbeat() {
   stopHeartbeat();
-  heartbeatInterval = setInterval(async () => {
-    await pingHeartbeat();
-  }, 5 * 60 * 1000);
+  examSessionWarned = false;
+  const ping = async () => {
+    const hb = await pingHeartbeat();
+    // 真正過期（401）喺考試途中就提，唔好等做到第 20 題交卷先彈
+    if (!hb.ok) examSessionExpired();
+  };
+  ping();  // 即刻 ping 一次；舊版要等足 5 分鐘先第一次續命
+  heartbeatInterval = setInterval(ping, 5 * 60 * 1000);
+}
+
+function saveExamBackup(timeUsed) {
+  try {
+    localStorage.setItem('exam_backup_' + currentTopicId,
+      JSON.stringify({ answers, timeUsed, savedAt: new Date().toISOString() }));
+  } catch (e) {}
+}
+
+function examSessionExpired() {
+  if (examSessionWarned) return;
+  examSessionWarned = true;
+  saveExamBackup(Math.round((Date.now() - startTime) / 1000));
+  alert('登入狀態已過期。請開新分頁重新登入，然後返嚟按「提交考試」；你的答案已暫存，不會遺失。');
 }
 
 async function pingHeartbeat() {
@@ -2631,20 +2651,13 @@ function nextQuestion() {
 async function submitExam() {
   clearInterval(timerInterval);
 
-  // Try to refresh the session immediately before submitting
+  // 即刻續命一次，但**唔喺呢度判定過期**：heartbeat 503/500/502（Upstash 抖動、部署重啟）
+  // 唔等於 session 過期。舊版「!hbRes.ok 就彈過期 + return」搞到短暫錯誤都當過期、
+  // 連交卷都唔嘗試。真正過期一律由下面 /api/exam/submit 嘅 401 判定。
   try {
-    const hbRes = await fetch(API + '/api/auth/heartbeat', { method: 'POST', credentials: 'include' });
-    if (!hbRes.ok) {
-      // Session already expired; save answers and ask for re-login
-      const timeUsedSoFar = Math.round((Date.now() - startTime) / 1000);
-      try {
-        localStorage.setItem('exam_backup_' + currentTopicId, JSON.stringify({ answers, timeUsed: timeUsedSoFar, savedAt: new Date().toISOString() }));
-      } catch (e) {}
-      alert('登入狀態已過期，無法提交。請重新整理頁面並重新登入後再提交（你的答案已暫存，不會遺失）。');
-      return;
-    }
+    await fetch(API + '/api/auth/heartbeat', { method: 'POST', credentials: 'include' });
   } catch (e) {
-    // network error during heartbeat — still try to submit
+    // 網絡錯誤都照樣嘗試提交
   }
   
   const timeUsed = Math.round((Date.now() - startTime) / 1000);
@@ -2677,9 +2690,8 @@ async function submitExam() {
     
     // Session expired/invalid: save answers locally so they can re-login and retry
     if (res.status === 401) {
-      try {
-        localStorage.setItem('exam_backup_' + currentTopicId, JSON.stringify({ answers, timeUsed, savedAt: new Date().toISOString() }));
-      } catch (e) {}
+      saveExamBackup(timeUsed);
+      // 即使考試途中已提過，交卷失敗都要再有明確回饋，唔好靜靜地冇反應
       alert('登入狀態已過期，無法提交。請重新整理頁面並重新登入後再提交（你的答案已暫存，不會遺失）。');
       return;
     }
@@ -3104,7 +3116,8 @@ async function loadMyOt(month) {
 }
 
 async function logout() {
-  await fetch(API + '/api/auth/logout', { method: 'POST', credentials: 'include' });
+  await fetch(API + '/api/auth/logout', { method: 'POST', credentials: 'include',
+    headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ scope: 'employee' }) });
   clearInterval(timerInterval);
   stopHeartbeat();
   empData = null;
