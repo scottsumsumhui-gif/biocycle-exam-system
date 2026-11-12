@@ -8,7 +8,7 @@ const XLSX = require('xlsx');
 const ExcelJS = require('exceljs'); // 有樣式支援（框線／粗體／填色），SheetJS 社區版冇
 const multer = require('multer');
 const worktimeCompare = require('./worktime_compare');
-const mailer = require('./mailer'); // SMTP / SendGrid API 通知（未設定 env 會靜默略過）
+const mailer = require('./mailer'); // Brevo / SendGrid / SMTP 通知（未設定 env 會靜默略過）
 
 // 最近一次寄信嘗試（診斷用，放 memory 唔落地；重部署會清空）
 let _lastMailAttempt = null;
@@ -1282,6 +1282,9 @@ app.get('/api/admin/mail/status', authRequired('admin'), requirePermission('admi
     res.json({
       success: true,
       nodemailer: hasNodemailer,
+      provider: mailer.activeProvider(),
+      mailProviderEnv: String(process.env.MAIL_PROVIDER || 'auto'),
+      brevoApi: !!process.env.BREVO_API_KEY,
       sendgridApi: !!process.env.SENDGRID_API_KEY,
       host: process.env.SMTP_HOST || '',
       port: process.env.SMTP_PORT || '',

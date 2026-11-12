@@ -1506,10 +1506,13 @@ async function checkMailStatus() {
     const ok = v => v ? '<span style="color:var(--success);font-weight:600">✔</span>' : '<span style="color:var(--danger);font-weight:600">✘</span>';
     const nm = r => r.length ? r.map(x => `${x.username}${x.email ? ' (' + x.email + ')' : ' <span style="color:var(--danger)">未填電郵</span>'}`).join('、') : '<span style="color:var(--danger)">冇人</span>';
     let h = '<table class="data-table" style="font-size:13px"><tbody>';
-    h += `<tr><td>寄信方式</td><td>${d.sendgridApi ? '<span style="color:var(--success);font-weight:600">SendGrid Web API (HTTPS)</span>' : 'SMTP'}</td></tr>`;
+    const pv = d.provider || (d.sendgridApi ? 'sendgrid' : 'smtp');
+    const pvLabel = pv === 'brevo' ? 'Brevo Web API (HTTPS)' : (pv === 'sendgrid' ? 'SendGrid Web API (HTTPS)' : 'SMTP');
+    h += `<tr><td>寄信方式</td><td><span style="color:var(--success);font-weight:600">${pvLabel}</span>${d.mailProviderEnv && d.mailProviderEnv !== 'auto' ? ' <span style="color:var(--text-tertiary);font-size:12px">(MAIL_PROVIDER=' + d.mailProviderEnv + ')</span>' : ''}</td></tr>`;
     h += `<tr><td>nodemailer 已安裝</td><td>${ok(d.nodemailer)}</td></tr>`;
-    h += `<tr><td>SENDGRID_API_KEY</td><td>${d.sendgridApi ? ok(true) : '<span style="color:var(--text-tertiary)">未設（用緊 SMTP）</span>'}</td></tr>`;
-    h += `<tr><td>SMTP 已設定</td><td>${ok(d.configured)} ${d.host ? '(' + d.host + ':' + d.port + ', user=' + d.user + ', pass=' + (d.passSet ? '已設' : '未設') + ')' : ''}</td></tr>`;
+    h += `<tr><td>BREVO_API_KEY</td><td>${d.brevoApi ? ok(true) : '<span style="color:var(--text-tertiary)">未設</span>'}</td></tr>`;
+    h += `<tr><td>SENDGRID_API_KEY（舊）</td><td>${d.sendgridApi ? ok(true) : '<span style="color:var(--text-tertiary)">未設</span>'}</td></tr>`;
+    h += `<tr><td>寄信平台已設定</td><td>${ok(d.configured)} ${d.host ? '(' + d.host + ':' + d.port + ', user=' + d.user + ', pass=' + (d.passSet ? '已設' : '未設') + ')' : ''}</td></tr>`;
     h += `<tr><td>寄件人 SMTP_FROM</td><td>${ok(d.fromValid)} ${d.from || '<span style="color:var(--danger)">未設定</span>'}</td></tr>`;
     h += `<tr><td>渠網佣金收件人</td><td>${nm(d.commissionRecipients)}</td></tr>`;
     h += `<tr><td>服務銷售收件人</td><td>${nm(d.leadsRecipients)}</td></tr>`;
@@ -1523,8 +1526,8 @@ async function checkMailStatus() {
       else txt = '<span style="color:var(--danger)">失敗：' + (rr.error || '未知') + '</span>';
       h += `<p style="font-size:13px;margin:10px 0 0"><b>最近一次寄信嘗試</b>（${la.at}｜${la.kind}${la.to && la.to.length ? '｜' + la.to.join(', ') : ''}）：${txt}</p>`;
     }
-    if (!d.configured) h += '<p style="color:var(--danger);font-size:13px;margin:8px 0 0">SMTP 未設定 → 全部通知會靜默略過。請喺 Railway Variables 填 SMTP_HOST/PORT/USER/PASS/FROM 並 Deploy。</p>';
-    else if (!d.fromValid) h += '<p style="color:var(--danger);font-size:13px;margin:8px 0 0">SMTP_FROM 唔係有效電郵 → SendGrid 會拒收。請填已驗證嘅寄件人電郵。</p>';
+    if (!d.configured) h += '<p style="color:var(--danger);font-size:13px;margin:8px 0 0">寄信平台未設定 → 全部通知會靜默略過。請喺 Railway Variables 填 BREVO_API_KEY（或 SENDGRID_API_KEY／SMTP_*）並 Deploy。</p>';
+    else if (!d.fromValid) h += '<p style="color:var(--danger);font-size:13px;margin:8px 0 0">SMTP_FROM 唔係有效電郵 → 寄信平台會拒收。請填已驗證嘅寄件人電郵。</p>';
     box.innerHTML = h;
   } catch (e) { box.innerHTML = '<span style="color:var(--danger);font-size:13px">檢查失敗</span>'; }
 }
@@ -1540,7 +1543,7 @@ async function sendTestMail() {
     const d = await res.json();
     let msg, color = 'var(--danger)';
     if (d.skipped) {
-      msg = '冇發出（略過）：<b>' + (d.reason || '') + '</b><br><span style="font-size:12px">smtp-not-configured = Railway 未填寄信變數；no-recipient = 你未設定電郵；invalid-from = SMTP_FROM 唔係有效電郵</span>';
+      msg = '冇發出（略過）：<b>' + (d.reason || '') + '</b><br><span style="font-size:12px">brevo-not-configured／sendgrid-not-configured／smtp-not-configured = Railway 未填寄信變數；no-recipient = 你未設定電郵；invalid-from = SMTP_FROM 唔係有效電郵或寄件人未喺平台驗證</span>';
     } else if (d.success) {
       msg = '已發送到 <b>' + d.to + '</b><br>請去收件箱睇下（睇埋垃圾箱）。'; color = 'var(--success)';
     } else {

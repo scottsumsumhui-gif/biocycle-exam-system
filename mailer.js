@@ -1,17 +1,24 @@
 // =====================================================================
-//  mailer.js — 系統內部電郵通知（SendGrid Web API / SMTP）
+//  mailer.js — 系統內部電郵通知（Brevo Web API / SendGrid Web API / SMTP）
 //
 //  ⚠️ 設計原則：env-gated + 永不阻住主流程
 //   - 未設定任何寄信環境變數 → sendMail() 直接略過（回 {skipped:true}）
 //   - nodemailer 未安裝 → 一樣略過，唔會令 server 開唔到
 //   - 發送失敗只 log，唔 throw（佣金提交等主流程唔可以因為電郵踼親而失敗）
 //
-//  寄信方式（揀一種）：
-//  【A. SendGrid Web API（推薦，HTTPS 443，Railway 一定通）】
-//   SENDGRID_API_KEY   SG.xxxxx（Restricted Access, Mail Send Full Access）
-//   SMTP_FROM          顯示嘅寄件人，e.g. "BIOCYCLE 系統 <noreply@biocycle.hk>"（必須已驗證）
-//  【B. SMTP（某些 host 對外 587/465 會 timeout，例如 Railway→SendGrid）】
+//  寄信方式（用 MAIL_PROVIDER 揀；留 'auto' 都得）：
+//  【A. Brevo Web API（推薦，真正 free-forever 300 封/日，HTTPS 443）】
+//   BREVO_API_KEY      xkeysib-xxxxx（Brevo → SMTP & API → API Keys，v3）
+//   SMTP_FROM          顯示嘅寄件人，e.g. "BIOCYCLE 系統 <sum@biokill.hk>"
+//                      ⚠️ 呢個地址要喺 Brevo「Senders」撳埋驗證信先寄得出去
+//  【B. SendGrid v3 Web API（舊；60 日試用完會停止寄信）】
+//   SENDGRID_API_KEY + SMTP_FROM
+//  【C. SMTP（Railway 對外 587/465 曾 timeout，只留 fallback）】
 //   SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / SMTP_FROM
+//
+//  MAIL_PROVIDER = auto | brevo | sendgrid | smtp
+//   auto：有 BREVO_API_KEY → Brevo；否則有 SENDGRID_API_KEY → SendGrid；否則 SMTP
+//  ⚠️ 「永久免費」係平台產品承諾唔係合約；日後要再換平台只改 Railway env，唔使改 code
 // =====================================================================
 
 // 懶加载：模組唔喺度都唔會拖垮 server
@@ -20,8 +27,23 @@ try { nodemailer = require('nodemailer'); } catch (e) { nodemailer = null; }
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
+function smtpConfigured() {
+  return !!(nodemailer && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+}
+
+function activeProvider() {
+  const p = String(process.env.MAIL_PROVIDER || 'auto').trim().toLowerCase();
+  if (p === 'brevo' || p === 'sendgrid' || p === 'smtp') return p;
+  if (process.env.BREVO_API_KEY) return 'brevo';
+  if (process.env.SENDGRID_API_KEY) return 'sendgrid';
+  return 'smtp';
+}
+
 function isConfigured() {
-  return !!(process.env.SENDGRID_API_KEY || (nodemailer && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS));
+  const p = activeProvider();
+  if (p === 'brevo') return !!process.env.BREVO_API_KEY;
+  if (p === 'sendgrid') return !!process.env.SENDGRID_API_KEY;
+  return smtpConfigured();
 }
 
 let _transporter = null;
@@ -85,6 +107,47 @@ async function sendViaSendGridApi(toList, subject, html, text) {
   return { success: false, error: msg };
 }
 
+// Brevo v3 Transactional Email API（HTTPS 443）— free-forever 300 封/日
+async function sendViaBrevo(toList, subject, html, text) {
+  const { rawFrom, fromAddr, valid } = parseFrom();
+  if (!valid) {
+    console.error('[mailer] BREVO_API_KEY 已設但 SMTP_FROM 唔係有效電郵（現時係 "' + rawFrom + '"）。已略過發送。');
+    return { skipped: true, reason: 'invalid-from' };
+  }
+  const nameMatch = /^(.*?)\s*<[^>]+>\s*$/.exec(rawFrom);
+  const sender = { email: fromAddr };
+  if (nameMatch && nameMatch[1].trim()) sender.name = nameMatch[1].trim();
+  const body = {
+    sender,
+    to: toList.map(e => ({ email: e })),
+    subject: subject || '(無主題)'
+  };
+  // Brevo 一個 request 只可以用一種 body：有 HTML 就用 HTML，否則用純文字
+  if (html) body.htmlContent = html;
+  else if (text) body.textContent = text;
+  else body.textContent = '(無內容)';
+
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': process.env.BREVO_API_KEY,
+      'Content-Type': 'application/json',
+      accept: 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  let payload = null;
+  try { payload = await res.json(); } catch (e) { /* ignore */ }
+  if (res.status >= 200 && res.status < 300) {
+    console.log('[mailer] 已發送（Brevo Web API）：' + (subject || '') + ' → ' + toList.join(', '));
+    return { success: true, via: 'brevo-api', to: toList, messageId: payload && payload.messageId };
+  }
+  const detail = payload ? (payload.message || payload.code || JSON.stringify(payload)) : '';
+  const msg = 'Brevo API ' + res.status + (detail ? ': ' + detail : '');
+  console.error('[mailer] 發送失敗：' + msg);
+  return { success: false, error: msg };
+}
+
 /**
  * 發送電郵。
  * @param {Object} opts { to: string|string[], subject: string, html: string, text?: string }
@@ -96,8 +159,27 @@ async function sendMail(opts) {
   const toList = [...new Set(rawTo.map(x => String(x || '').trim()).filter(x => EMAIL_RE.test(x)))];
   if (toList.length === 0) return { skipped: true, reason: 'no-recipient' };
 
-  // A. SendGrid Web API（優先）
-  if (process.env.SENDGRID_API_KEY) {
+  const provider = activeProvider();
+
+  // A. Brevo Web API（有 key 就優先；永久免費）
+  if (provider === 'brevo') {
+    if (!process.env.BREVO_API_KEY) {
+      console.log('[mailer] BREVO_API_KEY 未設定，略過發送：' + (o.subject || ''));
+      return { skipped: true, reason: 'brevo-not-configured' };
+    }
+    try { return await sendViaBrevo(toList, o.subject, o.html, o.text); }
+    catch (e) {
+      console.error('[mailer] 發送失敗：' + (e && e.message ? e.message : e));
+      return { success: false, error: e && e.message ? e.message : String(e) };
+    }
+  }
+
+  // B. SendGrid Web API（舊）
+  if (provider === 'sendgrid') {
+    if (!process.env.SENDGRID_API_KEY) {
+      console.log('[mailer] SENDGRID_API_KEY 未設定，略過發送：' + (o.subject || ''));
+      return { skipped: true, reason: 'sendgrid-not-configured' };
+    }
     try { return await sendViaSendGridApi(toList, o.subject, o.html, o.text); }
     catch (e) {
       console.error('[mailer] 發送失敗：' + (e && e.message ? e.message : e));
@@ -105,9 +187,9 @@ async function sendMail(opts) {
     }
   }
 
-  // B. SMTP
+  // C. SMTP
   if (!nodemailer) return { skipped: true, reason: 'nodemailer-not-installed' };
-  if (!isConfigured()) {
+  if (!smtpConfigured()) {
     console.log('[mailer] SMTP 未設定，略過發送：' + (o.subject || ''));
     return { skipped: true, reason: 'smtp-not-configured' };
   }
@@ -137,4 +219,4 @@ async function sendMail(opts) {
   }
 }
 
-module.exports = { sendMail, isConfigured };
+module.exports = { sendMail, isConfigured, activeProvider };
