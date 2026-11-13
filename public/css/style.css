@@ -1280,3 +1280,69 @@ body.fest-halloween #homeScreen .home-footer b { color: #ffd6a5; }
   #worktimeScreen .center-card > .mt-16 > #wtMsg { display: block; text-align: center; margin: 8px 0 0; }
 }
 /* ===== END WT MOBILE 2026-11-13 ===== */
+
+/* ==================================================================
+   FRONT MOBILE 2026-11-13 — 前台其他功能頁 手機排版整理
+   倉存／車隊／佣金 hub／意見箱／考試頂欄。
+   只喺 <=700px 加 ID-scope 新規則，唔改任何舊規則、唔郁 HTML / JS / 資料。
+   ================================================================== */
+@media (max-width: 700px) {
+
+  /* 頂欄「標題＋返回掣」手機容許換行 */
+  #warehouseScreen .page-head, #fleetScreen .page-head,
+  #commissionHubScreen .page-head, #feedbackScreen .h-between { flex-wrap: wrap; gap: 8px; }
+
+  /* ---- 倉存：記錄出入倉一行 → grid 2 欄；radio 一行全闊；提交掣全闊 ---- */
+  #warehouseScreen h3.mt-18 + div:not(#whHistoryTable):not(#whStockPanel) {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px; align-items: end;
+  }
+  #warehouseScreen h3.mt-18 + div:not(#whHistoryTable):not(#whStockPanel) > .form-group { min-width: 0; margin: 0 !important; }
+  #warehouseScreen h3.mt-18 + div:not(#whHistoryTable):not(#whStockPanel) input,
+  #warehouseScreen h3.mt-18 + div:not(#whHistoryTable):not(#whStockPanel) select { width: 100% !important; min-width: 0 !important; box-sizing: border-box; }
+  #warehouseScreen h3.mt-18 + div:not(#whHistoryTable):not(#whStockPanel) > .form-group:nth-child(3) { grid-column: 1 / -1; }
+  #warehouseScreen h3.mt-18 + div:not(#whHistoryTable):not(#whStockPanel) > .btn { grid-column: 1 / -1; width: 100%; }
+
+  /* 倉存：新增物資盒 → 直排、輸入框全闊 */
+  #whAddNewBox { display: grid !important; grid-template-columns: 1fr; gap: 8px; }
+  #whAddNewBox input { width: 100% !important; box-sizing: border-box; }
+  #whAddNewBox .btn { width: 100%; }
+
+  /* ---- 車隊：篩選 3 格 → 2 欄、月份全闊 ---- */
+  #fleetScreen .field-row { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: end; }
+  #fleetScreen .field-row > .form-group { min-width: 0; margin: 0 !important; }
+  #fleetScreen .field-row input, #fleetScreen .field-row select { width: 100% !important; min-width: 0 !important; box-sizing: border-box; }
+  #fleetScreen .field-row > .form-group:nth-child(3) { grid-column: 1 / -1; }
+
+  /* 車隊：出車／返回／入油／保養／維修 表單盒 → grid 2 欄、確認掣全闊 */
+  #fleetScreen .fleet-form-box > div { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: end; }
+  #fleetScreen .fleet-form-box > div > .form-group { min-width: 0; margin: 0 !important; }
+  #fleetScreen .fleet-form-box input, #fleetScreen .fleet-form-box select { width: 100% !important; min-width: 0 !important; box-sizing: border-box; }
+  #fleetScreen .fleet-form-box > div > .btn { grid-column: 1 / -1; width: 100%; }
+
+  /* ---- 佣金 hub ---- */
+  /* 渠網：日期／客戶編號行直排、輸入框全闊 */
+  #commChannelSub .panel > .inline-row { display: flex !important; flex-direction: column; align-items: stretch; gap: 6px; }
+  #commChannelSub .panel > .inline-row input { width: 100% !important; box-sizing: border-box; }
+  /* 服務佣金：客戶編號／姓名／電話 3 欄 → 1 欄 */
+  #commTechSub .panel > div[style*='1fr 1fr 1fr'] { grid-template-columns: 1fr !important; }
+  /* 渠網隊員行：select 全闊、兩個件數 2 欄、移除掣全闊 */
+  #commChannelSub .comm-member-row { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  #commChannelSub .comm-member-row > .comm-emp { grid-column: 1 / -1; width: 100%; min-width: 0; }
+  #commChannelSub .comm-member-row label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+  #commChannelSub .comm-member-row label input { width: 100% !important; box-sizing: border-box; }
+  #commChannelSub .comm-member-row > .btn { grid-column: 1 / -1; width: 100%; }
+  /* 服務佣金隊員行：select 全闊 + 移除掣固定闊 */
+  #commTechSub .lead-member-row { display: grid !important; grid-template-columns: minmax(0, 1fr) 64px; gap: 8px; }
+  #commTechSub .lead-member-row .lead-emp { min-width: 0 !important; width: 100%; }
+  #commTechSub .lead-member-row > .btn { width: 100%; padding: 0; }
+  /* 服務佣金提交掣全闊 */
+  #commTechSub .panel > .inline-row .btn { width: 100%; }
+
+  /* ---- 考試頁頂欄：手機慳位 ---- */
+  #examScreen .exam-header { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+  #examScreen .header-subtitle { font-size: 11.5px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #examScreen .timer { font-size: 16px; padding: 3px 10px; }
+}
+/* ===== END FRONT MOBILE 2026-11-13 ===== */
