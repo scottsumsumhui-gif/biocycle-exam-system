@@ -1082,10 +1082,10 @@ body.fest-halloween #homeScreen .center-card { border-top: 5px solid #ff7518; }
 body.fest-halloween #homeScreen .home-footer { color: #c9c9c9; border-top-color: #333; }
 body.fest-halloween #homeScreen .home-footer b { color: #ffd6a5; }
 
-/* ---------- 後台：深墨綠薄頂欄 + 216px 白底左側欄 ---------- */
+/* ---------- 後台：深墨綠薄頂欄 + 236px 白底左側欄 ---------- */
 #adminPanel {
   position: relative; display: grid;
-  grid-template-columns: 216px minmax(0,1fr); grid-template-rows: 52px minmax(0,1fr);
+  grid-template-columns: 236px minmax(0,1fr); grid-template-rows: 52px minmax(0,1fr);
   min-height: 100vh; background: var(--bg);
 }
 #adminPanel > .admin-header {
@@ -1109,16 +1109,16 @@ body.fest-halloween #homeScreen .home-footer b { color: #ffd6a5; }
 #adminPanel > .admin-nav {
   grid-column: 1; grid-row: 2; background: #fbfdfc; border-right: 1px solid var(--border);
   display: flex; flex-direction: column; align-items: stretch; gap: 2px;
-  padding: 12px 8px; overflow-y: auto;
+  padding: 14px 10px; overflow-y: auto;
 }
 #adminPanel .admin-nav .nav-group-label {
-  font-size: 10px; letter-spacing: 1.2px; font-weight: 700;
-  color: #8a9a92; padding: 12px 10px 4px; white-space: nowrap;
+  font-size: 12px; letter-spacing: 1.2px; font-weight: 700;
+  color: #7a8a82; padding: 13px 12px 5px; white-space: nowrap;
 }
 #adminPanel .admin-nav .nav-btn {
-  width: 100%; min-height: 0; padding: 7px 10px; margin: 0;
-  display: flex; align-items: center; gap: 6px; text-align: left;
-  font-size: 12px; font-weight: 500; color: #5f6f67;
+  width: 100%; min-height: 0; padding: 9px 11px; margin: 0;
+  display: flex; align-items: center; gap: 8px; text-align: left;
+  font-size: 15px; font-weight: 500; color: #4c5c54; line-height: 1.35;
   border: 0; border-radius: 7px; flex: 0 0 auto;
   transition: background .15s, color .15s;
 }
@@ -1130,8 +1130,8 @@ body.fest-halloween #homeScreen .home-footer b { color: #ffd6a5; }
   box-shadow: inset 3px 0 0 var(--primary);
 }
 #adminPanel .admin-nav .admin-nav-author {
-  margin-top: auto; padding: 12px 10px 4px; border-top: 1px solid var(--border);
-  font-size: 10px; color: #8a9a92; line-height: 1.5;
+  margin-top: auto; padding: 12px 12px 4px; border-top: 1px solid var(--border);
+  font-size: 11.5px; color: #7a8a82; line-height: 1.5;
 }
 #adminPanel > .admin-body {
   grid-column: 2; grid-row: 2; padding: 22px 24px;
@@ -1149,7 +1149,7 @@ body.fest-halloween #homeScreen .home-footer b { color: #ffd6a5; }
   #adminPanel .admin-header .header-right { gap: 5px; }
   .admin-burger { display: flex; }
   #adminPanel > .admin-nav {
-    position: absolute; z-index: 30; left: 0; top: 52px; bottom: 0; width: 250px;
+    position: absolute; z-index: 30; left: 0; top: 52px; bottom: 0; width: 272px;
     transform: translateX(-101%); transition: transform .22s ease;
     border-bottom: 0; box-shadow: 8px 0 24px rgba(13,51,35,.16);
   }
