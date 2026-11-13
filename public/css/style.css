@@ -1173,3 +1173,110 @@ body.fest-halloween #homeScreen .home-footer b { color: #ffd6a5; }
   #adminPanel > .admin-body { padding: 0 !important; }
 }
 /* ===== END UI PRO 2026-11-13 ===== */
+
+/* ==================================================================
+   WT MOBILE 2026-11-13 — 工時記錄手機排版整理
+   只加 @media (max-width:700px) + #worktimeScreen scope 嘅新規則
+   （700px 對齊舊有 `.wt-inline` 手機斷點，601–700px 都唔再亂）。
+   唔改任何舊規則、唔郁 HTML / JS / 資料。
+   目標：所有輸入框同工作類型 chip 等闊對齊，掣等闊、易撳。
+   ================================================================== */
+@media (max-width: 700px) {
+  #worktimeScreen .center-card { padding: 18px 14px; }
+  #worktimeScreen .center-card > .h-between { gap: 10px; }
+  #worktimeScreen .center-card > .h-between h2 { font-size: 17px; line-height: 1.3; margin: 0; min-width: 0; }
+  #worktimeScreen .center-card > .h-between > .btn { flex: 0 0 auto; }
+
+  /* 日期 / 狀態：兩格等闊 */
+  #worktimeScreen .field-row-lg {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    align-items: end;
+  }
+  #worktimeScreen .field-row-lg > div { min-width: 0; }
+  #worktimeScreen .field-row-lg input,
+  #worktimeScreen .field-row-lg select { width: 100%; box-sizing: border-box; }
+  #worktimeScreen .field-row-lg > span { grid-column: 1 / -1; }
+
+  /* 上班 / 實際上班 / 下班：三格等闊；儲存掣另起一行全闊 */
+  #wtTimesBox > .wt-inline {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    align-items: end;
+  }
+  #wtTimesBox > .wt-inline > div { min-width: 0; }
+  #wtTimesBox > .wt-inline > div:last-child { grid-column: 1 / -1; align-self: auto !important; }
+  #wtTimesBox > .wt-inline .wt-time { width: 100%; }
+  #wtTimesBox > .wt-inline > div:last-child .btn { width: 100%; }
+
+  /* 兩個 REMARK checkbox 改直排，唔好一長一短 */
+  #wtNightRecoveryBox { flex-direction: column; gap: 10px !important; align-items: stretch !important; }
+
+  /* 今日隊員：每行 select 等闊、× 掣固定闊 */
+  #wtMembers { display: grid !important; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  #wtMembers > div {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 38px;
+    gap: 8px;
+    width: 100%;
+  }
+  #wtMembers .wt-member { width: 100%; min-width: 0; }
+  #wtMembers > div > .btn { width: 38px; padding: 0; }
+
+  #wtRemarkBox input { width: 100%; box-sizing: border-box; }
+
+  /* 工作單標題列：兩粒掣等闊並排 */
+  #wtJobsBox > .h-between { flex-direction: column; align-items: stretch; gap: 10px; }
+  #wtJobsBox > .h-between > div { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #wtJobsBox > .h-between .btn { width: 100%; padding: 8px 6px; font-size: 13px; }
+
+  /* 每張工作單 */
+  #wtJobs .wt-job { padding: 12px !important; margin: 10px 0 !important; }
+  #wtJobs .wt-job > .wt-inline {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    align-items: end;
+  }
+  #wtJobs .wt-job > .wt-inline > span {
+    min-width: 0 !important;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  #wtJobs .wt-job > .wt-inline > span:first-child { grid-column: 1 / -1; }
+  #wtJobs .wt-job > .wt-inline input { width: 100% !important; min-width: 0; box-sizing: border-box; }
+
+  /* 工作類型：等闊格仔（窄機 2 欄、闊機自動 3 欄） */
+  #wtJobs .wt-types {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+  #wtJobs .wt-type-chip {
+    width: 100%; box-sizing: border-box;
+    justify-content: flex-start; text-align: left;
+    padding: 8px 10px; font-size: 13px; min-height: 38px;
+    white-space: normal; line-height: 1.25;
+  }
+  #wtJobs .wt-type-chip input { flex: 0 0 auto; }
+
+  /* 備註：文字上一行、輸入框全闊 */
+  #wtJobs .wt-job > .wt-full { display: flex !important; flex-direction: column; gap: 4px; }
+  #wtJobs .wt-remarks { width: 100%; box-sizing: border-box; }
+
+  /* 卡底兩粒掣等闊 */
+  #wtJobs .wt-job > div:last-child {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    justify-content: stretch !important;
+    gap: 8px;
+  }
+  #wtJobs .wt-job > div:last-child .btn { width: 100%; text-align: center; }
+
+  /* 最底主儲存掣全闊 */
+  #worktimeScreen .center-card > .mt-16 > .btn-primary { width: 100%; }
+  #worktimeScreen .center-card > .mt-16 > #wtMsg { display: block; text-align: center; margin: 8px 0 0; }
+}
+/* ===== END WT MOBILE 2026-11-13 ===== */
