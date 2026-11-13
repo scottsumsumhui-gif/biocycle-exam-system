@@ -963,3 +963,213 @@ h2 { font-size: 18px; color: var(--text-light); margin-bottom: 24px; }
   .nav-tabs, .top-nav { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
   .nav-btn { flex: 0 0 auto; }
 }
+
+
+/* ==================================================================
+   UI PRO 2026-11-13 — 專業風格（只加新規則，唔改任何舊規則）
+   全部 selector 用 ID scope，唔會 spill 去其他分頁；
+   節日主題 / print / 600px / 768px 嘅舊規則喺下面逐項補返。
+   ================================================================== */
+
+/* ---------- 兩個登入頁：同一套品牌 ---------- */
+#loginScreen.login-bg { background: linear-gradient(135deg, #0d3323 0%, #1b7a4b 100%); }
+#adminLogin {
+  background: linear-gradient(135deg, #0d3323 0%, #1b7a4b 100%);
+  min-height: 100vh; display: flex; flex-direction: column;
+}
+#adminLogin::before {
+  content: 'BIOCYCLE  \00b7  ADMIN'; display: flex; align-items: center;
+  height: 52px; padding: 0 24px; background: rgba(0,0,0,.18); color: #fff;
+  font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+#loginScreen .brand-bar {
+  background: rgba(0,0,0,.18); box-shadow: none; padding: 0 24px; height: 52px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+#loginScreen .brand-bar .bb-logo { font-size: 13px; letter-spacing: 1px; }
+#loginScreen .brand-bar .bb-user { font-size: 11px; opacity: .72; }
+#loginScreen .brand-bar .bb-author { font-size: 11px; opacity: .72; }
+#loginScreen .center-card, #adminLogin .center-card {
+  max-width: 420px; width: calc(100% - 32px); margin: 56px auto; padding: 36px 34px;
+  border-top: 0; border-radius: 16px; box-shadow: 0 18px 50px rgba(0,0,0,.18);
+}
+#adminLogin .center-card { margin: auto; }
+#loginScreen .center-card .logo img, #adminLogin .center-card .logo img { max-height: 54px; }
+#loginScreen .center-card h1, #adminLogin .center-card h1 { font-size: 19px; font-weight: 700; color: var(--text); }
+#loginScreen .center-card h2, #adminLogin .center-card h2 {
+  font-size: 11px; letter-spacing: 1.4px; font-weight: 600; color: var(--text-light); margin-top: 4px;
+}
+#loginScreen .form-group, #adminLogin .form-group { text-align: left; margin-top: 16px; }
+#loginScreen .form-group label, #adminLogin .form-group label { font-size: 12px; font-weight: 600; color: var(--text-light); }
+#loginScreen .btn-block, #adminLogin .btn-block {
+  margin-top: 22px; min-height: 44px; border-radius: 9px; background: var(--primary-dark);
+}
+#loginScreen .login-author, #adminLogin .login-author {
+  margin: 14px 0 0; font-size: 11px; color: var(--text-light); opacity: .8;
+}
+
+/* ---------- 前台首頁：功能優先、單色線性 icon ---------- */
+#homeScreen .brand-bar {
+  background: #0d3323; padding: 0 20px; height: 52px; box-shadow: none;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+#homeScreen .brand-bar .bb-logo { font-size: 14px; font-weight: 700; letter-spacing: 1px; }
+#homeScreen .brand-bar .bb-sub {
+  display: inline-block; margin-left: 10px; font-size: 11px; font-weight: 400;
+  letter-spacing: 0; opacity: .62; border-left: 1px solid rgba(255,255,255,.3); padding-left: 10px;
+}
+#homeScreen .brand-bar .bb-user { font-size: 11px; opacity: .66; }
+#homeScreen .app-main { padding: 22px 12px 10px; align-items: flex-start; flex: 0 0 auto; }
+#homeScreen .center-card {
+  max-width: 820px; width: 100%; margin: 0 auto; padding: 26px 28px 22px;
+  border-top: 0; border-radius: 14px; box-shadow: 0 2px 14px rgba(16,78,48,.07);
+  display: flex; flex-direction: column; align-items: stretch; text-align: left;
+}
+/* display:contents 令 #homeHeader 嘅子項目直接參予 flex 排序 —— 唔使改 showHome() 一行 JS */
+#homeScreen #homeHeader { display: contents; }
+#homeScreen #homeHeader h1 { order: 0; font-size: 19px; font-weight: 700; color: var(--text); margin: 0; }
+#homeScreen #homeHeader p { order: 1; font-size: 12px; color: var(--text-light); margin: 3px 0 0; }
+#homeScreen .fest-banner { order: 1; margin: 14px 0 0; }
+#homeScreen .module-grid {
+  order: 2; display: grid; grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 12px; margin: 20px 0 0;
+}
+#homeScreen .module-card {
+  width: auto; max-width: none; min-height: 128px; padding: 16px 14px;
+  border: 1px solid var(--border); border-radius: 10px; background: #fff;
+  box-shadow: none; text-align: left; display: flex; flex-direction: column;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+#homeScreen .module-card:hover {
+  transform: none; border-color: var(--primary-light); background: #f7fbf9;
+  box-shadow: 0 0 0 3px rgba(27,122,75,.07);
+}
+#homeScreen .module-icon {
+  width: 34px; height: 34px; border-radius: 9px; margin: 0 0 12px;
+  background: #e8f4ed; color: var(--primary-dark); font-size: 0; box-shadow: none;
+}
+#homeScreen .module-icon svg { width: 18px; height: 18px; stroke: currentColor; }
+#homeScreen .module-title { font-size: 13.5px; font-weight: 650; color: var(--text); margin: 0 0 3px; }
+#homeScreen .module-desc { font-size: 11.5px; color: #5f6f67; line-height: 1.5; }
+#homeScreen .h-center {
+  order: 3; justify-content: flex-start; margin-top: 18px; padding-top: 14px;
+  border-top: 1px solid var(--border); gap: 8px;
+}
+#homeScreen #homeHeader .quote-bar {
+  order: 4; margin: 12px 0 0 !important; padding: 9px 14px !important;
+  background: #f6f9f7 !important; border-left: 0 !important;
+  box-shadow: inset 3px 0 0 var(--primary) !important; border-radius: 8px !important;
+}
+#homeScreen #homeHeader .quote-bar span {
+  font-size: 12px !important; line-height: 1.6 !important;
+  color: var(--text-light) !important; font-weight: 400 !important;
+}
+#homeScreen #homeHeader > div[style*="margin:6px 0 0"] { order: 5; margin: 8px 0 0 !important; }
+#homeScreen #bgMusicBtn { font-size: 11px; padding: 4px 10px; min-height: 0; background: transparent; }
+#homeScreen .home-footer {
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  max-width: 820px; width: calc(100% - 24px); margin: 0 auto 20px; padding: 10px 4px 0;
+  border-top: 1px solid rgba(16,78,48,.12); font-size: 11px; color: #7b8a83;
+}
+#homeScreen .home-footer b { font-weight: 700; color: #5f6f67; }
+
+/* 節日主題補色：新 icon 底、center-card 頂位（舊 inline CSS 仍然生效） */
+body.fest-midautumn #homeScreen .module-icon { background: #fff3d0; color: #8a5a00; }
+body.fest-halloween #homeScreen .module-icon { background: #2c2c2c; color: #ff9f1c; }
+body.fest-midautumn #homeScreen .center-card { padding-top: 88px; border-top: 5px solid #d4a017; }
+body.fest-halloween #homeScreen .center-card { border-top: 5px solid #ff7518; }
+body.fest-halloween #homeScreen .home-footer { color: #c9c9c9; border-top-color: #333; }
+body.fest-halloween #homeScreen .home-footer b { color: #ffd6a5; }
+
+/* ---------- 後台：深墨綠薄頂欄 + 216px 白底左側欄 ---------- */
+#adminPanel {
+  position: relative; display: grid;
+  grid-template-columns: 216px minmax(0,1fr); grid-template-rows: 52px minmax(0,1fr);
+  min-height: 100vh; background: var(--bg);
+}
+#adminPanel > .admin-header {
+  grid-column: 1 / -1; grid-row: 1; height: 52px; padding: 0 18px;
+  background: #0d3323; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+#adminPanel .admin-header .header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+#adminPanel .admin-header .logo-sm img { height: 22px; width: auto; }
+#adminPanel .admin-header .header-title-text {
+  font-size: 12px; font-weight: 700; letter-spacing: .3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#adminPanel .admin-header .header-right { display: flex; align-items: center; gap: 8px; font-size: 11px; white-space: nowrap; }
+#adminPanel .admin-header .header-right .btn { min-height: 0; padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+.admin-burger {
+  display: none; width: 30px; height: 30px; flex: 0 0 auto;
+  align-items: center; justify-content: center;
+  border: 1px solid rgba(255,255,255,.35); border-radius: 7px;
+  background: transparent; color: #fff; font-size: 15px; line-height: 1; cursor: pointer;
+}
+#adminPanel > .admin-nav {
+  grid-column: 1; grid-row: 2; background: #fbfdfc; border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: stretch; gap: 2px;
+  padding: 12px 8px; overflow-y: auto;
+}
+#adminPanel .admin-nav .nav-group-label {
+  font-size: 10px; letter-spacing: 1.2px; font-weight: 700;
+  color: #8a9a92; padding: 12px 10px 4px; white-space: nowrap;
+}
+#adminPanel .admin-nav .nav-btn {
+  width: 100%; min-height: 0; padding: 7px 10px; margin: 0;
+  display: flex; align-items: center; gap: 6px; text-align: left;
+  font-size: 12px; font-weight: 500; color: #5f6f67;
+  border: 0; border-radius: 7px; flex: 0 0 auto;
+  transition: background .15s, color .15s;
+}
+/* 舊選單掣內嵌彩色 emoji：唔改任何掣，只用灰階令佢同前台單色 icon 一致 */
+#adminPanel .admin-nav .nav-btn:not(.active) { filter: grayscale(.9); }
+#adminPanel .admin-nav .nav-btn:hover { background: #f0f7f3; color: var(--primary-dark); }
+#adminPanel .admin-nav .nav-btn.active {
+  background: #e1f5ee; color: var(--primary-dark); font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+#adminPanel .admin-nav .admin-nav-author {
+  margin-top: auto; padding: 12px 10px 4px; border-top: 1px solid var(--border);
+  font-size: 10px; color: #8a9a92; line-height: 1.5;
+}
+#adminPanel > .admin-body {
+  grid-column: 2; grid-row: 2; padding: 22px 24px;
+  max-width: none; margin: 0; min-width: 0;
+}
+#adminPanel .admin-mask { display: none; }
+
+/* 窄屏：手機／平板都用左側漢堡抽屜（同一個 .admin-nav，唔郁任何掣） */
+@media (max-width: 900px) {
+  #adminPanel { display: block; }
+  #adminPanel > .admin-header { height: 52px; padding: 0 12px; }
+  #adminPanel .admin-header .header-title-text { display: none; }
+  #adminPanel .admin-header .logo-sm img { height: 20px; }
+  #adminPanel .admin-header .header-right .btn { padding: 4px 8px; font-size: 10px; }
+  #adminPanel .admin-header .header-right { gap: 5px; }
+  .admin-burger { display: flex; }
+  #adminPanel > .admin-nav {
+    position: absolute; z-index: 30; left: 0; top: 52px; bottom: 0; width: 250px;
+    transform: translateX(-101%); transition: transform .22s ease;
+    border-bottom: 0; box-shadow: 8px 0 24px rgba(13,51,35,.16);
+  }
+  #adminPanel.drawer-open > .admin-nav { transform: translateX(0); }
+  #adminPanel > .admin-body { padding: 14px; }
+  #adminPanel .admin-mask {
+    display: none; position: absolute; z-index: 25;
+    inset: 52px 0 0 0; background: rgba(13,51,35,.34);
+  }
+  #adminPanel.drawer-open .admin-mask { display: block; }
+  #homeScreen .module-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  #homeScreen .center-card { padding: 20px 16px; }
+  #homeScreen .brand-bar .bb-sub { display: none; }
+}
+
+/* print：舊 @media print 用 .admin-header/.admin-nav，特異性低過上面 ID scope，喺度補返 */
+@media print {
+  #adminPanel { display: block !important; }
+  #adminPanel > .admin-header, #adminPanel > .admin-nav,
+  #adminPanel .admin-mask, .admin-burger { display: none !important; }
+  #adminPanel > .admin-body { padding: 0 !important; }
+}
+/* ===== END UI PRO 2026-11-13 ===== */

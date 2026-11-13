@@ -7,7 +7,7 @@
 <link rel="icon" href="img/favicon.ico">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="stylesheet" href="css/style.css?v=20261106">
+<link rel="stylesheet" href="css/style.css?v=20261113">
 </head>
 <body>
 
@@ -35,9 +35,9 @@
 <div id="adminPanel" class="screen" style="display:none">
   <header class="admin-header">
     <div class="header-left">
+      <button class="admin-burger" id="adminBurger" type="button" aria-label="開啟選單">&#9776;</button>
       <span class="logo-sm"><img src="img/biocycle-logo.png" alt="BIOCYCLE"></span>
       <span class="header-title-text">BIOCYCLE 技術員平台 (管理員) / OPERATION SYSTEM</span>
-      <span class="admin-author">系統作者 / System Author: <b>Hui Sum Sum</b></span>
     </div>
     <div class="header-right">
       <span id="adminNameDisplay"></span>
@@ -46,15 +46,18 @@
     </div>
   </header>
   
-  <nav class="admin-nav">
+  <nav class="admin-nav" id="adminNav">
+    <div class="nav-group-label">總覽</div>
     <button class="nav-btn active" data-tab="home" onclick="showTab('home')" id="tabHome">&#127968; 首頁</button>
     <button class="nav-btn" data-tab="dashboard" onclick="showTab('dashboard')" id="tabDashboard" style="display:none">&#128202; Dashboard</button>
+    <div class="nav-group-label">人員與考試</div>
     <button class="nav-btn" data-tab="employees" onclick="showTab('employees')" id="tabEmployees">&#128101; 員工管理</button>
     <button class="nav-btn" data-tab="admins" onclick="showTab('admins')" id="tabAdmins">&#128272; 管理員</button>
     <button class="nav-btn" data-tab="examConfig" onclick="showTab('examConfig')" id="tabExamConfig">&#128197; 考試配置</button>
     <button class="nav-btn" data-tab="results" onclick="showTab('results')" id="tabResults">&#128203; 成績查看</button>
     <button class="nav-btn" data-tab="grading" onclick="showTab('grading')" id="tabGrading" style="display:none">&#128221; 問答評分</button>
     <button class="nav-btn" data-tab="questionBank" onclick="showTab('questionBank')" id="tabQuestionBank">&#128218; 題庫管理</button>
+    <div class="nav-group-label">業務記錄</div>
     <button class="nav-btn" data-tab="warehouse" onclick="showTab('warehouse')" id="tabWarehouse">&#128230; 倉存管理</button>
     <button class="nav-btn" data-tab="commission" onclick="showTab('commission')" id="tabCommission">&#128176; 服務銷售佣金</button>
     <button class="nav-btn" data-tab="fleet" onclick="showTab('fleet')" id="tabFleet">&#128663; 車輛管理</button>
@@ -62,11 +65,15 @@
     <button class="nav-btn" data-tab="attReconcile" onclick="showTab('attReconcile')" id="tabAttReconcile">&#128269; 打卡對賬</button>
     <button class="nav-btn" data-tab="meetings" onclick="showTab('meetings')" id="tabMeetings">&#128220; 會議記錄</button>
     <button class="nav-btn" data-tab="feedback" onclick="showTab('feedback')" id="tabFeedback">&#128172; 意見箱</button>
+    <div class="nav-group-label">薪酬</div>
     <button class="nav-btn" data-tab="monthlyOt" onclick="showTab('monthlyOt')" id="tabMonthlyOt">&#128176; 月度OT出糧</button>
     <button class="nav-btn" data-tab="allowance" onclick="showTab('allowance')" id="tabAllowance">&#128176; 津貼 Allowance</button>
     <button class="nav-btn" data-tab="guaranteedPay" onclick="showTab('guaranteedPay')" id="tabGuaranteedPay">&#128737; 包薪 Guaranteed Pay</button>
+    <div class="nav-group-label">其他</div>
   <button class="nav-btn" data-tab="quiz" onclick="showTab('quiz')" id="tabQuiz">&#129514; 邏輯測驗 Quiz</button>
+    <div class="admin-nav-author">系統作者 / System Author:<br><b>Hui Sum Sum</b></div>
   </nav>
+  <div class="admin-mask" id="adminMask"></div>
   
   <main class="admin-body" id="adminBody"></main>
 </div>
@@ -179,7 +186,33 @@ function applyNavPermissions() {
     if (!need) return;
     b.style.display = hasPerm(need) ? '' : 'none';
   });
+  updateGroupVisibility();
 }
+
+/* UI-only：分組標題喺該組全部掣被權限收起時一齊收起（唔郁任何權限判斷） */
+function updateGroupVisibility() {
+  document.querySelectorAll('#adminNav .nav-group-label').forEach(function (label) {
+    var n = label.nextElementSibling, any = false;
+    while (n && !n.classList.contains('nav-group-label') && !n.classList.contains('admin-nav-author')) {
+      if (n.classList.contains('nav-btn') && n.style.display !== 'none') any = true;
+      n = n.nextElementSibling;
+    }
+    label.style.display = any ? '' : 'none';
+  });
+}
+
+/* UI-only：手機漢堡抽屜開關（nav-btn 嘅 onclick / showTab 完全唔郁） */
+(function () {
+  var panel = document.getElementById('adminPanel');
+  var burger = document.getElementById('adminBurger');
+  var mask = document.getElementById('adminMask');
+  var nav = document.getElementById('adminNav');
+  function closeDrawer() { panel.classList.remove('drawer-open'); }
+  burger.addEventListener('click', function () { panel.classList.toggle('drawer-open'); });
+  mask.addEventListener('click', closeDrawer);
+  nav.addEventListener('click', function (e) { if (e.target.closest('.nav-btn')) closeDrawer(); });
+  window.addEventListener('resize', function () { if (window.innerWidth > 900) closeDrawer(); });
+})();
 
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
